@@ -1,0 +1,27 @@
+{
+  "name": "azusa-player",
+  "background": {
+    "page": "background.html"
+  },
+  "browser_action": {
+    "default_icon": "icon-128.png"
+  },
+  "icons": {
+    "128": "icon-128.png"
+  },
+  "manifest_version": 2,
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+  "permissions": [
+    "cookies",
+    "downloads",
+    "webRequest",
+    "webRequestBlocking",
+    "storage",
+    "*://*.acgvideo.com/*",
+    "*://*.bilivideo.com/*",
+    "*://*.bilibili.com/*",
+    "*://*.hdslb.com/*",
+    "*://*.cgvideo.com/*",
+    "notifications"
+  ]
+}

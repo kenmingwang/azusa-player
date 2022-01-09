@@ -1,0 +1,14 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Roboto","Helvetica","Arial",sans-serif;
+}
+.react-jinke-music-player-main .music-player-panel {
+  background-image: url(https://github.com/kenmingwang/azusa-player/blob/react/image.png?raw=true);
+}
+.react-jinke-music-player-main .music-player-panel .panel-content .img-content {
+  background-position-y: center;
+  background-position-x: center;
+  background-size: 160%;
+}
