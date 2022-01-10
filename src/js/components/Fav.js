@@ -34,13 +34,14 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
     },
 }));
 
-export const Fav = ( function ({ songList, onSongListChange, onSongIndexChange }) {
-    const [ songs, setSongs ] = useState([])
+export const Fav = (function ({ songList, onSongListChange, onSongIndexChange, isFav }) {
+    const [songs, setSongs] = useState([])
 
-
-    useEffect(()=>{
+    useEffect(() => {
         setSongs(songList)
-    },[songList])
+        console.log(songList)
+    }, [songList])
+
     console.log('rener Fav')
     return (
         <TableContainer component={Paper}>
@@ -51,13 +52,16 @@ export const Fav = ( function ({ songList, onSongListChange, onSongIndexChange }
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {songs && songs.map((song, index) => (
+                    {songs && songs.map((song, index) => 
                         <StyledTableRow
                             key={index}
                             sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                         >
                             <StyledTableCell component="th" scope="row">
-                                <Button variant="text" sx={{ fontSize: 4 }} onClick={() => onSongIndexChange(index)} >{song.name}</Button>
+                                {isFav ?
+                                    <Button variant="text" sx={{ fontSize: 4 }} onClick={() => onSongIndexChange([song])} >{song.name}</Button> :
+                                    <Button variant="text" sx={{ fontSize: 4 }} onClick={() => onSongIndexChange(index)} >{song.name}</Button>
+                                }
                             </StyledTableCell>
                             <StyledTableCell align="right" sx={{ fontSize: 4 }}>{song.singer}</StyledTableCell>
                             <StyledTableCell align="right" sx={{ minWidth: 100 }}>
@@ -68,7 +72,7 @@ export const Fav = ( function ({ songList, onSongListChange, onSongIndexChange }
 
                             </StyledTableCell>
                         </StyledTableRow>
-                    ))}
+                    )}
                 </TableBody>
             </Table>
         </TableContainer>

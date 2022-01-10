@@ -19,46 +19,69 @@ const options = {
     showThemeSwitch: false,
     showLyric: false,
     toggleMode: false,
-    locale: 'zh_CN'
+    locale: 'zh_CN',
+    autoPlayInitLoadPlayList: true,
+    autoPlay: false,
+    defaultPlayIndex: 0,
 }
 
 export const Player = function ({ songList }) {
 
     // Params to init music player
     const [params, setparams] = useState(null)
-
-    // Current Lyric
-    const [lyric, setLyric] = useState('')
-
     // Current Audio info
     const [currentAudio, setcurrentAudio] = useState(null)
-
     // Current Audio Inst
     const [currentAudioInst, setcurrentAudioInst] = useState(null)
-    // The only list that will be played
-    const [defaultSongList, setDefaultSongList] = useState([])
-    // The persistent songLists that will be stored locally.
-    const [userSongList, setUserSongList] = useState([])
-    const [currentAudioList, setcurrentAudioList] = useState([])
 
-    const onSearchTrigger = (song) => {
-        console.log("onSearchTrigger", params)
+    const updateCurrentAudioList = useCallback(({ song, immediatePlay }) => {
+        console.log("updateCurrentAudioList", params)
+
         const newParam = {
-            quietUpdate: true,
             ...params,
-            audioLists: [
-                ...params.audioLists,
-                ...song
-            ]
+            quietUpdate: !immediatePlay,
+            clearPriorAudioLists: immediatePlay,
+            audioLists: immediatePlay ?
+                [
+                    ...song,
+                    ...params.audioLists,
+                ] :
+                [
+                    ...params.audioLists,
+                    ...song,
+                ]
         }
         setparams(newParam)
-        setcurrentAudioList(newParam.audioLists)
-    }
+    }, [params])
+
+    const onSearchTrigger = useCallback((song) => {
+        updateCurrentAudioList({ song: song, immediatePlay: false })
+    }, [params])
+
+    const onPlayOneFromFav = useCallback((song) => {
+
+        const existingIndex = params.audioLists.findIndex((s) => s.id == song[0].id)
+        console.log(existingIndex)
+        if (existingIndex != -1){
+            currentAudioInst.playByIndex(existingIndex)
+            return
+        }
+
+        updateCurrentAudioList({ song: song, immediatePlay: true })
+    }, [params])
 
     const playByIndex = useCallback((index) => {
         currentAudioInst.playByIndex(index)
     }, [currentAudioInst])
 
+    const onAudioPlayTrackChange = useCallback((currentPlayId, audioLists, audioInfo) => {
+        console.log(
+            'audio play track change:',
+            currentPlayId,
+            audioLists,
+            audioInfo,
+        )
+    }, [currentAudioInst])
 
     const onAudioError = (errMsg, currentPlayId, audioLists, audioInfo) => {
         console.error('audio error', errMsg, currentPlayId, audioLists, audioInfo)
@@ -66,7 +89,7 @@ export const Player = function ({ songList }) {
 
     const onAudioProgress = (audioInfo) => {
         //console.log('onAudioProgress: ', audioInfo)
-        //console.log(currentAudioInst && currentAudioInst.currentTime)
+        // console.log(audioInfo)
         setcurrentAudio(audioInfo)
     }
 
@@ -94,14 +117,12 @@ export const Player = function ({ songList }) {
         if (!songList)
             return;
 
-        setLyric(songList[0].lyric)
-
         const params = {
             ...options,
             audioLists: songList
         }
         setparams(params)
-        setcurrentAudioList(params.audioLists)
+
     }, [songList])
 
     // console.log('params')
@@ -115,11 +136,13 @@ export const Player = function ({ songList }) {
                 style={{ overflow: "auto" }}
                 sx={{ gridArea: "sidebar" }}
             >
-                {currentAudioList && <FavList currentAudioList={currentAudioList}
+                {params && <FavList currentAudioList={params.audioLists}
                     onSongIndexChange={playByIndex}
+                    onPlayOneFromFav={onPlayOneFromFav}
+                // onPlayAllFromFav
                 />}
             </Box>
-            {currentAudio && <Lyric lyric={lyric} currentTime={currentAudio.currentTime} />}
+            {currentAudio && <Lyric currentTime={currentAudio.currentTime} audioName={currentAudio.name} />}
             <Search onSearchTrigger={onSearchTrigger} />
             {params &&
                 <React.Fragment>
@@ -131,13 +154,13 @@ export const Player = function ({ songList }) {
                         sx={{ gridArea: "footer" }}
                     >
                         <ReactJkMusicPlayer
-                            quietUpdate={true}
                             onAudioError={onAudioError}
                             customDownloader={customDownloader}
                             showMediaSession
                             {...params}
                             onAudioProgress={onAudioProgress}
                             getAudioInstance={getAudioInstance}
+                            onAudioPlayTrackChange={onAudioPlayTrackChange}
                         />
                     </Box>
                 </React.Fragment>}

@@ -1,6 +1,7 @@
 export default class Song {
-    constructor(bvid, name, singer, cover, musicSrc, lyric) {
-        this.id = bvid
+    constructor(cid, bvid, name, singer, cover, musicSrc, lyric) {
+        this.id = cid
+        this.bvid = bvid
         this.name = name
         this.singer = singer
         this.cover = cover

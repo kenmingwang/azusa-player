@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import React, { useEffect, useState } from "react";
-import {updateSongList} from '../background/DataProcess'
+import {getSongList} from '../background/DataProcess'
 
 export const Search = function ({onSearchTrigger}) {
 
@@ -14,7 +14,7 @@ export const Search = function ({onSearchTrigger}) {
         // Enter clicked
         if (e.keyCode == 13) {
             console.log('value', e.target.value); // Validation of target Val
-            updateSongList({bvid:e.target.value}).then((song)=>{
+            getSongList(e.target.value).then((song)=>{
                 onSearchTrigger(song)
             })
             

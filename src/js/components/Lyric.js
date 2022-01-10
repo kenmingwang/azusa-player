@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import { withStyles } from '@mui/styles';
 import Grid from "@mui/material/Grid";
+import { fetchLRC } from '../utils/Data'
 
 const INTERVAL_OF_RECOVERING_AUTO_SCROLL_AFTER_USER_SCROLL = 5000;
 
@@ -18,7 +19,14 @@ const styles = theme => ({
 export const Lyric = withStyles(styles)((props) => {
 
     const [lyricOffset, setLyricOffset] = useState(0)
-    const { classes, lyric, currentTime, currentAudioInst } = props;
+    const [lyric, setLyric] = useState('')
+
+    const { classes, currentTime, audioName } = props;
+
+    useEffect(()=>{
+        console.log('Lrc changed to %s', audioName )
+        fetchLRC(audioName, setLyric)
+    },[audioName])
 
     function lineRenderer({ line: { startMillisecond, content }, index, active }) {
         // console.log(content)

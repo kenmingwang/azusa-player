@@ -13,7 +13,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (command === 'onSearch' && from === 'Search') {
         console.log(message.command);
 
-        updateSongList({ bvid: message.bvid, sendResponse: sendResponse })
+        getSongList({ bvid: message.bvid, sendResponse: sendResponse })
     }
 
     return true
@@ -34,7 +34,7 @@ export const initSongList = async (setCurrentSongList) => {
     //     console.log('Value is set to ' + value);
     // });
     const bvid = "BV1w44y1b7MX" 
-    const ss = await updateSongList({bvid:bvid})
+    const ss = await getSongList(bvid)
     setCurrentSongList(ss)
 }
 
@@ -63,23 +63,22 @@ const getFirstTimeData = () => {
 
 }
 
-export const updateSongList = async ({ bvid, sendResponse }) => {
+export const getSongList = async (bvid) => {
     const info = await fetchVideoInfo(bvid)
     let lrc = ""
     let songs = []
 
     // Case of single part video
     if (info.pages.length == 1){
-        lrc = await fetchLRC(info.title)
-        return ([new Song(bvid, info.title, info.uploader.name, info.picSrc, () => { return fetchPlayUrlPromise(bvid, info.pages[0].cid) }, lrc)])
+        // lrc = await fetchLRC(info.title)
+        return ([new Song(info.pages[0].cid, bvid, info.title, info.uploader.name, info.picSrc, () => { return fetchPlayUrlPromise(bvid, info.pages[0].cid) }, lrc)])
     }
 
     // Can't use forEach, does not support await
     for( let index = 0; index < info.pages.length; index++){
         let page = info.pages[index]
-        // if (lrc == "")
-        //     lrc = await fetchLRC(page.part)
-        songs.push(new Song(bvid, page.part, info.uploader.name, info.picSrc, () => { return fetchPlayUrlPromise(bvid, page.cid) }, lrc))
+        // lrc = fetchLRC(page.part)
+        songs.push(new Song(page.cid, bvid, page.part, info.uploader.name, info.picSrc, () => { return fetchPlayUrlPromise(bvid, page.cid) }, lrc))
     }
 
     return (songs)

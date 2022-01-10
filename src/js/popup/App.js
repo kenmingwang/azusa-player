@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PageLayout from './Layout'
-import URLParse from 'url-parse';
 import { initSongList, initFavLists } from '../background/DataProcess'
-import Song from '../objects/Song'
 
 export const App = function () {
 

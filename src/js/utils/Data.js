@@ -36,7 +36,7 @@ export const fetchCID = async (bvid) => {
 }
 
 // Refactor needed for this func
-export const fetchLRC = async (name) => {
+export const fetchLRC = async (name, setLyric) => {
     console.log('Data.js Calling: fetchLRC')
     // Get song mapping name and song name from title
     const res = await fetch(URL_LRC_MAPPING)
@@ -47,7 +47,13 @@ export const fetchLRC = async (name) => {
     const songFile = songs.find((v,i,a)=> v.includes(songName))
     // use song name to get the LRC
     const lrc = await fetch(URL_LRC_BASE.replace('{songFile}',songFile))
+    if(lrc.status != '200'){
+        setLyric('[00:00.000] 无法找到歌词')
+        return
+    }
+
     const text = await lrc.text()
+    setLyric(text.replaceAll('\r\n', '\n'))
     return text.replaceAll('\r\n', '\n')
 }
 
@@ -78,7 +84,11 @@ const extractResponseJson = (json, field) => {
 }
 
 const extractSongName = (name) => {
-    var nameReg = new RegExp("《.*》"); // For single-list BVID
+    var nameReg = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/ // Check if name is just one string, no special chars
+    if(!nameReg.test(name))
+        return(name)
+    
+    nameReg = new RegExp("《.*》"); // For single-list BVID, we need to extract name from title
     const res = nameReg.exec(name)
-    return(res.length > 0 ? res[0].substring(1,res[0].length-1) : "") // Remove the brackets
+    return(res && res.length > 0 ? res[0].substring(1,res[0].length-1) : "") // Remove the brackets
 }
