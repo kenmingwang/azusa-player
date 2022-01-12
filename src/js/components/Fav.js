@@ -52,19 +52,24 @@ export const Fav = (function ({ songList, onSongListChange, onSongIndexChange, i
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {songs && songs.map((song, index) => 
+                    {songs && songs.map((song, index) =>
                         <StyledTableRow
                             key={index}
                             sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                         >
                             <StyledTableCell component="th" scope="row">
                                 {isFav ?
-                                    <Button variant="text" sx={{ fontSize: 4 }} onClick={() => onSongIndexChange([song])} >{song.name}</Button> :
-                                    <Button variant="text" sx={{ fontSize: 4 }} onClick={() => onSongIndexChange(index)} >{song.name}</Button>
+                                    <Button variant="text" sx={{ fontSize: 4, minWidth: 0 }} onClick={() => onSongIndexChange([song])} >{song.name}</Button> :
+                                    <Button variant="text" sx={{ fontSize: 4, minWidth: 0 }} onClick={() => onSongIndexChange(index)} >{song.name}</Button>
                                 }
                             </StyledTableCell>
                             <StyledTableCell align="right" sx={{ fontSize: 4 }}>{song.singer}</StyledTableCell>
-                            <StyledTableCell align="right" sx={{ minWidth: 100 }}>
+                            <StyledTableCell align="right" sx={{
+                                minWidth: 'fit-content', maxWidth: 'fit-content',
+                                paddingRight: '8px', width: '0%',
+                                whiteSpace: 'nowrap'
+                            }}
+                            style={{paddingLeft: '40px'}}>
                                 <AddOutlinedIcon sx={{ width: '0.7em', height: '0.7em', paddingBottom: '2px' }} />
                                 <AddBoxOutlinedIcon sx={{ width: '0.7em', height: '0.7em', paddingBottom: '2px' }} />
                                 <DeleteOutlineOutlinedIcon sx={{ width: '0.7em', height: '0.7em', paddingBottom: '2px' }} />
@@ -75,6 +80,6 @@ export const Fav = (function ({ songList, onSongListChange, onSongIndexChange, i
                     )}
                 </TableBody>
             </Table>
-        </TableContainer>
+        </TableContainer >
     );
 })

@@ -25,9 +25,9 @@ export const Search = function ({onSearchTrigger}) {
         <React.Fragment>
             <Box // Top Grid -- Search  
                 sx={{
-                    gridArea: "search",
-                    borderBottom: 1
+                    gridArea: "search", 
                 }}
+                style={{paddingTop:'15px'}}
             >
                 <Box // Serch Grid -- SearchBox
                     sx={{ mx: "auto", textAlign: "center" }}>

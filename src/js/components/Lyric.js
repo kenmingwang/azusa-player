@@ -53,8 +53,8 @@ export const Lyric = withStyles(styles)((props) => {
     return (
         <React.Fragment>
             <Box // Mid Grid -- Lyric 
-                style={{ maxHeight: "100%", overflow: "hidden" }}
-                sx={{ gridArea: "Lrc", borderRight: 1, padding: '0.2em' }}
+                style={{ maxHeight: "100%", overflow: "hidden", paddingTop:'20px' }}
+                sx={{ gridArea: "Lrc", padding: '0.2em'  }}
             >
                 <Grid container direction="row" spacing="8" alignItems="center" justifyContent="center" >
                     <Grid  style={{paddingBottom:10}} item>

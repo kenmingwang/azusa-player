@@ -133,7 +133,7 @@ export const Player = function ({ songList }) {
         <React.Fragment>
             <Box // Mid Grid -- SideBar
                 className={ScrollBar().root}
-                style={{ overflow: "auto" }}
+                style={{ overflow: "auto", maxHeight:"96%" }}
                 sx={{ gridArea: "sidebar" }}
             >
                 {params && <FavList currentAudioList={params.audioLists}

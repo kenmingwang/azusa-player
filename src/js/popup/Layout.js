@@ -31,17 +31,11 @@ export default function PageLayout({ songList }) {
                     gridTemplateColumns: "repeat(3, 1fr)",
                     gap: 0,
                     gridTemplateRows: "72px 1fr",
-                    gridTemplateAreas: `"MediaDetail MediaDetail search"
+                    gridTemplateAreas: `"Lrc         Lrc         search"
                                         "Lrc         Lrc         sidebar"
                                         "footer      footer      footer"`
                 }}
             >
-                <Box // Top Grid -- MediaDetail
-                    style={{  }}
-                    sx={{ gridArea: "MediaDetail", borderRight: 1, borderBottom: 1 }}
-                >
-                    MediaDetail
-                </Box>
                 <Player songList={songList}/>
             </Box>
         </Box>

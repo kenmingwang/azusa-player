@@ -16,7 +16,6 @@ export const initFavLists = async (setFavLists) => {
             });
         }
     });
-
 }
 
 const initWithStorage = async (setFavLists, FavListIDs) => {
@@ -34,25 +33,19 @@ const initWithDefault = async (setFavLists) => {
 
     const value = {
         songList: await getSongList(INITIAL_PLAYLIST),
-        info: { title: 'Default List 1', id: ('FavList-' + uuidv4()) }
+        info: { title: '默认歌单1', id: ('FavList-' + uuidv4()) }
     }
-
-    chrome.storage.local.set({ [value.info.id]: value }, function () {
-        console.log('key is set to ' + value.info.id);
-        console.log('Value is set to ' + value);
-
-    });
 
     const value2 = {
         songList: await getSongList('BV1Ya411z7WL'),
-        info: { title: 'Default List 2', id: ('FavList-' + uuidv4()) }
+        info: { title: '默认歌单2', id: ('FavList-' + uuidv4()) }
     }
 
-    chrome.storage.local.set({ [value2.info.id]: value2 }, function () {
-        console.log('key is set to ' + value2.info.id);
+    chrome.storage.local.set({ [value.info.id]: value, [value2.info.id]: value2 }, function () {
+        console.log('key is set to ' + value.info.id);
         console.log('Value is set to ' + value);
+        chrome.storage.local.set({ 'MyFavList': [value.info.id, value2.info.id] }, function () {
+            setFavLists([value, value2])
+        })
     });
-
-    chrome.storage.local.set({ 'MyFavList': [value.info.id, value2.info.id] })
-    setFavLists([value, value2])
 }
