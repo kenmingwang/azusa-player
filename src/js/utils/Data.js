@@ -36,25 +36,32 @@ export const fetchCID = async (bvid) => {
 }
 
 // Refactor needed for this func
-export const fetchLRC = async (name, setLyric) => {
+export const fetchLRC = async (name, setLyric, setSongTitle) => {
     console.log('Data.js Calling: fetchLRC')
     // Get song mapping name and song name from title
     const res = await fetch(URL_LRC_MAPPING)
     const mappings = await res.text()
     const songs = mappings.split("\n")
     const songName = extractSongName(name)
+    setSongTitle(songName)
 
     const songFile = songs.find((v,i,a)=> v.includes(songName))
     // use song name to get the LRC
-    const lrc = await fetch(URL_LRC_BASE.replace('{songFile}',songFile))
-    if(lrc.status != '200'){
+    try{
+        const lrc = await fetch(URL_LRC_BASE.replace('{songFile}',songFile))
+        if(lrc.status != '200'){
+            setLyric('[00:00.000] 无法找到歌词')
+            return
+        }
+    
+        const text = await lrc.text()
+        setLyric(text.replaceAll('\r\n', '\n'))
+        return text.replaceAll('\r\n', '\n')
+    }catch(error){
         setLyric('[00:00.000] 无法找到歌词')
         return
     }
 
-    const text = await lrc.text()
-    setLyric(text.replaceAll('\r\n', '\n'))
-    return text.replaceAll('\r\n', '\n')
 }
 
 export const fetchVideoInfo = async (bvid) => {
@@ -83,12 +90,13 @@ const extractResponseJson = (json, field) => {
     }
 }
 
-const extractSongName = (name) => {
-    var nameReg = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/ // Check if name is just one string, no special chars
-    if(!nameReg.test(name))
-        return(name)
-    
-    nameReg = new RegExp("《.*》"); // For single-list BVID, we need to extract name from title
+const extractSongName = (name) => {   
+    const nameReg = new RegExp("《.*》"); // For single-list BVID, we need to extract name from title
     const res = nameReg.exec(name)
-    return(res && res.length > 0 ? res[0].substring(1,res[0].length-1) : "") // Remove the brackets
+    if(res)
+        return(res.length > 0 ? res[0].substring(1,res[0].length-1) : "") // Remove the brackets
+
+    // var nameReg = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/ // Check if name is just one string, no special chars
+    // if(!nameReg.test(name))
+    return(name)
 }

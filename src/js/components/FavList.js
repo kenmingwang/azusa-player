@@ -4,6 +4,8 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import PlaylistPlayIcon from '@mui/icons-material/PlaylistPlay';
+import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 import Collapse from '@mui/material/Collapse';
 import AlbumOutlinedIcon from '@mui/icons-material/AlbumOutlined';
 import ExpandLess from '@mui/icons-material/ExpandLess';
@@ -21,10 +23,10 @@ const CRUDBtn = {
     ':hover': {
         cursor: 'default'
     },
-    marginTop: '-100px',
-    paddingBottom: '100px',
-    marginBottom: '-100px',
-    paddingTop: '100px',
+    marginTop: '-30px',
+    paddingBottom: '30px',
+    marginBottom: '-30px',
+    paddingTop: '30px',
     paddingLeft: '8px',
     paddingRight: '8px'
 }
@@ -32,7 +34,20 @@ const CRUDBtn = {
 const CRUDIcon = {
     ':hover': {
         cursor: 'pointer'
-    }, width: '0.7em', height: '0.7em', paddingBottom: '2px'
+    }, 
+    width: '0.7em', 
+    height: '0.7em', 
+    paddingBottom: '2px',
+    color:'#ab5fff'
+}
+
+const CRUDIconCurrent = {
+    ':hover': {
+        cursor: 'not-allowed'
+    }, 
+    width: '0.7em', 
+    height: '0.7em', 
+    paddingBottom: '2px',
 }
 
 export const FavList = memo(function ({ currentAudioList, onSongListChange, onSongIndexChange, onPlayOneFromFav }) {
@@ -43,6 +58,16 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
         if (open.get('CurrentPlayList') == undefined)
             setOpen(open.set('CurrentPlayList', true))
     }, [currentAudioList])
+
+    useEffect(() => {
+        if(favLists == null)
+            return
+        favLists.map((v) => {
+            if (open.get(v.info.id) == undefined)
+                setOpen(open.set(v.info.id, false))
+        })
+
+    }, [favLists])
 
     useEffect(() => {
         console.log('fav effect')
@@ -65,7 +90,7 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
     console.log(favLists)
     return (
         <List
-            sx={{ width: '100%', bgcolor: 'background.paper' }}
+            sx={{ width: '100%' }}
             component="nav"
         >
             <ListItemButton
@@ -74,16 +99,17 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
                 <ListItemButton
                     onClick={() => handleClick('CurrentPlayList')} key={0}>
                     <ListItemIcon>
-                        <AlbumOutlinedIcon />
+                        <QueueMusicIcon />
                     </ListItemIcon>
-                    <ListItemText sx={{ color: '#9600af94' }} primary="当前歌单" />
+                    <ListItemText sx={{ color: '#9600af94' }} primary="正在播放" />
                     {open.get('CurrentPlayList') ? <ExpandLess /> : <ExpandMore />}
                 </ListItemButton>
 
                 <Box component="div" sx={CRUDBtn}>
-                    <AddOutlinedIcon sx={CRUDIcon} onClick={handleAddFav} />
-                    <AddBoxOutlinedIcon sx={CRUDIcon} />
-                    <DeleteOutlineOutlinedIcon sx={CRUDIcon} />
+                    <PlaylistPlayIcon sx={CRUDIconCurrent} />
+                    <AddOutlinedIcon sx={CRUDIconCurrent} onClick={handleAddFav} />
+                    <AddBoxOutlinedIcon sx={CRUDIconCurrent} />
+                    <DeleteOutlineOutlinedIcon sx={CRUDIconCurrent} />
                 </Box>
             </ListItemButton>
             <Collapse in={open.get('CurrentPlayList')} timeout="auto" unmountOnExit>
@@ -102,20 +128,21 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
                         disableRipple
                         sx={outerLayerBtn}
                         >
-                        <ListItemButton onClick={handleClick} id={v.info.id} >
+                        <ListItemButton onClick={() => handleClick(v.info.id)} id={v.info.id} >
                             <ListItemIcon >
                                 <AlbumOutlinedIcon />
                             </ListItemIcon>
                             <ListItemText sx={{ color: '#9600af94' }} primary={v.info.title} />
-                            {open.get('CurrentPlayList') ? <ExpandLess /> : <ExpandMore />}
+                            {open.get(v.info.id) ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
                         <Box component="div" sx={CRUDBtn}>
+                            <PlaylistPlayIcon sx={CRUDIcon} />
                             <AddOutlinedIcon sx={CRUDIcon} onClick={handleAddFav} />
                             <AddBoxOutlinedIcon sx={CRUDIcon} />
                             <DeleteOutlineOutlinedIcon sx={CRUDIcon} />
                         </Box>
                     </ListItemButton>
-                    <Collapse in={open.get('CurrentPlayList')} timeout="auto" unmountOnExit >
+                    <Collapse in={open.get(v.info.id)} timeout="auto" unmountOnExit >
                         <List component="div" disablePadding >
                             <Fav songList={v.songList}
                                 onSongListChange={onSongListChange}

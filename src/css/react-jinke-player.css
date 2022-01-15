@@ -368,7 +368,7 @@
   display: inline-flex;
 }
 .react-jinke-music-player-main .loading svg {
-  color: #31c27c;
+  color: #8c98ff;
   font-size: 24px;
 }
 .react-jinke-music-player-main .translate {
@@ -513,7 +513,7 @@
 }
 .react-jinke-music-player-mobile-play-model-tip {
   align-items: center;
-  background-color: #31c27c;
+  background-color: #8c98ff;
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
   color: #fff;
   display: flex;
@@ -664,13 +664,13 @@
 }
 .react-jinke-music-player-mobile-progress .rc-slider-handle,
 .react-jinke-music-player-mobile-progress .rc-slider-track {
-  background-color: #31c27c;
+  background-color: #8c98ff;
 }
 .react-jinke-music-player-mobile-progress .rc-slider-handle {
   border: 2px solid #fff;
 }
 .react-jinke-music-player-mobile-progress .rc-slider-handle:active {
-  box-shadow: 0 0 2px #31c27c;
+  box-shadow: 0 0 2px #8c98ff;
 }
 .react-jinke-music-player-mobile-progress-bar {
   display: flex;
@@ -757,7 +757,7 @@
   background-color: rgba(49, 194, 124, 0.15) !important;
 }
 .audio-lists-panel {
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: #4d388f;
   border-radius: 4px 4px 0 0;
   bottom: 80px;
   color: hsla(0, 0%, 100%, 0.8);
@@ -902,7 +902,7 @@
 }
 .audio-lists-panel-content .audio-item.playing,
 .audio-lists-panel-content .audio-item.playing svg {
-  color: #31c27c;
+  color: #8c98ff;
 }
 .audio-lists-panel-content .audio-item.remove {
   animation: remove 0.35s cubic-bezier(0.43, -0.1, 0.16, 1.1) forwards;
@@ -926,7 +926,7 @@
   .audio-item:hover
   .group:not([class=".player-delete"])
   svg {
-  color: #31c27c;
+  color: #8c98ff;
 }
 .audio-lists-panel-content .audio-item .group {
   display: inline-flex;
@@ -960,7 +960,7 @@
   touch-action: none;
 }
 .react-jinke-music-player-main ::-webkit-scrollbar-thumb {
-  background-color: #31c27c;
+  background-color: #8c98ff;
   height: 20px;
   opacity: 0.5;
 }
@@ -976,12 +976,12 @@
 }
 .react-jinke-music-player-main .lyric-btn-active,
 .react-jinke-music-player-main .lyric-btn-active svg {
-  color: #31c27c !important;
+  color: #8c98ff !important;
 }
 .react-jinke-music-player-main .music-player-lyric {
   background: transparent;
   bottom: 100px;
-  color: #31c27c;
+  color: #8c98ff;
   cursor: move;
   font-size: 36px;
   left: 0;
@@ -1043,7 +1043,7 @@
 }
 .react-jinke-music-player-main svg:active,
 .react-jinke-music-player-main svg:hover {
-  color: #31c27c;
+  color: #8c98ff;
 }
 @media screen and (max-width: 767px) {
   .react-jinke-music-player-main svg {
@@ -1088,7 +1088,7 @@
   .music-player-panel
   .panel-content
   .rc-slider-track {
-  background-color: #31c27c;
+  background-color: #8c98ff;
 }
 .react-jinke-music-player-main
   .music-player-panel
@@ -1100,7 +1100,7 @@
   .music-player-panel
   .panel-content
   .rc-slider-handle:active {
-  box-shadow: 0 0 2px #31c27c;
+  box-shadow: 0 0 2px #8c98ff;
 }
 .react-jinke-music-player-main .music-player-panel .panel-content .img-content {
   background-repeat: no-repeat;
@@ -1217,7 +1217,7 @@
     rgba(0, 0, 0, 0.05) 67%,
     transparent 69%
   );
-  background-color: #31c27c;
+  background-color: #8c98ff;
   display: inline-block;
   height: 5px;
   left: 0;
@@ -1341,7 +1341,7 @@
   .player-content
   > .group
   > i {
-  color: #31c27c;
+  color: #8c98ff;
   cursor: pointer;
   font-size: 25px;
   vertical-align: middle;
@@ -1402,7 +1402,7 @@
   .panel-content
   .player-content
   .loop-btn.active {
-  color: #31c27c;
+  color: #8c98ff;
 }
 .react-jinke-music-player-main
   .music-player-panel
@@ -1481,7 +1481,7 @@
   .audio-lists-btn
   > .group:hover
   > svg {
-  color: #31c27c;
+  color: #8c98ff;
 }
 .react-jinke-music-player-main
   .music-player-panel
@@ -1499,7 +1499,7 @@
   transition: background-color 0.35s cubic-bezier(0.43, -0.1, 0.16, 1.1);
 }
 .react-jinke-music-player-main.light-theme svg {
-  color: #31c27c;
+  color: #8c98ff;
 }
 .react-jinke-music-player-main.light-theme svg:active,
 .react-jinke-music-player-main.light-theme svg:hover {
@@ -1532,8 +1532,8 @@
   background-color: #fff;
 }
 .react-jinke-music-player-main.light-theme .rc-switch-checked {
-  background-color: #31c27c !important;
-  border: 1px solid #31c27c;
+  background-color: #8c98ff !important;
+  border: 1px solid #8c98ff;
 }
 .react-jinke-music-player-main.light-theme .rc-switch-inner {
   color: #fff;
@@ -1578,7 +1578,7 @@
   .audio-lists-panel
   .audio-item.playing
   svg {
-  color: #31c27c !important;
+  color: #8c98ff !important;
 }
 @media screen and (max-width: 767px) {
   .react-jinke-music-player-main.light-theme .audio-lists-panel .audio-item {
@@ -1596,7 +1596,7 @@
     .audio-lists-panel
     .audio-item.playing
     svg {
-    color: #31c27c !important;
+    color: #8c98ff !important;
   }
 }
 .react-jinke-music-player-main.light-theme .audio-lists-panel-header {
@@ -1618,16 +1618,16 @@
 }
 .react-jinke-music-player-main.light-theme .audio-item:active svg,
 .react-jinke-music-player-main.light-theme .audio-item:hover svg {
-  color: #31c27c;
+  color: #8c98ff;
 }
 .react-jinke-music-player-main.light-theme .audio-item.playing {
   background-color: #fafafa !important;
 }
 .react-jinke-music-player-main.light-theme .audio-item.playing svg {
-  color: #31c27c;
+  color: #8c98ff;
 }
 .react-jinke-music-player-main.light-theme .audio-item.playing .player-singer {
-  color: #31c27c !important;
+  color: #8c98ff !important;
 }
 .react-jinke-music-player-main.light-theme .audio-item .player-singer {
   color: hsla(0, 0%, 63.5%, 0.45) !important;
@@ -1677,7 +1677,7 @@
 }
 .react-jinke-music-player-main.light-theme .play-mode-title {
   background-color: #fff;
-  color: #31c27c;
+  color: #8c98ff;
 }
 .react-jinke-music-player {
   height: 80px;
@@ -1731,7 +1731,7 @@
   border: 1px solid #e6e6e6;
   border-radius: 50%;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
-  color: #31c27c;
+  color: #8c98ff;
   cursor: pointer;
   display: flex;
   font-size: 20px;
@@ -1836,7 +1836,7 @@
   stroke: #fff;
 }
 .react-jinke-music-player .audio-circle-process-bar circle[class="stroke"] {
-  stroke: #31c27c;
+  stroke: #8c98ff;
 }
 .react-jinke-music-player .audio-circle-process-bar,
 .react-jinke-music-player .audio-circle-process-bar circle {

@@ -20,22 +20,24 @@ export const Lyric = withStyles(styles)((props) => {
 
     const [lyricOffset, setLyricOffset] = useState(0)
     const [lyric, setLyric] = useState('')
+    const [songTitle, setSongTitle] = useState('')
 
     const { classes, currentTime, audioName } = props;
 
-    useEffect(()=>{
-        console.log('Lrc changed to %s', audioName )
-        fetchLRC(audioName, setLyric)
-    },[audioName])
+    useEffect(() => {
+        console.log('Lrc changed to %s', audioName)
+        fetchLRC(audioName, setLyric, setSongTitle)
+    }, [audioName])
 
     function lineRenderer({ line: { startMillisecond, content }, index, active }) {
         // console.log(content)
         return (
             <div style={{
                 textAlign: 'center',
-                color: active ? 'green' : 'purple',
+                color: active ? '#c660e7' : '#4d388f',
                 padding: '6px 12px',
                 fontSize: active ? '18px' : '15px',
+                fontFamily: 'Georgia,\'Microsoft YaHei\',simsun,serif'
             }}>
                 {content}
             </div>
@@ -53,11 +55,11 @@ export const Lyric = withStyles(styles)((props) => {
     return (
         <React.Fragment>
             <Box // Mid Grid -- Lyric 
-                style={{ maxHeight: "100%", overflow: "hidden", paddingTop:'20px' }}
-                sx={{ gridArea: "Lrc", padding: '0.2em'  }}
+                style={{ maxHeight: "100%", overflow: "hidden", paddingTop: '20px' }}
+                sx={{ gridArea: "Lrc", padding: '0.2em' }}
             >
                 <Grid container direction="row" spacing="8" alignItems="center" justifyContent="center" >
-                    <Grid  style={{paddingBottom:10}} item>
+                    <Grid style={{ paddingBottom: 10 }} item>
                         <TextField
                             type="number"
                             variant="outlined"
@@ -74,7 +76,7 @@ export const Lyric = withStyles(styles)((props) => {
                             onChange={e => setLyricOffset(e.target.value)}
                         />
                     </Grid>
-                    <Grid style={{paddingBottom:10}} item>
+                    <Grid style={{ paddingBottom: 10 }} item>
                         <TextField
                             variant="outlined"
                             label="歌词搜索"
@@ -84,6 +86,7 @@ export const Lyric = withStyles(styles)((props) => {
                             InputLabelProps={{
                                 shrink: true
                             }}
+                            value={songTitle}
                         />
                     </Grid>
                 </Grid>

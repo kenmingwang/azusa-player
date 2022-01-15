@@ -11,7 +11,22 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
-import { BiliBiliIcon } from "../../img/bilibiliIcon";
+
+const CRUDIcon = {
+    ':hover': {
+        cursor: 'pointer'
+    },
+    width: '0.7em',
+    height: '0.7em',
+    paddingBottom: '2px',
+    color: '#8e5fab'
+}
+
+const songText = {
+    fontSize: 4,
+    minWidth: 0,
+    color: '#b395fd'
+}
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': {
@@ -33,6 +48,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
         padding: 0
     },
 }));
+
 
 export const Fav = (function ({ songList, onSongListChange, onSongIndexChange, isFav }) {
     const [songs, setSongs] = useState([])
@@ -59,22 +75,24 @@ export const Fav = (function ({ songList, onSongListChange, onSongIndexChange, i
                         >
                             <StyledTableCell component="th" scope="row">
                                 {isFav ?
-                                    <Button variant="text" sx={{ fontSize: 4, minWidth: 0 }} onClick={() => onSongIndexChange([song])} >{song.name}</Button> :
-                                    <Button variant="text" sx={{ fontSize: 4, minWidth: 0 }} onClick={() => onSongIndexChange(index)} >{song.name}</Button>
+                                    <Button variant="text" sx={songText} onClick={() => onSongIndexChange([song])} >{song.name}</Button> :
+                                    <Button variant="text" sx={songText} onClick={() => onSongIndexChange(index)} >{song.name}</Button>
                                 }
                             </StyledTableCell>
-                            <StyledTableCell align="right" sx={{ fontSize: 4 }}>{song.singer}</StyledTableCell>
+                            <StyledTableCell align="right" sx={songText}>
+                                <a href={"https://space.bilibili.com/"+song.singerId} target="_blank" style={{ color:'inherit', textDecoration: 'none' }} >
+                                    {song.singer}
+                                </a>
+                            </StyledTableCell>
                             <StyledTableCell align="right" sx={{
                                 minWidth: 'fit-content', maxWidth: 'fit-content',
                                 paddingRight: '8px', width: '0%',
                                 whiteSpace: 'nowrap'
                             }}
-                            style={{paddingLeft: '40px'}}>
-                                <AddOutlinedIcon sx={{ width: '0.7em', height: '0.7em', paddingBottom: '2px' }} />
-                                <AddBoxOutlinedIcon sx={{ width: '0.7em', height: '0.7em', paddingBottom: '2px' }} />
-                                <DeleteOutlineOutlinedIcon sx={{ width: '0.7em', height: '0.7em', paddingBottom: '2px' }} />
-                                <BiliBiliIcon sx={{ width: '0.7em', height: '0.7em', paddingBottom: '2px' }} />
-
+                                style={{ paddingLeft: '40px', paddingRight: '8px' }}>
+                                <AddOutlinedIcon sx={CRUDIcon} />
+                                <AddBoxOutlinedIcon sx={CRUDIcon} />
+                                <DeleteOutlineOutlinedIcon sx={CRUDIcon} />
                             </StyledTableCell>
                         </StyledTableRow>
                     )}

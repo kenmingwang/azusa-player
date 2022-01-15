@@ -11,6 +11,7 @@ import { Lyric } from './Lyric'
 import { FavList } from '../components/FavList'
 import { Search } from '../components/Search'
 import LinearProgress from '@mui/material/LinearProgress';
+import { BiliBiliIcon } from "../../img/bilibiliIcon";
 
 // Initial Player options
 const options = {
@@ -22,7 +23,7 @@ const options = {
     locale: 'zh_CN',
     autoPlayInitLoadPlayList: true,
     autoPlay: false,
-    defaultPlayIndex: 0,
+    defaultPlayIndex: 0
 }
 
 export const Player = function ({ songList }) {
@@ -62,7 +63,7 @@ export const Player = function ({ songList }) {
 
         const existingIndex = params.audioLists.findIndex((s) => s.id == song[0].id)
         console.log(existingIndex)
-        if (existingIndex != -1){
+        if (existingIndex != -1) {
             currentAudioInst.playByIndex(existingIndex)
             return
         }
@@ -74,14 +75,21 @@ export const Player = function ({ songList }) {
         currentAudioInst.playByIndex(index)
     }, [currentAudioInst])
 
-    const onAudioPlayTrackChange = useCallback((currentPlayId, audioLists, audioInfo) => {
-        console.log(
-            'audio play track change:',
-            currentPlayId,
-            audioLists,
-            audioInfo,
-        )
-    }, [currentAudioInst])
+    const onAudioPlay = useCallback((audioInfo) => {
+        console.log('audio playing', audioInfo)
+        const link = 'https://www.bilibili.com/video/' + audioInfo.bvid
+        const newParam = {
+            ...params,
+            extendsContent: (
+                <span className="group audio-download" title="Bilibili">
+                    <a href={link} target="_blank" style={{ color:'inherit', textDecloration: 'none' }}>
+                        <BiliBiliIcon />
+                    </a>
+                </span >
+            )
+        }
+        setparams(newParam)
+    }, [params])
 
     const onAudioError = (errMsg, currentPlayId, audioLists, audioInfo) => {
         console.error('audio error', errMsg, currentPlayId, audioLists, audioInfo)
@@ -117,6 +125,16 @@ export const Player = function ({ songList }) {
         if (!songList)
             return;
 
+        var link = ''
+        if (songList[0] != undefined)
+            link = 'https://www.bilibili.com/video/' + songList[0].bvid
+        options.extendsContent = (
+            <span className="group audio-download" title="Bilibili">
+                <a href={link} target="_blank" style={{ color:'inherit', textDecloration: 'none' }}>
+                    <BiliBiliIcon />
+                </a>
+            </span >
+        )
         const params = {
             ...options,
             audioLists: songList
@@ -133,7 +151,7 @@ export const Player = function ({ songList }) {
         <React.Fragment>
             <Box // Mid Grid -- SideBar
                 className={ScrollBar().root}
-                style={{ overflow: "auto", maxHeight:"96%" }}
+                style={{ overflow: "auto", maxHeight: "96%" }}
                 sx={{ gridArea: "sidebar" }}
             >
                 {params && <FavList currentAudioList={params.audioLists}
@@ -160,7 +178,7 @@ export const Player = function ({ songList }) {
                             {...params}
                             onAudioProgress={onAudioProgress}
                             getAudioInstance={getAudioInstance}
-                            onAudioPlayTrackChange={onAudioPlayTrackChange}
+                            onAudioPlay={onAudioPlay}
                         />
                     </Box>
                 </React.Fragment>}

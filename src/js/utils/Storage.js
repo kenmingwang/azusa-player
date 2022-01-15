@@ -21,11 +21,18 @@ export const initFavLists = async (setFavLists) => {
 const initWithStorage = async (setFavLists, FavListIDs) => {
     chrome.storage.local.get(FavListIDs, function (result) {
         var FavLists = []
+        var FavListsSorted = []
+        // Sort result base on ID
         for (var [key, value] of Object.entries(result)) {
             value.songList.map((v) => v['musicSrc'] = () => { return fetchPlayUrlPromise(v.bvid, v.id) })
             FavLists.push(value)
+            
         }
-        setFavLists(FavLists)
+        FavListIDs.map((id) => {
+            FavListsSorted.push(FavLists.find((v) => v.info.id == id))
+        })
+        console.log(FavListsSorted)
+        setFavLists(FavListsSorted)
     })
 }
 

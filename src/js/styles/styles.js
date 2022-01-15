@@ -9,12 +9,12 @@ export const ScrollBar = makeStyles((theme) => ({
         },
 
         "&::-webkit-scrollbar-thumb": {
-            height: "49px",
+            height: "29px",
             border: "5px solid rgba(0, 0, 0, 0)",
             backgroundClip: "padding-box",
             borderRadius: "7px",
             "-webkit-border-radius": "7px",
-            backgroundColor: "#9370DB"
+            backgroundColor: "#c6acfc"
         },
     },
 }));
