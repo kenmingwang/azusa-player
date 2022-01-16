@@ -1,7 +1,7 @@
 import ReactJkMusicPlayer from 'react-jinke-music-player'
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { hot } from "react-hot-loader";
-import { ScrollBar } from "../styles/styles";
+
 import '../../css/react-jinke-player.css'
 import icon from "../../img/icon-128.png"
 import lrc from "../../img/lrc.txt"
@@ -12,6 +12,7 @@ import { FavList } from '../components/FavList'
 import { Search } from '../components/Search'
 import LinearProgress from '@mui/material/LinearProgress';
 import { BiliBiliIcon } from "../../img/bilibiliIcon";
+import { LyricOverlay } from './LyricOverlay'
 
 // Initial Player options
 const options = {
@@ -34,6 +35,8 @@ export const Player = function ({ songList }) {
     const [currentAudio, setcurrentAudio] = useState(null)
     // Current Audio Inst
     const [currentAudioInst, setcurrentAudioInst] = useState(null)
+    // Lyric Dialog
+    const [showLyric, setShowLyric] = useState(false)
 
     const updateCurrentAudioList = useCallback(({ song, immediatePlay }) => {
         console.log("updateCurrentAudioList", params)
@@ -82,7 +85,7 @@ export const Player = function ({ songList }) {
             ...params,
             extendsContent: (
                 <span className="group audio-download" title="Bilibili">
-                    <a href={link} target="_blank" style={{ color:'inherit', textDecloration: 'none' }}>
+                    <a href={link} target="_blank" style={{ color: 'inherit', textDecloration: 'none' }}>
                         <BiliBiliIcon />
                     </a>
                 </span >
@@ -118,6 +121,9 @@ export const Player = function ({ songList }) {
                 link.click()
             }).catch(err => console.error(err));
     }
+    const onCoverClick = (mode, audioLists, audioInfo) => {
+        setShowLyric(!showLyric)
+    }
 
     // Initialization effect
     useEffect(() => {
@@ -130,7 +136,7 @@ export const Player = function ({ songList }) {
             link = 'https://www.bilibili.com/video/' + songList[0].bvid
         options.extendsContent = (
             <span className="group audio-download" title="Bilibili">
-                <a href={link} target="_blank" style={{ color:'inherit', textDecloration: 'none' }}>
+                <a href={link} target="_blank" style={{ color: 'inherit', textDecloration: 'none' }}>
                     <BiliBiliIcon />
                 </a>
             </span >
@@ -149,18 +155,15 @@ export const Player = function ({ songList }) {
     // console.log(currentAudio && currentAudio.currentTime)
     return (
         <React.Fragment>
-            <Box // Mid Grid -- SideBar
-                className={ScrollBar().root}
-                style={{ overflow: "auto", maxHeight: "96%" }}
-                sx={{ gridArea: "sidebar" }}
-            >
-                {params && <FavList currentAudioList={params.audioLists}
-                    onSongIndexChange={playByIndex}
-                    onPlayOneFromFav={onPlayOneFromFav}
-                // onPlayAllFromFav
-                />}
-            </Box>
-            {currentAudio && <Lyric currentTime={currentAudio.currentTime} audioName={currentAudio.name} />}
+            {params && <FavList currentAudioList={params.audioLists}
+                onSongIndexChange={playByIndex}
+                onPlayOneFromFav={onPlayOneFromFav}
+            // onPlayAllFromFav
+            />}
+            {currentAudio && <LyricOverlay
+                showLyric={showLyric}
+                currentTime={currentAudio.currentTime}
+                audioName={currentAudio.name} />}
             <Search onSearchTrigger={onSearchTrigger} />
             {params &&
                 <React.Fragment>
@@ -179,6 +182,7 @@ export const Player = function ({ songList }) {
                             onAudioProgress={onAudioProgress}
                             getAudioInstance={getAudioInstance}
                             onAudioPlay={onAudioPlay}
+                            onCoverClick={onCoverClick}
                         />
                     </Box>
                 </React.Fragment>}

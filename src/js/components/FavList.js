@@ -16,6 +16,7 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import { initFavLists } from '../utils/Storage'
+import { ScrollBar } from "../styles/styles";
 
 const outerLayerBtn = { padding: 'unset' }
 
@@ -34,25 +35,26 @@ const CRUDBtn = {
 const CRUDIcon = {
     ':hover': {
         cursor: 'pointer'
-    }, 
-    width: '0.7em', 
-    height: '0.7em', 
+    },
+    width: '0.7em',
+    height: '0.7em',
     paddingBottom: '2px',
-    color:'#ab5fff'
+    color: '#ab5fff'
 }
 
 const CRUDIconCurrent = {
     ':hover': {
         cursor: 'not-allowed'
-    }, 
-    width: '0.7em', 
-    height: '0.7em', 
+    },
+    width: '0.7em',
+    height: '0.7em',
     paddingBottom: '2px',
 }
 
 export const FavList = memo(function ({ currentAudioList, onSongListChange, onSongIndexChange, onPlayOneFromFav }) {
     const [open, setOpen] = useState(new Map());
     const [favLists, setFavLists] = useState(null)
+    const [selectedList, setSelectedList] = useState(null)
 
     useEffect(() => {
         if (open.get('CurrentPlayList') == undefined)
@@ -60,7 +62,7 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
     }, [currentAudioList])
 
     useEffect(() => {
-        if(favLists == null)
+        if (favLists == null)
             return
         favLists.map((v) => {
             if (open.get(v.info.id) == undefined)
@@ -76,9 +78,10 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
         console.log(favLists)
     }, [])
 
-    const handleClick = useCallback((id) => {
+    const handleClick = useCallback((id, v) => {
         // Need to make a new map as Memo is checking for ref.
         setOpen(new Map(open.set(id, !open.get(id))));
+        setSelectedList(v)
         // console.log(open.get('CurrentPlayList'))
     });
 
@@ -89,71 +92,48 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
     console.log('render favlist')
     console.log(favLists)
     return (
-        <List
-            sx={{ width: '100%' }}
-            component="nav"
-        >
-            <ListItemButton
-                disableRipple
-                sx={outerLayerBtn}>
-                <ListItemButton
-                    onClick={() => handleClick('CurrentPlayList')} key={0}>
-                    <ListItemIcon>
-                        <QueueMusicIcon />
-                    </ListItemIcon>
-                    <ListItemText sx={{ color: '#9600af94' }} primary="正在播放" />
-                    {open.get('CurrentPlayList') ? <ExpandLess /> : <ExpandMore />}
-                </ListItemButton>
-
-                <Box component="div" sx={CRUDBtn}>
-                    <PlaylistPlayIcon sx={CRUDIconCurrent} />
-                    <AddOutlinedIcon sx={CRUDIconCurrent} onClick={handleAddFav} />
-                    <AddBoxOutlinedIcon sx={CRUDIconCurrent} />
-                    <DeleteOutlineOutlinedIcon sx={CRUDIconCurrent} />
-                </Box>
-            </ListItemButton>
-            <Collapse in={open.get('CurrentPlayList')} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
-                    <Fav songList={currentAudioList}
-                        onSongListChange={onSongListChange}
-                        onSongIndexChange={onSongIndexChange}
-                        isFav={false}
-                    />
+        <React.Fragment>
+            <Box // Mid Grid -- SideBar
+                className={ScrollBar().root}
+                style={{ overflow: "auto", maxHeight: "96%" }}
+                sx={{ gridArea: "sidebar" }}
+            >
+                <List
+                    sx={{ width: '100%' }}
+                    component="nav"
+                >
+                    {favLists && favLists.map((v, i) =>
+                        <React.Fragment key={i}>
+                            <ListItemButton
+                                disableRipple
+                                sx={outerLayerBtn}
+                            >
+                                <ListItemButton onClick={() => handleClick(v.info.id, v)} id={v.info.id} >
+                                    <ListItemIcon >
+                                        <AlbumOutlinedIcon />
+                                    </ListItemIcon>
+                                    <ListItemText sx={{ color: '#9600af94' }} primary={v.info.title} />
+                                </ListItemButton>
+                                <Box component="div" sx={CRUDBtn}>
+                                    <PlaylistPlayIcon sx={CRUDIcon} />
+                                    <AddOutlinedIcon sx={CRUDIcon} onClick={handleAddFav} />
+                                    <AddBoxOutlinedIcon sx={CRUDIcon} />
+                                    <DeleteOutlineOutlinedIcon sx={CRUDIcon} />
+                                </Box>
+                            </ListItemButton>
+                        </React.Fragment>
+                    )}
                 </List>
-            </Collapse>
-
-            {favLists && favLists.map((v, i) =>
-                <React.Fragment key={i}>
-                    <ListItemButton
-                        disableRipple
-                        sx={outerLayerBtn}
-                        >
-                        <ListItemButton onClick={() => handleClick(v.info.id)} id={v.info.id} >
-                            <ListItemIcon >
-                                <AlbumOutlinedIcon />
-                            </ListItemIcon>
-                            <ListItemText sx={{ color: '#9600af94' }} primary={v.info.title} />
-                            {open.get(v.info.id) ? <ExpandLess /> : <ExpandMore />}
-                        </ListItemButton>
-                        <Box component="div" sx={CRUDBtn}>
-                            <PlaylistPlayIcon sx={CRUDIcon} />
-                            <AddOutlinedIcon sx={CRUDIcon} onClick={handleAddFav} />
-                            <AddBoxOutlinedIcon sx={CRUDIcon} />
-                            <DeleteOutlineOutlinedIcon sx={CRUDIcon} />
-                        </Box>
-                    </ListItemButton>
-                    <Collapse in={open.get(v.info.id)} timeout="auto" unmountOnExit >
-                        <List component="div" disablePadding >
-                            <Fav songList={v.songList}
-                                onSongListChange={onSongListChange}
-                                onSongIndexChange={onPlayOneFromFav}
-                                isFav={true}
-                                key={i}
-                            />
-                        </List>
-                    </Collapse>
-                </React.Fragment>
-            )}
-        </List>
-    );
+            </Box>
+            <Box // Mid Grid -- Lyric 
+                style={{ maxHeight: "100%", paddingTop: '20px', paddingLeft: '20px', overflow: "auto" }}
+                sx={{ gridArea: "Lrc", padding: '0.2em' }}>
+                {selectedList &&
+                    <Fav FavList={selectedList}
+                        onSongListChange={onSongListChange}
+                        onSongIndexChange={onPlayOneFromFav}
+                        isFav={true} />}
+            </Box>
+        </React.Fragment>
+    )
 })

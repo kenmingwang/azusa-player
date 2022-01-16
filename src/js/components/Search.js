@@ -27,7 +27,7 @@ export const Search = function ({onSearchTrigger}) {
                 sx={{
                     gridArea: "search", 
                 }}
-                style={{paddingTop:'15px'}}
+                style={{paddingTop:'12px'}}
             >
                 <Box // Serch Grid -- SearchBox
                     sx={{ mx: "auto", textAlign: "center" }}>

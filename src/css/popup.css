@@ -13,6 +13,10 @@ body {
   backdrop-filter: blur(59px);
 } */
 
+.react-jinke-music-player-main {
+  position: absolute;
+  z-index: 2000;
+}
 .react-jinke-music-player-main .music-player-panel {
   background: url(https://github.com/kenmingwang/azusa-player/blob/master/src/img/bg3.png?raw=true) no-repeat;
   width:100%;
@@ -22,4 +26,19 @@ body {
   background-position-y: center;
   background-position-x: center;
   background-size: 160%;
+}
+
+::-webkit-scrollbar {
+  width: "14px";
+  height: "18px";
+  background: "transparent";
+}
+
+::-webkit-scrollbar-thumb {
+  height: "29px";
+  border: "5px solid rgba(0, 0, 0, 0)";
+  background-Clip: "padding-box";
+  border-Radius: "7px";
+  -webkit-border-radius: "7px";
+  background-Color: "#c6acfc"
 }

@@ -28,12 +28,12 @@ export default function PageLayout({ songList }) {
                 style={{ height: "100vh", maxHeight: "100%" }}
                 sx={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gridTemplateColumns: "repeat(4, 1fr)",
                     gap: 0,
                     gridTemplateRows: "72px 1fr",
-                    gridTemplateAreas: `"Lrc         Lrc         search"
-                                        "Lrc         Lrc         sidebar"
-                                        "footer      footer      footer"`
+                    gridTemplateAreas: `"Lrc         Lrc      Lrc      search"
+                                        "Lrc         Lrc      Lrc      sidebar"
+                                        "footer      footer   footer   footer"`
                 }}
             >
                 <Player songList={songList}/>

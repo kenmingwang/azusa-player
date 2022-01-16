@@ -7,9 +7,9 @@
 
 import URLParse from 'url-parse';
 
-chrome.runtime.onInstalled.addListener(function () {
-    chrome.runtime.openOptionsPage(() => console.log('options page opened'))
-});
+// chrome.runtime.onInstalled.addListener(function () {
+//     chrome.runtime.openOptionsPage(() => console.log('options page opened'))
+// });
 
 chrome.browserAction.onClicked.addListener(function (tab) {
     console.log('onClicked')
