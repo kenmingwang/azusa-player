@@ -1,22 +1,24 @@
 import React, { useEffect, useState, useCallback, useRef, memo } from "react";
-import ListSubheader from '@mui/material/ListSubheader';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import PlaylistPlayIcon from '@mui/icons-material/PlaylistPlay';
-import QueueMusicIcon from '@mui/icons-material/QueueMusic';
-import Collapse from '@mui/material/Collapse';
 import AlbumOutlinedIcon from '@mui/icons-material/AlbumOutlined';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
 import Box from "@mui/material/Box";
 import { Fav } from './Fav'
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import { initFavLists } from '../utils/Storage'
+import { initFavLists, deletFavList, addFavList } from '../utils/Storage'
 import { ScrollBar } from "../styles/styles";
+import { AlertDialog } from "./ConfirmDialog"
+import { AddFavDialog } from "./AddFavDialog"
+import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
+import AddIcon from '@mui/icons-material/Add';
+import Grid from '@mui/material/Grid';
+import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 
 const outerLayerBtn = { padding: 'unset' }
 
@@ -42,6 +44,14 @@ const CRUDIcon = {
     color: '#ab5fff'
 }
 
+const AddFavIcon = {
+    ':hover': {
+        cursor: 'pointer'
+    },
+    width: '0.7em',
+    color: '#ab5fff'
+}
+
 const CRUDIconCurrent = {
     ':hover': {
         cursor: 'not-allowed'
@@ -51,10 +61,13 @@ const CRUDIconCurrent = {
     paddingBottom: '2px',
 }
 
-export const FavList = memo(function ({ currentAudioList, onSongListChange, onSongIndexChange, onPlayOneFromFav }) {
+export const FavList = memo(function ({ currentAudioList, onSongListChange, onSongIndexChange, onPlayOneFromFav, onPlayAllFromFav, onAddFavToList }) {
     const [open, setOpen] = useState(new Map());
     const [favLists, setFavLists] = useState(null)
     const [selectedList, setSelectedList] = useState(null)
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [openAddDialog, setOpenAddDialog] = useState(false);
+    const [deleteFavId, setDeleteFavId] = useState(null);
 
     useEffect(() => {
         if (open.get('CurrentPlayList') == undefined)
@@ -68,7 +81,20 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
             if (open.get(v.info.id) == undefined)
                 setOpen(open.set(v.info.id, false))
         })
+        chrome.storage.onChanged.addListener((changes, area) => {
+            console.log(changes, area)
+            // if(Object.keys(changes)[0].startsWith('FavList')){
+            //     const id = Object.keys(changes)[0]
+            //     favLists.push(changes[id].newValue)
+            //     setFavLists(favLists)
+            // }         
 
+            // if (area === 'local' && changes.options?.newValue) {
+            //   const debugMode = Boolean(changes.options.newValue.debug);
+            //   console.log('enable debug mode?', debugMode);
+            //   setDebugMode(debugMode);
+            // }
+        });
     }, [favLists])
 
     useEffect(() => {
@@ -76,6 +102,9 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
         initFavLists(setFavLists)
 
         console.log(favLists)
+
+
+
     }, [])
 
     const handleClick = useCallback((id, v) => {
@@ -86,7 +115,38 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
     });
 
     const handleAddFav = () => {
+        setOpenAddDialog(true)
+    }
 
+    const onAddFav = (val) => {
+        setOpenAddDialog(false)
+        if (val) {
+            console.log(val)
+            addFavList(val, favLists, setFavLists)
+        }
+    }
+
+    const handleDeleteFavClick = (id) => {
+        setDeleteFavId(id)
+        setOpenDeleteDialog(true)
+    }
+
+    const onDelteFav = (val) => {
+        setOpenDeleteDialog(false)
+        if (val) {
+            const newFavListIDs = favLists.filter(FavId => FavId.info.id != val)
+            deletFavList(val, newFavListIDs, setFavLists)
+            if (selectedList && selectedList.info.id == val)
+                setSelectedList(null)
+        }
+    }
+
+    const handlePlayListClick = (FavList) => {
+        onPlayAllFromFav(FavList.songList)
+    }
+
+    const handleAddPlayListClick = (FavList) => {
+        onAddFavToList(FavList.songList)
     }
 
     console.log('render favlist')
@@ -98,6 +158,23 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
                 style={{ overflow: "auto", maxHeight: "96%" }}
                 sx={{ gridArea: "sidebar" }}
             >
+                <Grid container spacing={2}>
+                    <Grid item xs={9}>
+                        <Typography variant="subtitle1" style={{ color: '#9600af94', paddingLeft: '8px' }}>
+                            我的歌单
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={3} style={{ textAlign: 'right', paddingRight: '8px' }}>
+                        <AddIcon sx={AddFavIcon} onClick={handleAddFav} />
+                    </Grid>
+                    <AddFavDialog
+                        id="DeleteFav"
+                        keepMounted
+                        openState={openAddDialog}
+                        onClose={onAddFav}
+                    />
+                </Grid>
+                <Divider light />
                 <List
                     sx={{ width: '100%' }}
                     component="nav"
@@ -115,10 +192,10 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
                                     <ListItemText sx={{ color: '#9600af94' }} primary={v.info.title} />
                                 </ListItemButton>
                                 <Box component="div" sx={CRUDBtn}>
-                                    <PlaylistPlayIcon sx={CRUDIcon} />
-                                    <AddOutlinedIcon sx={CRUDIcon} onClick={handleAddFav} />
+                                    <PlaylistPlayIcon sx={CRUDIcon} onClick={() => handlePlayListClick(v)} />
+                                    <PlaylistAddIcon sx={CRUDIcon} onClick={() => handleAddPlayListClick(v)} />
                                     <AddBoxOutlinedIcon sx={CRUDIcon} />
-                                    <DeleteOutlineOutlinedIcon sx={CRUDIcon} />
+                                    <DeleteOutlineOutlinedIcon sx={CRUDIcon} onClick={() => handleDeleteFavClick(v.info.id)} />
                                 </Box>
                             </ListItemButton>
                         </React.Fragment>
@@ -134,6 +211,12 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
                         onSongIndexChange={onPlayOneFromFav}
                         isFav={true} />}
             </Box>
-        </React.Fragment>
+            <AlertDialog
+                id="DeleteFav"
+                openState={openDeleteDialog}
+                onClose={onDelteFav}
+                value={deleteFavId}
+            />
+        </React.Fragment >
     )
 })

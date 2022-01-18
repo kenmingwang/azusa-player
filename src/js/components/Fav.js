@@ -18,17 +18,17 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
 const headerColumns = [
-    { id: 'favName', label: '歌曲名', minWidth: 170 },
-    { id: 'favAction', label: '', minWidth: 100, align: 'center' },
+    { id: 'favName', label: '歌曲名', minWidth: '40%' },
+    { id: 'favAction', label: '', minWidth: '10%', align: 'center' },
 ];
 
 const columns = [
-    { id: 'name', label: '歌曲名', minWidth: 170 },
-    { id: 'uploader', label: 'UP主', minWidth: 100, align: 'center' },
+    { id: 'name', label: '歌曲名', minWidth: '40%' },
+    { id: 'uploader', label: 'UP主', align: 'left', paddingLeft: '0px' },
     {
         id: 'operation',
         label: '操作',
-        minWidth: 170,
+        minWidth: '40%',
         align: 'right',
     }
 ];
@@ -38,8 +38,6 @@ const CRUDIcon = {
         cursor: 'pointer'
     },
     width: '0.7em',
-    height: '0.7em',
-    paddingBottom: '2px',
     color: '#8e5fab'
 }
 
@@ -103,14 +101,18 @@ export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, is
             {currentFavList &&
                 <React.Fragment>
                     <Box sx={{ flexGrow: 1, maxHeight: '72px' }} >
-                        <Grid container spacing={2} style={{padding:'8px'}}>
-                            <Grid item xs={4} style={{textAlign:'left', padding:'0px', paddingLeft:'16px'}}>
-                                <Typography variant="h6" style={{color:'#9600af94'}}>
+                        <Grid container spacing={2} style={{ paddingTop: '8px' }}>
+                            <Grid item xs={4} style={{ textAlign: 'left', padding: '0px', paddingLeft: '16px', paddingTop: '4px' }}>
+                                <Typography variant="h6" style={{ color: '#9600af94' }}>
                                     {currentFavList.info.title}
                                 </Typography>
 
                             </Grid>
-                            <Grid item xs={4} style={{textAlign:'center', padding:'0px'}}>
+                            <Grid item xs={4} style={{ textAlign: 'center', padding: '0px' }}>
+                                <img style={{ width: '44px', height: '44px' }}
+                                    src="https://i0.hdslb.com/bfs/album/cd25f747b454b9006a25c81d5e7650f73c69ef17.gif"></img>
+                            </Grid>
+                            <Grid item xs={4} style={{ textAlign: 'right', padding: '0px' }}>
                                 <TextField
                                     id="outlined-basic"
                                     color="secondary"
@@ -119,18 +121,8 @@ export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, is
                                     onChange={requestSearch}
                                 />
                             </Grid>
-                            <Grid item xs={4} style={{textAlign:'right', padding:'0px', paddingRight:'16px'}}>
-                                <TextField
-                                    id="outlined-basic"
-                                    color="secondary"
-                                    size="small"
-                                    onChange={requestSearch}
-                                />
-                            </Grid>
                         </Grid>
-
                     </Box>
-
                     <TableContainer className={className} id='FavTable' component={Paper} sx={{ maxHeight: "calc(100% - 44px)" }} style={{ overflow: "auto" }} >
                         <Table sx={{ minWidth: 50 }} stickyHeader aria-label="sticky table" >
                             <TableHead>
@@ -139,7 +131,7 @@ export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, is
                                         <TableCell
                                             key={column.id}
                                             align={column.align}
-                                            style={{ minWidth: column.minWidth }}
+                                            style={{ maxWidth: column.minWidth, minWidth: column.minWidth, paddingLeft: column.paddingLeft }}
                                         >
                                             {column.label}{column.id == 'name' ? '(' + currentFavList.songList.length + ')' : ''}
                                         </TableCell>))}
@@ -152,20 +144,18 @@ export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, is
                                         sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                                     >
                                         <StyledTableCell align="left" sx={{
-                                            minWidth: 'fit-content', maxWidth: 'fit-content',
-                                            paddingLeft: '8px', width: '0%',
+                                            paddingLeft: '8px', width: '48%',
                                             whiteSpace: 'nowrap'
                                         }}
                                             style={{ paddingLeft: '10px' }}>
                                             <Button variant="text" sx={songText} onClick={() => onSongIndexChange([song])} >{song.name}</Button>
                                         </StyledTableCell>
-                                        <StyledTableCell align="center" sx={songText}>
+                                        <StyledTableCell align="left" sx={songText}>
                                             <a href={"https://space.bilibili.com/" + song.singerId} target="_blank" style={{ color: 'inherit', textDecoration: 'none' }} >
                                                 {song.singer}
                                             </a>
                                         </StyledTableCell>
                                         <StyledTableCell align="right" sx={{
-                                            minWidth: 'fit-content', maxWidth: 'fit-content',
                                             paddingRight: '8px', width: '0%',
                                             whiteSpace: 'nowrap'
                                         }}

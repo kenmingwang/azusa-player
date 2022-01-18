@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { fetchPlayUrlPromise } from '../utils/Data2'
 
 const INITIAL_PLAYLIST = 'BV1wr4y1v7TA'
+const MY_FAV_LIST_KEY = 'MyFavList'
 
 export const initFavLists = async (setFavLists) => {
     chrome.storage.local.get(['MyFavList'], function (result) {
@@ -18,6 +19,31 @@ export const initFavLists = async (setFavLists) => {
     });
 }
 
+export const deletFavList = (id, newFavLists, setFavLists) => {
+    chrome.storage.local.remove(id, function () {
+        const newFavListsIds = newFavLists.map(v => v.info.id)
+        chrome.storage.local.set({ [MY_FAV_LIST_KEY]: newFavListsIds }, function () {
+            setFavLists(newFavLists)
+        })
+    })
+}
+
+export const addFavList = (favName, favLists, setFavLists) => {
+    const value = {
+        songList: [],
+        info: { title: favName, id: ('FavList-' + uuidv4()) }
+    }
+    
+    chrome.storage.local.set({ [value.info.id]: value }, function () {
+        favLists.push(value)
+        const newListIDs = favLists.map(v => v.info.id)
+        setFavLists([...favLists])
+        chrome.storage.local.set({ 'MyFavList': newListIDs }, function () {
+            console.log('AddedFav ' + value.info.id);
+        })
+    });
+}
+
 const initWithStorage = async (setFavLists, FavListIDs) => {
     chrome.storage.local.get(FavListIDs, function (result) {
         var FavLists = []
@@ -26,7 +52,7 @@ const initWithStorage = async (setFavLists, FavListIDs) => {
         for (var [key, value] of Object.entries(result)) {
             value.songList.map((v) => v['musicSrc'] = () => { return fetchPlayUrlPromise(v.bvid, v.id) })
             FavLists.push(value)
-            
+
         }
         FavListIDs.map((id) => {
             FavListsSorted.push(FavLists.find((v) => v.info.id == id))
@@ -56,3 +82,4 @@ const initWithDefault = async (setFavLists) => {
         })
     });
 }
+

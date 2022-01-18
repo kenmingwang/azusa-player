@@ -2,7 +2,7 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: "Roboto","Helvetica","Arial",sans-serif;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
 }
 
 /* #app-container {
@@ -18,9 +18,10 @@ body {
   z-index: 2000;
 }
 .react-jinke-music-player-main .music-player-panel {
-  background: url(https://github.com/kenmingwang/azusa-player/blob/master/src/img/bg3.png?raw=true) no-repeat;
-  width:100%;
-  background-size:cover;
+  background: url(https://github.com/kenmingwang/azusa-player/blob/master/src/img/bg3.png?raw=true)
+    no-repeat;
+  width: 100%;
+  background-size: cover;
 }
 .react-jinke-music-player-main .music-player-panel .panel-content .img-content {
   background-position-y: center;
@@ -37,8 +38,13 @@ body {
 ::-webkit-scrollbar-thumb {
   height: "29px";
   border: "5px solid rgba(0, 0, 0, 0)";
-  background-Clip: "padding-box";
-  border-Radius: "7px";
+  background-clip: "padding-box";
+  border-radius: "7px";
   -webkit-border-radius: "7px";
-  background-Color: "#c6acfc"
+  background-color: "#c6acfc";
+}
+
+#FavTable {
+  box-shadow: -4px 5px 6px 2px rgb(166 88 249 / 20%),
+    4px -3px 2px 0px rgb(166 88 249 / 20%), 1px 1px 0px 2px rgb(0 0 0 / 12%);
 }

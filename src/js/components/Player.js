@@ -31,6 +31,8 @@ export const Player = function ({ songList }) {
 
     // Params to init music player
     const [params, setparams] = useState(null)
+    // Playing List
+    const [playingList, setplayingList] = useState(null)
     // Current Audio info
     const [currentAudio, setcurrentAudio] = useState(null)
     // Current Audio Inst
@@ -38,41 +40,65 @@ export const Player = function ({ songList }) {
     // Lyric Dialog
     const [showLyric, setShowLyric] = useState(false)
 
-    const updateCurrentAudioList = useCallback(({ song, immediatePlay }) => {
+    const updateCurrentAudioList = useCallback(({ songs, immediatePlay = false, replaceList = false }) => {
         console.log("updateCurrentAudioList", params)
-
+        var newAudioLists = []
+        if (immediatePlay) {
+            // Click and play
+            newAudioLists = [
+                ...songs,
+                ...playingList,
+            ]
+        }
+        else if (replaceList) {
+            // OnPlayList handle
+            newAudioLists = [...songs]
+        }
+        else {
+            // AddToList handle
+            newAudioLists =
+                [
+                    ...playingList,
+                    ...songs,
+                ]
+        }
         const newParam = {
             ...params,
             quietUpdate: !immediatePlay,
-            clearPriorAudioLists: immediatePlay,
-            audioLists: immediatePlay ?
-                [
-                    ...song,
-                    ...params.audioLists,
-                ] :
-                [
-                    ...params.audioLists,
-                    ...song,
-                ]
+            clearPriorAudioLists: immediatePlay || replaceList,
+            audioLists: newAudioLists
         }
         setparams(newParam)
-    }, [params])
+        setplayingList(newAudioLists)
+    }, [params, playingList])
 
     const onSearchTrigger = useCallback((song) => {
         updateCurrentAudioList({ song: song, immediatePlay: false })
     }, [params])
 
-    const onPlayOneFromFav = useCallback((song) => {
+    const onPlayOneFromFav = useCallback((songs) => {
 
-        const existingIndex = params.audioLists.findIndex((s) => s.id == song[0].id)
+        const existingIndex = playingList.findIndex((s) => s.id == songs[0].id)
         console.log(existingIndex)
         if (existingIndex != -1) {
             currentAudioInst.playByIndex(existingIndex)
             return
         }
 
-        updateCurrentAudioList({ song: song, immediatePlay: true })
+        updateCurrentAudioList({ songs: songs, immediatePlay: true })
+    }, [params, playingList])
+
+    const onPlayAllFromFav = useCallback((songs) => {
+        updateCurrentAudioList({ songs: songs, immediatePlay: false, replaceList: true })
+
     }, [params])
+
+    const onAddFavToList = useCallback((songs) => {
+        //If song exists in currentPlayList, remove it
+        const newSongsInList = songs.filter(v => playingList.find(s => s.id == v.id) == undefined)
+
+        updateCurrentAudioList({ songs: newSongsInList, immediatePlay: false, replaceList: false })
+    }, [params, playingList])
 
     const playByIndex = useCallback((index) => {
         currentAudioInst.playByIndex(index)
@@ -93,6 +119,11 @@ export const Player = function ({ songList }) {
         }
         setparams(newParam)
     }, [params])
+
+    const onAudioListsChange = useCallback((currentPlayId, audioLists, audioInfo) => {
+        setplayingList(audioLists)
+        console.log('audioListChange:', audioLists)
+    }, [params, playingList])
 
     const onAudioError = (errMsg, currentPlayId, audioLists, audioInfo) => {
         console.error('audio error', errMsg, currentPlayId, audioLists, audioInfo)
@@ -146,19 +177,20 @@ export const Player = function ({ songList }) {
             audioLists: songList
         }
         setparams(params)
-
+        setplayingList(songList)
     }, [songList])
 
     // console.log('params')
     // console.log(params)
     // console.log('lyric' + lyric)
-    // console.log(currentAudio && currentAudio.currentTime)
+    // console.log(currentAudio)
     return (
         <React.Fragment>
             {params && <FavList currentAudioList={params.audioLists}
                 onSongIndexChange={playByIndex}
                 onPlayOneFromFav={onPlayOneFromFav}
-            // onPlayAllFromFav
+                onPlayAllFromFav={onPlayAllFromFav}
+                onAddFavToList={onAddFavToList}
             />}
             {currentAudio && <LyricOverlay
                 showLyric={showLyric}
@@ -183,6 +215,7 @@ export const Player = function ({ songList }) {
                             getAudioInstance={getAudioInstance}
                             onAudioPlay={onAudioPlay}
                             onCoverClick={onCoverClick}
+                            onAudioListsChange={onAudioListsChange}
                         />
                     </Box>
                 </React.Fragment>}
