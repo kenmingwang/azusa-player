@@ -18,3 +18,11 @@ export const ScrollBar = makeStyles((theme) => ({
         },
     },
 }));
+
+export const btnActiveStyle = makeStyles((theme) => ({
+    button: {
+        "&.active": {
+            background: '#e6e6e694',
+        },
+    },
+}))

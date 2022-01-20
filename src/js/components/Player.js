@@ -1,16 +1,9 @@
 import ReactJkMusicPlayer from 'react-jinke-music-player'
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { hot } from "react-hot-loader";
-
 import '../../css/react-jinke-player.css'
 import icon from "../../img/icon-128.png"
-import lrc from "../../img/lrc.txt"
 import Box from "@mui/material/Box";
-import { saveAs } from 'file-saver';
-import { Lyric } from './Lyric'
 import { FavList } from '../components/FavList'
-import { Search } from '../components/Search'
-import LinearProgress from '@mui/material/LinearProgress';
 import { BiliBiliIcon } from "../../img/bilibiliIcon";
 import { LyricOverlay } from './LyricOverlay'
 
@@ -72,10 +65,6 @@ export const Player = function ({ songList }) {
         setplayingList(newAudioLists)
     }, [params, playingList])
 
-    const onSearchTrigger = useCallback((song) => {
-        updateCurrentAudioList({ song: song, immediatePlay: false })
-    }, [params])
-
     const onPlayOneFromFav = useCallback((songs) => {
 
         const existingIndex = playingList.findIndex((s) => s.id == songs[0].id)
@@ -86,6 +75,16 @@ export const Player = function ({ songList }) {
         }
 
         updateCurrentAudioList({ songs: songs, immediatePlay: true })
+    }, [params, playingList])
+
+    const onAddOneFromFav = useCallback((songs) => {
+
+        const existingIndex = playingList.findIndex((s) => s.id == songs[0].id)
+        console.log(existingIndex)
+        if (existingIndex != -1) {
+            return
+        }
+        updateCurrentAudioList({ songs: songs, immediatePlay: false })
     }, [params, playingList])
 
     const onPlayAllFromFav = useCallback((songs) => {
@@ -191,12 +190,13 @@ export const Player = function ({ songList }) {
                 onPlayOneFromFav={onPlayOneFromFav}
                 onPlayAllFromFav={onPlayAllFromFav}
                 onAddFavToList={onAddFavToList}
+                onAddOneFromFav={onAddOneFromFav}
             />}
             {currentAudio && <LyricOverlay
                 showLyric={showLyric}
                 currentTime={currentAudio.currentTime}
                 audioName={currentAudio.name} />}
-            <Search onSearchTrigger={onSearchTrigger} />
+
             {params &&
                 <React.Fragment>
                     <Box // Bottom Grid -- Footer

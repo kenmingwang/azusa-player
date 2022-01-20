@@ -69,7 +69,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 
-export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, isFav }) {
+export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, onAddOneFromFav, handleDelteFromSearchList }) {
     const [currentFavList, setCurrentFavList] = useState(null)
     const [rows, setRows] = useState(null)
 
@@ -103,7 +103,7 @@ export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, is
                     <Box sx={{ flexGrow: 1, maxHeight: '72px' }} >
                         <Grid container spacing={2} style={{ paddingTop: '8px' }}>
                             <Grid item xs={4} style={{ textAlign: 'left', padding: '0px', paddingLeft: '16px', paddingTop: '4px' }}>
-                                <Typography variant="h6" style={{ color: '#9600af94' }}>
+                                <Typography variant="h6" style={{ color: '#9600af94', whiteSpace: 'nowrap', fontSize: '1rem' }}>
                                     {currentFavList.info.title}
                                 </Typography>
 
@@ -160,9 +160,9 @@ export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, is
                                             whiteSpace: 'nowrap'
                                         }}
                                             style={{ paddingLeft: '40px', paddingRight: '8px' }}>
-                                            <AddOutlinedIcon sx={CRUDIcon} />
+                                            <AddOutlinedIcon sx={CRUDIcon} onClick={() => onAddOneFromFav([song])} />
                                             <AddBoxOutlinedIcon sx={CRUDIcon} />
-                                            <DeleteOutlineOutlinedIcon sx={CRUDIcon} />
+                                            <DeleteOutlineOutlinedIcon sx={CRUDIcon} onClick={() => handleDelteFromSearchList(index)} />
                                         </StyledTableCell>
                                     </StyledTableRow>
                                 )}

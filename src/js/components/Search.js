@@ -1,9 +1,11 @@
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {getSongList} from '../background/DataProcess'
+import StorageManagerCtx from '../popup/App'
+import { SearchDialog } from "./SearchDialog";
 
-export const Search = function ({onSearchTrigger}) {
+export const Search = function ({handleSeach}) {
 
     const [searchValue, setSearchValue] = useState('')
 
@@ -14,8 +16,12 @@ export const Search = function ({onSearchTrigger}) {
         // Enter clicked
         if (e.keyCode == 13) {
             console.log('value', e.target.value); // Validation of target Val
-            getSongList(e.target.value).then((song)=>{
-                onSearchTrigger(song)
+            getSongList(e.target.value).then((songs)=>{
+                const list = {
+                    songList: songs,
+                    info: { title: '搜索歌单', id: ('FavList-' + 'Search') }
+                }
+                handleSeach(list)
             })
             
         }

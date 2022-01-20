@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, createContext } from "react";
 import PageLayout from './Layout'
 import { initSongList, initFavLists } from '../background/DataProcess'
+import StorageManager from '../objects/Storage'
+
+ // Storage Manager holds setters of the program
+const StorageManagerCtx = createContext()
 
 export const App = function () {
 
     // The current playing list
     const [currentSongList, setCurrentSongList] = useState(null)
-
-    // The persisted fav Lists -- CRUD via Chrome.sync
-    const [favSongLists, setFavSongLists] = useState([])
 
     useEffect(() => {
         console.log('ran useEffect - App')
@@ -18,11 +19,13 @@ export const App = function () {
 
     console.log(currentSongList)
     return (
-        <React.Fragment>
+        <StorageManagerCtx.Provider value={new StorageManager()}>
             <PageLayout
                 songList={currentSongList}
             />
-        </React.Fragment>
+        </StorageManagerCtx.Provider>
     )
 }
+
+export default StorageManagerCtx
 
