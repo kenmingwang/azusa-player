@@ -23,7 +23,7 @@ export const fetchPlayUrl = async (bvid: string) => {
     return (new Promise((resolve, reject) => {
         let a1 = audioUrl;
         let a2 = bvid;
-        var timer = setTimeout(function () {
+        let timer = setTimeout(function () {
             console.log('after resolve');
             resolve(a1);
             reject(a2);
@@ -46,7 +46,7 @@ export const fetchPlayUrlC = async () => {
     return (new Promise((resolve, reject) => {
         let a1 = audioUrl;
         let a2 = 'bvid';
-        var timer = setTimeout(function () {
+        let timer = setTimeout(function () {
             console.log('after resolve');
             resolve(a1);
             reject(a2);

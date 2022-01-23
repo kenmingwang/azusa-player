@@ -56,7 +56,7 @@ export const NewFavDialog = function ({ onClose, openState }) {
   );
 }
 
-export const AddFavDialog = function ({ onClose, openState, fromId, favLists }) {
+export const AddFavDialog = function ({ onClose, openState, fromId, favLists, song }) {
   const [favId, setfavId] = useState('')
 
   const handleCancel = () => {
@@ -69,14 +69,14 @@ export const AddFavDialog = function ({ onClose, openState, fromId, favLists }) 
   }
 
   const handleOK = () => {
-    onClose(fromId, favId)
+    onClose(fromId, favId, song)
     setfavId('')
   }
 
   return (
     <div>
       <Dialog open={openState}>
-        <DialogTitle>新建歌单</DialogTitle>
+        <DialogTitle>添加到歌单</DialogTitle>
         <DialogContent style={{ paddingTop: '24px' }}>
           <Box sx={{ minWidth: 400, minHeight: 50 }}>
             <FormControl fullWidth>

@@ -29,10 +29,10 @@ export default class StorageManager {
     async initWithStorage(FavListIDs) {
         const _self = this
         chrome.storage.local.get(FavListIDs, function (result) {
-            var FavLists = []
-            var FavListsSorted = []
+            let FavLists = []
+            let FavListsSorted = []
             // Sort result base on ID
-            for (var [key, value] of Object.entries(result)) {
+            for (let [key, value] of Object.entries(result)) {
                 value.songList.map((v) => v['musicSrc'] = () => { return fetchPlayUrlPromise(v.bvid, v.id) })
                 FavLists.push(value)
 
@@ -50,20 +50,20 @@ export default class StorageManager {
         const _self = this
         const value = {
             songList: await getSongList(INITIAL_PLAYLIST),
-            info: { title: '默认歌单1', id: ('FavList-' + uuidv4()) }
+            info: { title: '【阿梓】2021精选翻唱50首【纯享】', id: ('FavList-' + uuidv4()) }
         }
 
-        const value2 = {
-            songList: await getSongList('BV1Ya411z7WL'),
-            info: { title: '默认歌单2', id: ('FavList-' + uuidv4()) }
-        }
+        // const value2 = {
+        //     songList: await getSongList('BV1Ya411z7WL'),
+        //     info: { title: '默认歌单2', id: ('FavList-' + uuidv4()) }
+        // }[value2.info.id]: value2,
 
-        chrome.storage.local.set({ [value.info.id]: value, [value2.info.id]: value2 }, function () {
+        chrome.storage.local.set({ [value.info.id]: value, ['LastPlayList']:[] }, function () {
             console.log('key is set to ' + value.info.id);
             console.log('Value is set to ' + value);
-            chrome.storage.local.set({ 'MyFavList': [value.info.id, value2.info.id] }, function () {
-                _self.setFavLists([value, value2])
-                _self.latestFavLists = [value, value2]
+            chrome.storage.local.set({ 'MyFavList': [value.info.id] }, function () {
+                _self.setFavLists([value])
+                _self.latestFavLists = [value]
             })
         });
     }
@@ -97,7 +97,7 @@ export default class StorageManager {
         });
     }
 
-    addToFavList(updatedToList) {
+    updateFavList(updatedToList) {
         const _self = this
 
         chrome.storage.local.set({ [updatedToList.info.id]: updatedToList }, function () {
@@ -105,6 +105,19 @@ export default class StorageManager {
             _self.latestFavLists[index].songList = updatedToList.songList
             _self.setFavLists([..._self.latestFavLists])
         });
+    }
+
+    setLastPlayList(audioLists) {
+        chrome.storage.local.set({ ['LastPlayList']: audioLists })
+    }
+
+    async getLastPlayList() {
+        let lastPlayList = []
+        await chrome.storage.local.get({ ['LastPlayList']: audioLists }, function(result){
+            lastPlayList = result
+        })
+        console.log(lastPlayList)
+        return lastPlayList
     }
 }
 

@@ -1,11 +1,12 @@
 import ReactJkMusicPlayer from 'react-jinke-music-player'
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useContext } from "react";
 import '../../css/react-jinke-player.css'
 import icon from "../../img/icon-128.png"
 import Box from "@mui/material/Box";
 import { FavList } from '../components/FavList'
 import { BiliBiliIcon } from "../../img/bilibiliIcon";
 import { LyricOverlay } from './LyricOverlay'
+import StorageManagerCtx from '../popup/App'
 
 // Initial Player options
 const options = {
@@ -32,10 +33,12 @@ export const Player = function ({ songList }) {
     const [currentAudioInst, setcurrentAudioInst] = useState(null)
     // Lyric Dialog
     const [showLyric, setShowLyric] = useState(false)
+    // Sync data to chromeDB
+    const StorageManager = useContext(StorageManagerCtx)
 
     const updateCurrentAudioList = useCallback(({ songs, immediatePlay = false, replaceList = false }) => {
         console.log("updateCurrentAudioList", params)
-        var newAudioLists = []
+        let newAudioLists = []
         if (immediatePlay) {
             // Click and play
             newAudioLists = [
@@ -120,6 +123,8 @@ export const Player = function ({ songList }) {
     }, [params])
 
     const onAudioListsChange = useCallback((currentPlayId, audioLists, audioInfo) => {
+        // Sync latest-playinglist
+        StorageManager.setLastPlayList(audioLists)
         setplayingList(audioLists)
         console.log('audioListChange:', audioLists)
     }, [params, playingList])
@@ -161,7 +166,7 @@ export const Player = function ({ songList }) {
         if (!songList)
             return;
 
-        var link = ''
+        let link = ''
         if (songList[0] != undefined)
             link = 'https://www.bilibili.com/video/' + songList[0].bvid
         options.extendsContent = (

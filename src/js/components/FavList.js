@@ -93,6 +93,7 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
     const [openAddDialog, setOpenAddDialog] = useState(false)
     const [openNewDialog, setOpenNewDialog] = useState(false)
     const [actionFavId, setActionFavId] = useState(null)
+    const [actionFavSong, setActionFavSong] = useState(null)
 
     const [searchList, setSearchList] = useState({ info: { title: '搜索歌单', id: 'Search' }, songList: [] })
 
@@ -140,13 +141,14 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
         setSelectedList(list)
     }, [searchList, selectedList])
 
-    const handleDelteFromSearchList = useCallback((index) => {
-        searchList.songList.splice(index, 1)
-        const newList = { ...searchList }
+    const handleDelteFromSearchList = useCallback((id, index) => {
+        let favList = id == 'Search' ? searchList : favLists.find(f => f.info.id == id)
 
-        setSearchList(newList)
-        setSelectedList(newList)
-    }, [searchList, selectedList])
+        favList.songList.splice(index, 1)
+        const updatedToList = { ...favList }
+
+        id == 'Search' ? setSearchList(updatedToList) : StorageManager.updateFavList(updatedToList)
+    }, [searchList, selectedList, favLists])
 
     const handleListClick = useCallback((id, v) => {
         // Need to make a new map as Memo is checking for ref.
@@ -178,20 +180,26 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
         setOpenDeleteDialog(true)
     }
 
-    const handleAddToFavClick = (id) => {
+    const handleAddToFavClick = (id, song) => {
         setActionFavId(id)
+        setActionFavSong(song)
         setOpenAddDialog(true)
     }
 
-    const onAddFav = (fromId, toId) => {
+    const onAddFav = (fromId, toId, song) => {
         setOpenAddDialog(false)
         if (toId) {
+            let fromList = []
+            let newSongList = []
+            let toList = favLists.find(f => f.info.id == toId)
+
+            fromList = song ? { songList: [song] } : favLists.find(f => f.info.id == fromId) // Handles both single song add and list add
+
+            newSongList = fromList.songList.filter(s => undefined === toList.songList.find(v => v.id == s.id))
             console.log(fromId, toId)
-            const fromList = favLists.find(f => f.info.id == fromId)
-            const toList = favLists.find(f => f.info.id == toId)
-            const newSongList = fromList.songList.filter(s => undefined === toList.songList.find(v => v.id == s.id))
-            const updatedToList = {info: toList.info, songList: newSongList}
-            StorageManager.addToFavList(updatedToList)
+
+            const updatedToList = { info: toList.info, songList: newSongList.concat(toList.songList) }
+            StorageManager.updateFavList(updatedToList)
         }
     }
 
@@ -298,6 +306,7 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
                         onSongIndexChange={onPlayOneFromFav}
                         onAddOneFromFav={onAddOneFromFav}
                         handleDelteFromSearchList={handleDelteFromSearchList}
+                        handleAddToFavClick={handleAddToFavClick}
                     />}
             </Box>
             <AlertDialog
@@ -313,6 +322,7 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
                     onClose={onAddFav}
                     fromId={actionFavId}
                     favLists={favLists.map(v => v.info)}
+                    song={actionFavSong}
                 />}
         </React.Fragment >
     )

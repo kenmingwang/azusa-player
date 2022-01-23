@@ -2,6 +2,8 @@ import { fetchPlayUrl, fetchLRC, fetchVideoInfo } from '../utils/Data'
 import { fetchPlayUrlPromise } from '../utils/Data2'
 import Song from '../objects/Song'
 
+const DEFAULT_BVID = 'BV1BQ4y1X714'
+
 // Listens data requests, sends HTTP request to API, respond as a Player-acknowledged object.
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const { command = '', from = '' } = message;
@@ -33,9 +35,18 @@ export const initSongList = async (setCurrentSongList) => {
     //     console.log('key is set to ' + key);
     //     console.log('Value is set to ' + value);
     // });
-    const bvid = "BV1w44y1b7MX"
-    const ss = await getSongList(bvid)
-    setCurrentSongList(ss)
+    chrome.storage.local.get(['LastPlayList'], async function (result) {
+        if (result['LastPlayList']) {
+            console.log(result)
+            const defaultSongList = result['LastPlayList']
+            defaultSongList.map(v => v['musicSrc'] = () => { return fetchPlayUrlPromise(v.bvid, v.id) })
+            setCurrentSongList(defaultSongList)
+        }
+        else {
+            const defaultSongList = await getSongList(DEFAULT_BVID)
+            setCurrentSongList(defaultSongList)
+        }
+    })
 }
 
 export const initFavLists = async (setFavSongLists) => {
@@ -95,9 +106,10 @@ export const getSongList = async (bvid) => {
             singerId: info.uploader.mid,
             cover: info.picSrc,
             musicSrc: () => { return fetchPlayUrlPromise(bvid, page.cid) },
-            lyric: lrc}))
-}
+            lyric: lrc
+        }))
+    }
 
-return (songs)
+    return (songs)
 }
 

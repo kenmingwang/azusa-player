@@ -16,6 +16,7 @@ import { ScrollBar } from "../styles/styles";
 import TextField from "@mui/material/TextField";
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
+import { getRandomHeaderGIF } from '../utils/Data'
 
 const headerColumns = [
     { id: 'favName', label: '歌曲名', minWidth: '40%' },
@@ -23,12 +24,12 @@ const headerColumns = [
 ];
 
 const columns = [
-    { id: 'name', label: '歌曲名', minWidth: '40%' },
-    { id: 'uploader', label: 'UP主', align: 'left', paddingLeft: '0px' },
+    { id: 'name', label: '歌曲名', minWidth: '20%' },
+    { id: 'uploader', label: 'UP主', align: 'center', padding: '0px' },
     {
         id: 'operation',
         label: '操作',
-        minWidth: '40%',
+        minWidth: '20%',
         align: 'right',
     }
 ];
@@ -69,7 +70,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 
-export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, onAddOneFromFav, handleDelteFromSearchList }) {
+export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, onAddOneFromFav, handleDelteFromSearchList, handleAddToFavClick }) {
     const [currentFavList, setCurrentFavList] = useState(null)
     const [rows, setRows] = useState(null)
 
@@ -110,7 +111,7 @@ export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, on
                             </Grid>
                             <Grid item xs={4} style={{ textAlign: 'center', padding: '0px' }}>
                                 <img style={{ width: '44px', height: '44px' }}
-                                    src="https://i0.hdslb.com/bfs/album/cd25f747b454b9006a25c81d5e7650f73c69ef17.gif"></img>
+                                    src={getRandomHeaderGIF()}></img>
                             </Grid>
                             <Grid item xs={4} style={{ textAlign: 'right', padding: '0px' }}>
                                 <TextField
@@ -124,14 +125,14 @@ export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, on
                         </Grid>
                     </Box>
                     <TableContainer className={className} id='FavTable' component={Paper} sx={{ maxHeight: "calc(100% - 44px)" }} style={{ overflow: "auto" }} >
-                        <Table sx={{ minWidth: 50 }} stickyHeader aria-label="sticky table" >
+                        <Table stickyHeader aria-label="sticky table" >
                             <TableHead>
                                 <TableRow>
                                     {columns.map((column) => (
                                         <TableCell
                                             key={column.id}
                                             align={column.align}
-                                            style={{ maxWidth: column.minWidth, minWidth: column.minWidth, paddingLeft: column.paddingLeft }}
+                                            sx={{ width: column.minWidth, paddingLeft: column.paddingLeft, padding: column.padding }}
                                         >
                                             {column.label}{column.id == 'name' ? '(' + currentFavList.songList.length + ')' : ''}
                                         </TableCell>))}
@@ -144,25 +145,29 @@ export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, on
                                         sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                                     >
                                         <StyledTableCell align="left" sx={{
-                                            paddingLeft: '8px', width: '48%',
+                                            paddingLeft: '8px', width: '45%',
                                             whiteSpace: 'nowrap'
                                         }}
                                             style={{ paddingLeft: '10px' }}>
                                             <Button variant="text" sx={songText} onClick={() => onSongIndexChange([song])} >{song.name}</Button>
                                         </StyledTableCell>
-                                        <StyledTableCell align="left" sx={songText}>
+                                        <StyledTableCell align="center" sx={{
+                                            width: '10%', fontSize: 4,
+                                            minWidth: 0,
+                                            color: '#ab5fff'
+                                        }} >
                                             <a href={"https://space.bilibili.com/" + song.singerId} target="_blank" style={{ color: 'inherit', textDecoration: 'none' }} >
                                                 {song.singer}
                                             </a>
                                         </StyledTableCell>
                                         <StyledTableCell align="right" sx={{
-                                            paddingRight: '8px', width: '0%',
+                                            paddingRight: '8px', width: '45%',
                                             whiteSpace: 'nowrap'
                                         }}
                                             style={{ paddingLeft: '40px', paddingRight: '8px' }}>
                                             <AddOutlinedIcon sx={CRUDIcon} onClick={() => onAddOneFromFav([song])} />
-                                            <AddBoxOutlinedIcon sx={CRUDIcon} />
-                                            <DeleteOutlineOutlinedIcon sx={CRUDIcon} onClick={() => handleDelteFromSearchList(index)} />
+                                            <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(currentFavList.info.id, song)} />
+                                            <DeleteOutlineOutlinedIcon sx={CRUDIcon} onClick={() => handleDelteFromSearchList(currentFavList.info.id,index)} />
                                         </StyledTableCell>
                                     </StyledTableRow>
                                 )}

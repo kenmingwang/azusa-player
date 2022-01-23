@@ -46,10 +46,10 @@ export const addFavList = (favName, favLists, setFavLists) => {
 
 const initWithStorage = async (setFavLists, FavListIDs) => {
     chrome.storage.local.get(FavListIDs, function (result) {
-        var FavLists = []
-        var FavListsSorted = []
+        let FavLists = []
+        let FavListsSorted = []
         // Sort result base on ID
-        for (var [key, value] of Object.entries(result)) {
+        for (let [key, value] of Object.entries(result)) {
             value.songList.map((v) => v['musicSrc'] = () => { return fetchPlayUrlPromise(v.bvid, v.id) })
             FavLists.push(value)
 

@@ -1,7 +1,7 @@
 {
   "name": "azusa-player",
   "version": "0.0.1",
-  "description": "A boilerplate to chrome extension with webpack",
+  "description": "A Bilibili 3rd party audio player.",
   "scripts": {
     "build": "node utils/build.js",
     "start": "node utils/webserver.js"
