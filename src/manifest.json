@@ -22,6 +22,7 @@
     "*://*.bilibili.com/*",
     "*://*.hdslb.com/*",
     "*://*.cgvideo.com/*",
+    "*://*.qq.com/*",
     "notifications"
   ]
 }

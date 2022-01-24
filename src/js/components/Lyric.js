@@ -1,17 +1,19 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useContext } from "react";
 import { Lrc } from 'react-lrc';
 import { ScrollBar } from "../styles/styles";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import { withStyles } from '@mui/styles';
 import Grid from "@mui/material/Grid";
-import { fetchLRC } from '../utils/Data'
+import { extractSongName } from '../utils/Data'
+import { LyricSearchBar } from './LyricSearchBar'
+import StorageManagerCtx from '../popup/App'
 
 const INTERVAL_OF_RECOVERING_AUTO_SCROLL_AFTER_USER_SCROLL = 5000;
 
 const styles = theme => ({
     input: {
-        height: 25,
+        height: 40,
         width: 120,
     }
 })
@@ -21,13 +23,32 @@ export const Lyric = withStyles(styles)((props) => {
     const [lyricOffset, setLyricOffset] = useState(0)
     const [lyric, setLyric] = useState('')
     const [songTitle, setSongTitle] = useState('')
+    const [favListID, setFavListID] = useState(null)
 
-    const { classes, currentTime, audioName } = props;
+    const { classes, currentTime, audioName, audioId } = props;
+    const StorageManager = useContext(StorageManagerCtx)
 
     useEffect(() => {
-        console.log('Lrc changed to %s', audioName)
-        fetchLRC(audioName, setLyric, setSongTitle)
+        const extractedName = extractSongName(audioName)
+        console.log('Lrc changed to %s', extractedName)
+        // fetchLRC(audioName, setLyric, setSongTitle)
+        setSongTitle(extractedName)
     }, [audioName])
+
+    const onEnterPress = (e) => {
+        // Enter clicked
+        if (e.keyCode == 13) {
+            setSongTitle(e.target.value)
+        }
+    }
+    const onSongTitleChange = useCallback((lrc) => {
+        setLyric(lrc)
+    }, [audioName])
+
+    const onLrcOffsetChange = (e) => {
+        setLyricOffset(e.target.value)
+        StorageManager.setLyricOffset(audioId,e.target.value)
+    }
 
     function lineRenderer({ line: { startMillisecond, content }, index, active }) {
         // console.log(content)
@@ -55,7 +76,7 @@ export const Lyric = withStyles(styles)((props) => {
     return (
         <React.Fragment>
             <Box // Mid Grid -- Lyric 
-                style={{ maxHeight: "100%", overflow: "hidden", paddingTop: '20px' }}
+                style={{ maxHeight: 'calc(100% - 150px)', overflow: "hidden", paddingTop: '20px' }}
                 sx={{ gridArea: "Lrc", padding: '0.2em' }}
             >
                 <Grid container direction="row" spacing="8" alignItems="center" justifyContent="center" >
@@ -73,7 +94,7 @@ export const Lyric = withStyles(styles)((props) => {
                                 shrink: true
                             }}
                             value={lyricOffset}
-                            onChange={e => setLyricOffset(e.target.value)}
+                            onChange={onLrcOffsetChange}
                         />
                     </Grid>
                     <Grid style={{ paddingBottom: 10 }} item>
@@ -87,6 +108,15 @@ export const Lyric = withStyles(styles)((props) => {
                                 shrink: true
                             }}
                             value={songTitle}
+                            onKeyDown={onEnterPress}
+                        />
+                    </Grid>
+                    <Grid style={{ paddingBottom: 10 }} item>
+                        <LyricSearchBar
+                            SearchKey={songTitle}
+                            SongId={audioId}
+                            setLyricOffset={setLyricOffset}
+                            setLyric={onSongTitleChange}
                         />
                     </Grid>
                 </Grid>

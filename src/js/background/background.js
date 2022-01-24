@@ -38,12 +38,21 @@ chrome.webRequest.onBeforeSendHeaders.addListener((details) => {
     if (/^chrome-extension:\/\//.test(initiator)) {
         const refererHeader = Headers.find((e) => e.name.toLowerCase() === 'referer');
         if (refererHeader) {
-            refererHeader.value = 'https://www.bilibili.com/';
+            if (url.host.includes('qq.com'))
+                refererHeader.value = 'https://y.qq.com/';
+            else
+                refererHeader.value = 'https://www.bilibili.com/';
         } else {
-            Headers.push({
-                name: 'referer',
-                value: 'https://www.bilibili.com/',
-            });
+            if (url.host.includes('qq.com'))
+                Headers.push({
+                    name: 'referer',
+                    value: 'https://y.qq.com/',
+                });
+            else
+                Headers.push({
+                    name: 'referer',
+                    value: 'https://www.bilibili.com/',
+                });
         }
         if (data && data.requestFrom === 'bilibili-music' && data.requestType === 'audioFromVideo') {
             Headers.push({
@@ -58,5 +67,36 @@ chrome.webRequest.onBeforeSendHeaders.addListener((details) => {
 }, {
     urls: [
         '*://*.bilivideo.com/*',
+        '*://i.y.qq.com/*',
+        '*://c.y.qq.com/*',
     ],
 }, ['blocking', 'requestHeaders', 'extraHeaders']);
+
+
+// chrome.webRequest.onBeforeSendHeaders.addListener((details) => {
+//     const { requestHeaders, initiator } = details;
+//     const url = new URLParse(details.url, '', true);
+//     const { query: data } = url;
+//     console.log('OnBeforeSendHeaders:')
+//     const Headers = [...requestHeaders];
+//     console.log(url)
+//     console.log(Headers)
+//     if (/^chrome-extension:\/\//.test(initiator)) {
+//         const refererHeader = Headers.find((e) => e.name.toLowerCase() === 'referer');
+//         if (refererHeader) {
+//             refererHeader.value = 'https://y.qq.com/';
+//         } else {
+//             Headers.push({
+//                 name: 'referer',
+//                 value: 'https://y.qq.com/',
+//             });
+//         }
+//         return { requestHeaders: Headers };
+//     } else {
+//         return { requestHeaders };
+//     }
+// }, {
+//     urls: [
+//         '*://c.y.qq.com/*',
+//     ],
+// }, ['blocking', 'requestHeaders', 'extraHeaders']);

@@ -78,7 +78,7 @@ export const Player = function ({ songList }) {
         }
 
         updateCurrentAudioList({ songs: songs, immediatePlay: true })
-    }, [params, playingList])
+    }, [params, playingList,currentAudioInst])
 
     const onAddOneFromFav = useCallback((songs) => {
 
@@ -141,6 +141,7 @@ export const Player = function ({ songList }) {
 
     const getAudioInstance = (audio) => {
         setcurrentAudioInst(audio)
+        console.log('getAudioInstance', audio)
     }
 
     const customDownloader = (downloadInfo) => {
@@ -200,7 +201,8 @@ export const Player = function ({ songList }) {
             {currentAudio && <LyricOverlay
                 showLyric={showLyric}
                 currentTime={currentAudio.currentTime}
-                audioName={currentAudio.name} />}
+                audioName={currentAudio.name}
+                audioId={currentAudio.id} />}
 
             {params &&
                 <React.Fragment>

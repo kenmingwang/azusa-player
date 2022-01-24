@@ -4,6 +4,8 @@ import { fetchPlayUrlPromise } from '../utils/Data2'
 
 const INITIAL_PLAYLIST = 'BV1wr4y1v7TA'
 const MY_FAV_LIST_KEY = 'MyFavList'
+const LYRIC_MAPPING = 'LyricMappings'
+const LAST_PLAY_LIST = 'LastPlayList'
 
 export default class StorageManager {
     constructor() {
@@ -58,7 +60,11 @@ export default class StorageManager {
         //     info: { title: '默认歌单2', id: ('FavList-' + uuidv4()) }
         // }[value2.info.id]: value2,
 
-        chrome.storage.local.set({ [value.info.id]: value, ['LastPlayList']:[] }, function () {
+        chrome.storage.local.set({
+            [value.info.id]: value,
+            [LAST_PLAY_LIST]: [],
+            [LYRIC_MAPPING]: [],
+        }, function () {
             console.log('key is set to ' + value.info.id);
             console.log('Value is set to ' + value);
             chrome.storage.local.set({ 'MyFavList': [value.info.id] }, function () {
@@ -108,17 +114,46 @@ export default class StorageManager {
     }
 
     setLastPlayList(audioLists) {
-        chrome.storage.local.set({ ['LastPlayList']: audioLists })
+        chrome.storage.local.set({ [LAST_PLAY_LIST]: audioLists })
     }
 
-    async getLastPlayList() {
-        let lastPlayList = []
-        await chrome.storage.local.get({ ['LastPlayList']: audioLists }, function(result){
-            lastPlayList = result
-        })
-        console.log(lastPlayList)
-        return lastPlayList
+    async setLyricOffset(songId, lrcOffset){
+        const lyricMappings = await this.readLocalStorage(LYRIC_MAPPING)
+        const detailIndex = lyricMappings.findIndex(l => l.id == songId)
+        if (detailIndex != -1){
+            lyricMappings[detailIndex].lrcOffset = lrcOffset
+            chrome.storage.local.set({ [LYRIC_MAPPING]: lyricMappings })
+        }
     }
+
+    async setLyricDetail(songId, lrc) {
+        const lyricMappings = await this.readLocalStorage(LYRIC_MAPPING)
+        const detailIndex = lyricMappings.findIndex(l => l.id == songId)
+        if (detailIndex != -1){
+            lyricMappings[detailIndex].lrc = lrc
+        }
+        else {
+            lyricMappings.push({ key: songId, id: songId, lrc: lrc, lrcOffset: 0 })
+        }
+        chrome.storage.local.set({ [LYRIC_MAPPING]: lyricMappings })
+    }
+    async getLyricDetail(songId) {
+        const lyricMappings = await this.readLocalStorage(LYRIC_MAPPING)
+        const detail = lyricMappings.find(l => l.id == songId)
+        return detail;
+    }
+
+    async readLocalStorage(key) {
+        return new Promise((resolve, reject) => {
+            chrome.storage.local.get([key], function (result) {
+                if (result[key] === undefined) {
+                    reject();
+                } else {
+                    resolve(result[key]);
+                }
+            });
+        });
+    };
 }
 
 

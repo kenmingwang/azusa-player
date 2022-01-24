@@ -1,4 +1,4 @@
-import React, { forwardRef, useState, useEffect } from "react";
+import React, { forwardRef, useState, useEffect,memo } from "react";
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import ListItemText from '@mui/material/ListItemText';
@@ -17,7 +17,7 @@ const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export const LyricOverlay = function ({ showLyric, currentTime, audioName }) {
+export const LyricOverlay = memo(function ({ showLyric, currentTime, audioName, audioId }) {
     const [open, setOpen] = useState(true);
 
     useEffect(() => {
@@ -49,8 +49,8 @@ export const LyricOverlay = function ({ showLyric, currentTime, audioName }) {
                 >
                     <KeyboardArrowDownIcon />
                 </IconButton>
-                <Lyric currentTime={currentTime} audioName={audioName} />
+                <Lyric currentTime={currentTime} audioName={audioName} audioId={audioId} />
             </Dialog>
         </div>
     );
-}
+})
