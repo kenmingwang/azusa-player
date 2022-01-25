@@ -9,11 +9,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const { command = '', from = '' } = message;
     // Init data on program start
     if (command === 'onLoadData' && from === 'App') {
-        console.log(message.command);
+        //console.log(message.command);
         initSongList({ sendResponse: sendResponse })
     }
     if (command === 'onSearch' && from === 'Search') {
-        console.log(message.command);
+        //console.log(message.command);
 
         getSongList({ bvid: message.bvid, sendResponse: sendResponse })
     }
@@ -32,12 +32,12 @@ export const initSongList = async (setCurrentSongList) => {
     // const res = [s]
     // setCurrentSongList(res)
     // chrome.storage.sync.set({ 'Song': s }, function () {
-    //     console.log('key is set to ' + key);
-    //     console.log('Value is set to ' + value);
+    //     //console.log('key is set to ' + key);
+    //     //console.log('Value is set to ' + value);
     // });
     chrome.storage.local.get(['LastPlayList'], async function (result) {
         if (result['LastPlayList']) {
-            console.log(result)
+            //console.log(result)
             const defaultSongList = result['LastPlayList']
             defaultSongList.map(v => v['musicSrc'] = () => { return fetchPlayUrlPromise(v.bvid, v.id) })
             setCurrentSongList(defaultSongList)
@@ -51,7 +51,7 @@ export const initSongList = async (setCurrentSongList) => {
 
 export const initFavLists = async (setFavSongLists) => {
     chrome.storage.sync.get(['Fav2'], function (result) {
-        console.log('Value currently is ' + result.key);
+        //console.log('Value currently is ' + result.key);
         // if(result){
         //     initWithStorage()
         // }
@@ -62,8 +62,8 @@ export const initFavLists = async (setFavSongLists) => {
     // const key = 'List'
     // const value = 'song'
     // chrome.storage.local.set({key: value}, function() {
-    //     console.log('key is set to ' + key);
-    //     console.log('Value is set to ' + value);
+    //     //console.log('key is set to ' + key);
+    //     //console.log('Value is set to ' + value);
     // });
 }
 

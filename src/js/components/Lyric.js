@@ -30,7 +30,7 @@ export const Lyric = withStyles(styles)((props) => {
 
     useEffect(() => {
         const extractedName = extractSongName(audioName)
-        console.log('Lrc changed to %s', extractedName)
+        //console.log('Lrc changed to %s', extractedName)
         // fetchLRC(audioName, setLyric, setSongTitle)
         setSongTitle(extractedName)
     }, [audioName])
@@ -47,11 +47,11 @@ export const Lyric = withStyles(styles)((props) => {
 
     const onLrcOffsetChange = (e) => {
         setLyricOffset(e.target.value)
-        StorageManager.setLyricOffset(audioId,e.target.value)
+        StorageManager.setLyricOffset(audioId, e.target.value)
     }
 
     function lineRenderer({ line: { startMillisecond, content }, index, active }) {
-        // console.log(content)
+        // //console.log(content)
         return (
             <div style={{
                 textAlign: 'center',
@@ -70,7 +70,7 @@ export const Lyric = withStyles(styles)((props) => {
             console.log(index, line)
         )
     }
-    // console.log(+currentTime * 1000 + +lyricOffset)
+    // //console.log(+currentTime * 1000 + +lyricOffset)
     const className = ScrollBar().root
 
     return (
@@ -107,7 +107,7 @@ export const Lyric = withStyles(styles)((props) => {
                             InputLabelProps={{
                                 shrink: true
                             }}
-                            value={songTitle}
+                            placeholder={songTitle}
                             onKeyDown={onEnterPress}
                         />
                     </Grid>

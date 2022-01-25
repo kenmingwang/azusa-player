@@ -7,7 +7,7 @@ const MY_FAV_LIST_KEY = 'MyFavList'
 
 export const initFavLists = async (setFavLists) => {
     chrome.storage.local.get(['MyFavList'], function (result) {
-        console.log(result);
+        //console.log(result);
         if (Object.keys(result).length != 0) {
             initWithStorage(setFavLists, result["MyFavList"])
         }
@@ -39,7 +39,7 @@ export const addFavList = (favName, favLists, setFavLists) => {
         const newListIDs = favLists.map(v => v.info.id)
         setFavLists([...favLists])
         chrome.storage.local.set({ 'MyFavList': newListIDs }, function () {
-            console.log('AddedFav ' + value.info.id);
+            //console.log('AddedFav ' + value.info.id);
         })
     });
 }
@@ -57,7 +57,7 @@ const initWithStorage = async (setFavLists, FavListIDs) => {
         FavListIDs.map((id) => {
             FavListsSorted.push(FavLists.find((v) => v.info.id == id))
         })
-        console.log(FavListsSorted)
+        //console.log(FavListsSorted)
         setFavLists(FavListsSorted)
     })
 }
@@ -75,8 +75,8 @@ const initWithDefault = async (setFavLists) => {
     }
 
     chrome.storage.local.set({ [value.info.id]: value, [value2.info.id]: value2 }, function () {
-        console.log('key is set to ' + value.info.id);
-        console.log('Value is set to ' + value);
+        //console.log('key is set to ' + value.info.id);
+        //console.log('Value is set to ' + value);
         chrome.storage.local.set({ 'MyFavList': [value.info.id, value2.info.id] }, function () {
             setFavLists([value, value2])
         })

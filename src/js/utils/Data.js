@@ -26,7 +26,7 @@ export const fetchPlayUrl = async (bvid) => {
     // Fetch cid from bvid
     const cid = await fetchCID(bvid)
 
-    console.log('Data.js Calling fetchPlayUrl:' + URL_PLAY_URL.replace("{bvid}", bvid).replace("{cid}", cid))
+    //console.log('Data.js Calling fetchPlayUrl:' + URL_PLAY_URL.replace("{bvid}", bvid).replace("{cid}", cid))
     const res = await fetch(URL_PLAY_URL.replace("{bvid}", bvid).replace("{cid}", cid))
     const json = await res.json()
     const audioUrl = extractResponseJson(json, 'AudioUrl')
@@ -36,7 +36,7 @@ export const fetchPlayUrl = async (bvid) => {
 
 
 export const fetchCID = async (bvid) => {
-    console.log('Data.js Calling fetchCID:' + URL_BVID_TO_CID.replace("{bvid}", bvid))
+    //console.log('Data.js Calling fetchCID:' + URL_BVID_TO_CID.replace("{bvid}", bvid))
     const res = await fetch(URL_BVID_TO_CID.replace("{bvid}", bvid))
     const json = await res.json()
     const cid = extractResponseJson(json, 'CID')
@@ -45,7 +45,7 @@ export const fetchCID = async (bvid) => {
 
 // Refactor needed for this func
 export const fetchLRC = async (name, setLyric, setSongTitle) => {
-    console.log('Data.js Calling: fetchLRC')
+    //console.log('Data.js Calling: fetchLRC')
     // Get song mapping name and song name from title
     const res = await fetch(URL_LRC_MAPPING)
     const mappings = await res.text()
@@ -131,6 +131,10 @@ export const searchLyric = async (searchMID, setLyric) => {
     logger.info("calling searchLyric")
     const res = await fetch(URL_QQ_LYRIC.replace("{SongMid}", searchMID))
     const json = await res.json()
+    if(!json.lyric){
+        setLyric('[00:00.000] 无法找到歌词,请手动搜索')
+        return
+    }
     const data = json.lyric
     setLyric(data)
 }

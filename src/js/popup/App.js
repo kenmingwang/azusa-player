@@ -12,12 +12,12 @@ export const App = function () {
     const [currentSongList, setCurrentSongList] = useState(null)
 
     useEffect(() => {
-        console.log('ran useEffect - App')
+        //console.log('ran useEffect - App')
 
         initSongList(setCurrentSongList)
     }, [])
 
-    console.log(currentSongList)
+    //console.log(currentSongList)
     return (
         <StorageManagerCtx.Provider value={new StorageManager()}>
             <PageLayout

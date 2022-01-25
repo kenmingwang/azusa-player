@@ -11,7 +11,6 @@ import StorageManagerCtx from '../popup/App'
 // Initial Player options
 const options = {
     mode: 'full',
-    defaultVolume: 0.5,
     showThemeSwitch: false,
     showLyric: false,
     toggleMode: false,
@@ -33,11 +32,13 @@ export const Player = function ({ songList }) {
     const [currentAudioInst, setcurrentAudioInst] = useState(null)
     // Lyric Dialog
     const [showLyric, setShowLyric] = useState(false)
+    // Player Settings
+    const [playerSettings, setPlayerSettings] = useState(null)
     // Sync data to chromeDB
     const StorageManager = useContext(StorageManagerCtx)
 
     const updateCurrentAudioList = useCallback(({ songs, immediatePlay = false, replaceList = false }) => {
-        console.log("updateCurrentAudioList", params)
+        //console.log("updateCurrentAudioList", params)
         let newAudioLists = []
         if (immediatePlay) {
             // Click and play
@@ -71,19 +72,19 @@ export const Player = function ({ songList }) {
     const onPlayOneFromFav = useCallback((songs) => {
 
         const existingIndex = playingList.findIndex((s) => s.id == songs[0].id)
-        console.log(existingIndex)
+        //console.log(existingIndex)
         if (existingIndex != -1) {
             currentAudioInst.playByIndex(existingIndex)
             return
         }
 
         updateCurrentAudioList({ songs: songs, immediatePlay: true })
-    }, [params, playingList,currentAudioInst])
+    }, [params, playingList, currentAudioInst])
 
     const onAddOneFromFav = useCallback((songs) => {
 
         const existingIndex = playingList.findIndex((s) => s.id == songs[0].id)
-        console.log(existingIndex)
+        //console.log(existingIndex)
         if (existingIndex != -1) {
             return
         }
@@ -106,8 +107,22 @@ export const Player = function ({ songList }) {
         currentAudioInst.playByIndex(index)
     }, [currentAudioInst])
 
+    const onPlayModeChange = (playMode) => {
+        console.log('play mode change:', playMode)
+        playerSettings.playMode = playMode
+        setPlayerSettings(playerSettings)
+        StorageManager.setPlayerSetting(playerSettings)
+    }
+
+    const onAudioVolumeChange = (currentVolume) => {
+        console.log('audio volume change', currentVolume)
+        playerSettings.defaultVolume = Math.sqrt(currentVolume)
+        setPlayerSettings(playerSettings)
+        StorageManager.setPlayerSetting(playerSettings)
+    }
+
     const onAudioPlay = useCallback((audioInfo) => {
-        console.log('audio playing', audioInfo)
+        //console.log('audio playing', audioInfo)
         const link = 'https://www.bilibili.com/video/' + audioInfo.bvid
         const newParam = {
             ...params,
@@ -126,7 +141,7 @@ export const Player = function ({ songList }) {
         // Sync latest-playinglist
         StorageManager.setLastPlayList(audioLists)
         setplayingList(audioLists)
-        console.log('audioListChange:', audioLists)
+        //console.log('audioListChange:', audioLists)
     }, [params, playingList])
 
     const onAudioError = (errMsg, currentPlayId, audioLists, audioInfo) => {
@@ -134,14 +149,14 @@ export const Player = function ({ songList }) {
     }
 
     const onAudioProgress = (audioInfo) => {
-        //console.log('onAudioProgress: ', audioInfo)
-        // console.log(audioInfo)
+        ////console.log('onAudioProgress: ', audioInfo)
+        // //console.log(audioInfo)
         setcurrentAudio(audioInfo)
     }
 
     const getAudioInstance = (audio) => {
         setcurrentAudioInst(audio)
-        console.log('getAudioInstance', audio)
+        //console.log('getAudioInstance', audio)
     }
 
     const customDownloader = (downloadInfo) => {
@@ -163,32 +178,43 @@ export const Player = function ({ songList }) {
 
     // Initialization effect
     useEffect(() => {
-        console.log('ran Init useEffect - Player')
-        if (!songList)
+        console.log('ran Init useEffect - Player',songList)
+        if (!songList || songList[0] == undefined)
             return;
 
-        let link = ''
-        if (songList[0] != undefined)
-            link = 'https://www.bilibili.com/video/' + songList[0].bvid
-        options.extendsContent = (
-            <span className="group audio-download" title="Bilibili">
-                <a href={link} target="_blank" style={{ color: 'inherit', textDecloration: 'none' }}>
-                    <BiliBiliIcon />
-                </a>
-            </span >
-        )
-        const params = {
-            ...options,
-            audioLists: songList
+        async function initPlayer() {
+            let setting = await StorageManager.getPlayerSetting()
+            console.log('setting:' + setting)
+            if (undefined == setting) {
+                setting = { playMode: 'order', defaultVolume: 0.5 }
+                StorageManager.setPlayerSetting(setting)
+            }
+
+            const link = 'https://www.bilibili.com/video/' + songList[0].bvid
+            options.extendsContent = (
+                <span className="group audio-download" title="Bilibili">
+                    <a href={link} target="_blank" style={{ color: 'inherit', textDecloration: 'none' }}>
+                        <BiliBiliIcon />
+                    </a>
+                </span >
+            )
+            const params = {
+                ...options,
+                ...setting,
+                audioLists: songList
+            }
+            setparams(params)
+            setplayingList(songList)
+            setPlayerSettings(setting)
         }
-        setparams(params)
-        setplayingList(songList)
+
+        initPlayer()
     }, [songList])
 
-    // console.log('params')
-    // console.log(params)
-    // console.log('lyric' + lyric)
-    // console.log(currentAudio)
+    // //console.log('params')
+    // //console.log(params)
+    // //console.log('lyric' + lyric)
+    // //console.log(currentAudio)
     return (
         <React.Fragment>
             {params && <FavList currentAudioList={params.audioLists}
@@ -214,6 +240,8 @@ export const Player = function ({ songList }) {
                         sx={{ gridArea: "footer" }}
                     >
                         <ReactJkMusicPlayer
+                            onAudioVolumeChange={onAudioVolumeChange}
+                            onPlayModeChange={onPlayModeChange}
                             onAudioError={onAudioError}
                             customDownloader={customDownloader}
                             showMediaSession

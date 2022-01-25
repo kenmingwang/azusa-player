@@ -112,7 +112,7 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
                 setOpen(open.set(v.info.id, false))
         })
         chrome.storage.onChanged.addListener((changes, area) => {
-            console.log(changes, area)
+            //console.log(changes, area)
             // if(Object.keys(changes)[0].startsWith('FavList')){
             //     const id = Object.keys(changes)[0]
             //     favLists.push(changes[id].newValue)
@@ -121,19 +121,19 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
 
             // if (area === 'local' && changes.options?.newValue) {
             //   const debugMode = Boolean(changes.options.newValue.debug);
-            //   console.log('enable debug mode?', debugMode);
+            //   //console.log('enable debug mode?', debugMode);
             //   setDebugMode(debugMode);
             // }
         });
     }, [favLists])
 
     useEffect(() => {
-        console.log('fav effect')
-        console.log(StorageManager)
+        //console.log('fav effect')
+        //console.log(StorageManager)
         StorageManager.setFavLists = setFavLists
         StorageManager.initFavLists()
 
-        console.log(favLists)
+        //console.log(favLists)
     }, [])
 
     const handleSeach = useCallback((list) => {
@@ -154,7 +154,7 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
         // Need to make a new map as Memo is checking for ref.
         setOpen(new Map(open.set(id, !open.get(id))));
         setSelectedList(v)
-        // console.log(open.get('CurrentPlayList'))
+        // //console.log(open.get('CurrentPlayList'))
     });
 
     const handleNewFav = () => {
@@ -164,7 +164,7 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
     const onNewFav = (val) => {
         setOpenNewDialog(false)
         if (val) {
-            console.log(val)
+            //console.log(val)
             StorageManager.addFavList(val, favLists)
         }
     }
@@ -192,11 +192,13 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
             let fromList = []
             let newSongList = []
             let toList = favLists.find(f => f.info.id == toId)
-
-            fromList = song ? { songList: [song] } : favLists.find(f => f.info.id == fromId) // Handles both single song add and list add
+            if (fromId == 'FavList-Search')
+                fromList = searchList
+            else
+                fromList = song ? { songList: [song] } : favLists.find(f => f.info.id == fromId) // Handles both single song add and list add
 
             newSongList = fromList.songList.filter(s => undefined === toList.songList.find(v => v.id == s.id))
-            console.log(fromId, toId)
+            //console.log(fromId, toId)
 
             const updatedToList = { info: toList.info, songList: newSongList.concat(toList.songList) }
             StorageManager.updateFavList(updatedToList)
@@ -222,8 +224,8 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
     }
 
     const style = btnActiveStyle()
-    console.log('render favlist')
-    console.log(style.root)
+    //console.log('render favlist')
+    //console.log(style.root)
     return (
         <React.Fragment>
             <Search handleSeach={handleSeach} />
@@ -268,7 +270,7 @@ export const FavList = memo(function ({ currentAudioList, onSongListChange, onSo
                             <Box component="div" sx={CRUDBtn}>
                                 <PlaylistPlayIcon sx={CRUDIcon} onClick={() => handlePlayListClick(searchList)} />
                                 <PlaylistAddIcon sx={CRUDIcon} onClick={() => handleAddPlayListClick(searchList)} />
-                                <AddBoxOutlinedIcon sx={CRUDIcon} />
+                                <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(searchList.info.id)} />
                                 <DeleteOutlineOutlinedIcon sx={CRUDIconDisable} />
                             </Box>
                         </ListItemButton>

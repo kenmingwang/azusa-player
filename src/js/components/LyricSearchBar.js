@@ -46,7 +46,7 @@ export const LyricSearchBar = function ({ SearchKey, SongId, setLyric, setLyricO
         }
     }
 
-    // console.log("SearchBarValue:", options)
+    // //console.log("SearchBarValue:", options)
 
     return (
         <div>

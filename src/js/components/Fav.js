@@ -77,7 +77,7 @@ export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, on
     useEffect(() => {
         setCurrentFavList(FavList)
         setRows(FavList.songList)
-        console.log(FavList)
+        //console.log(FavList)
     }, [FavList])
 
     const requestSearch = (e) => {
@@ -94,7 +94,7 @@ export const Fav = (function ({ FavList, onSongListChange, onSongIndexChange, on
         setRows(filteredRows)
     }
 
-    console.log('rener Fav')
+    //console.log('rener Fav')
     const className = ScrollBar().root
 
     return (

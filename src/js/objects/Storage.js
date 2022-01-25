@@ -6,6 +6,7 @@ const INITIAL_PLAYLIST = 'BV1wr4y1v7TA'
 const MY_FAV_LIST_KEY = 'MyFavList'
 const LYRIC_MAPPING = 'LyricMappings'
 const LAST_PLAY_LIST = 'LastPlayList'
+const PLAYER_SETTINGS = 'PlayerSetting'
 
 export default class StorageManager {
     constructor() {
@@ -16,7 +17,7 @@ export default class StorageManager {
     async initFavLists() {
         const _self = this
         chrome.storage.local.get(['MyFavList'], function (result) {
-            console.log(result);
+            //console.log(result);
             if (Object.keys(result).length != 0) {
                 _self.initWithStorage(result["MyFavList"])
             }
@@ -42,7 +43,7 @@ export default class StorageManager {
             FavListIDs.map((id) => {
                 FavListsSorted.push(FavLists.find((v) => v.info.id == id))
             })
-            console.log(FavListsSorted)
+            //console.log(FavListsSorted)
             _self.setFavLists(FavListsSorted)
             _self.latestFavLists = FavListsSorted
         })
@@ -65,8 +66,8 @@ export default class StorageManager {
             [LAST_PLAY_LIST]: [],
             [LYRIC_MAPPING]: [],
         }, function () {
-            console.log('key is set to ' + value.info.id);
-            console.log('Value is set to ' + value);
+            //console.log('key is set to ' + value.info.id);
+            //console.log('Value is set to ' + value);
             chrome.storage.local.set({ 'MyFavList': [value.info.id] }, function () {
                 _self.setFavLists([value])
                 _self.latestFavLists = [value]
@@ -98,7 +99,7 @@ export default class StorageManager {
             chrome.storage.local.set({ 'MyFavList': newListIDs }, function () {
                 _self.setFavLists([..._self.latestFavLists])
 
-                console.log('AddedFav ' + value.info.id);
+                //console.log('AddedFav ' + value.info.id);
             })
         });
     }
@@ -117,10 +118,10 @@ export default class StorageManager {
         chrome.storage.local.set({ [LAST_PLAY_LIST]: audioLists })
     }
 
-    async setLyricOffset(songId, lrcOffset){
+    async setLyricOffset(songId, lrcOffset) {
         const lyricMappings = await this.readLocalStorage(LYRIC_MAPPING)
         const detailIndex = lyricMappings.findIndex(l => l.id == songId)
-        if (detailIndex != -1){
+        if (detailIndex != -1) {
             lyricMappings[detailIndex].lrcOffset = lrcOffset
             chrome.storage.local.set({ [LYRIC_MAPPING]: lyricMappings })
         }
@@ -129,7 +130,7 @@ export default class StorageManager {
     async setLyricDetail(songId, lrc) {
         const lyricMappings = await this.readLocalStorage(LYRIC_MAPPING)
         const detailIndex = lyricMappings.findIndex(l => l.id == songId)
-        if (detailIndex != -1){
+        if (detailIndex != -1) {
             lyricMappings[detailIndex].lrc = lrc
         }
         else {
@@ -146,14 +147,20 @@ export default class StorageManager {
     async readLocalStorage(key) {
         return new Promise((resolve, reject) => {
             chrome.storage.local.get([key], function (result) {
-                if (result[key] === undefined) {
-                    reject();
-                } else {
-                    resolve(result[key]);
-                }
+                resolve(result[key]);
             });
         });
     };
+
+    async getPlayerSetting() {
+        const settings = await this.readLocalStorage(PLAYER_SETTINGS)
+        console.log('setting1:' + settings)
+        return (settings)
+    }
+
+    async setPlayerSetting(newSettings) {
+        chrome.storage.local.set({ [PLAYER_SETTINGS]: newSettings })
+    }
 }
 
 
