@@ -24,7 +24,7 @@
     - <del> QA阶段才发现b站把分P砍了; ; </del>
   - 实现了歌名提取与歌词搜索
     - 歌名提取不准确的话需要手动输歌名
-  - 切片man不易，没有各位切片man也不会有这个项目的意义，请大家溜歌同时多点进视频给他们个赞👍
+  - **切片man不易，没有各位切片man也不会有这个项目的意义，请大家溜歌同时多点进视频给他们个赞👍**
   - 自用为主要目的，不感兴趣的feature大概不会做，有问题可以[b站私信](https://message.bilibili.com/#/whisper/mid1989881)
     - 但是欢迎提PR! <del>(虽然代码很烂)</del>
   
@@ -40,7 +40,7 @@
 
 ## 安装
  - [Chrome Store]() 
- - [Microsoft Store]()
+ - [Microsoft Store](https://microsoftedge.microsoft.com/addons/detail/%E7%94%B5%E6%A2%93%E6%92%AD%E6%94%BE%E5%99%A8%E7%AC%AC%E4%B8%89%E6%96%B9bilibili%E9%9F%B3%E9%A2%91%E6%92%AD%E6%94%BE%E5%99%A8/bikfgaolchpolficinadmbmkkohkbkdf)
  - 离线安装
    - [下载build文件](https://github.com/kenmingwang/azusa-player/releases/tag/release-0.0.0.1)，解压，Chrome 开启开发者模式，加载解压后的文件夹。
    - ![imgurl](https://github.com/kenmingwang/azusa-player/blob/master/public/img/azusa-player-tutorial.png?raw=true)
