@@ -1,0 +1,70 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "node": true
+    },
+    "extends": [
+        "airbnb",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:import/typescript"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "ecmaVersion": 2021,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "react",
+        "@typescript-eslint"
+    ],
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    },
+    "rules": {
+        "import/extensions": [
+            "warn",
+            {
+                "js": "never",
+                "jsx": "never",
+                "tsx": "never",
+                "ts": "never"
+            }
+        ],
+        "no-use-before-define": "off",
+        "@typescript-eslint/no-use-before-define": [
+            "error"
+        ], // solves 'React' was used before it was defined
+        "space-before-function-paren": 0,
+        "react/prop-types": 0,
+        "react/jsx-handler-names": 0,
+        "react/jsx-fragments": 0,
+        "react/no-unused-prop-types": 0,
+        "no-console": "off",
+        "linebreak-style": 0,
+        "operator-linebreak": "off",
+        "max-len": "off",
+        "no-underscore-dangle": "off",
+        "no-unused-vars": "warn",
+        "react/jsx-filename-extension": [
+            1,
+            {
+                "extensions": [
+                    ".js",
+                    ".jsx",
+                    ".ts",
+                    ".tsx"
+                ]
+            }
+        ],
+        "react/jsx-one-expression-per-line": "off",
+        "react/react-in-jsx-scope": "off",
+        "react/no-unescaped-entities": "off",
+        "arrow-body-style": "off"
+    }
+}

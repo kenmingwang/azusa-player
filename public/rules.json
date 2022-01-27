@@ -1,0 +1,24 @@
+[
+    {
+      "id": 1,
+      "priority": 1,
+      "action": {
+        "type": "modifyHeaders",
+        "requestHeaders": [
+          { "header": "referer", "operation": "set", "value": "https://www.bilibili.com/" }
+        ]
+      },
+      "condition": { "urlFilter" : "bilivideo.com", "resourceTypes": ["media"] }
+    },
+    {
+        "id": 2,
+        "priority": 1,
+        "action": {
+          "type": "modifyHeaders",
+          "requestHeaders": [
+            { "header": "referer", "operation": "set", "value": "https://y.qq.com/" }
+          ]
+        },
+        "condition": { "urlFilter" : "qq.com"  }
+      }
+  ]

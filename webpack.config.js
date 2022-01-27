@@ -1,99 +1,224 @@
-var webpack = require("webpack"),
-    path = require("path"),
-    fileSystem = require("fs"),
-    env = require("./utils/env"),
-    CleanWebpackPlugin = require("clean-webpack-plugin").CleanWebpackPlugin,
-    CopyWebpackPlugin = require("copy-webpack-plugin"),
-    HtmlWebpackPlugin = require("html-webpack-plugin"),
-    WriteFilePlugin = require("write-file-webpack-plugin");
+const path = require('path');
+const fs = require('fs');
+const { camelCase } = require('lodash');
+const { getIfUtils, removeEmpty } = require('webpack-config-utils');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
+const ProgressBar = require('progress-bar-webpack-plugin');
 
-// load the secrets
-var alias = {};
+const pkgJson = require('./package.json');
 
-var secretsPath = path.join(__dirname, ("secrets." + env.NODE_ENV + ".js"));
-
-var fileExtensions = ["jpg", "jpeg", "png", "gif", "eot", "otf", "svg", "ttf", "woff", "woff2", "txt"];
-
-if (fileSystem.existsSync(secretsPath)) {
-  alias["secrets"] = secretsPath;
-}
-
-var options = {
-  mode: process.env.NODE_ENV || "development",
-  entry: {
-    popup: path.join(__dirname, "src", "js", "popup.js"),
-    background: [ path.join(__dirname, "src", "js/background", "background.js"),
-                  path.join(__dirname, "src", "js/background", "DataProcess.js")]
-  },
-  output: {
-    path: path.join(__dirname, "build"),
-    filename: "[name].bundle.js"
-  },
-  module: {
-    rules: [
-      {
-        test: /\.css$/,
-        loader: "style-loader!css-loader",
-        exclude: /node_modules/
-      },
-      {
-        test: new RegExp('\.(' + fileExtensions.join('|') + ')$'),
-        loader: "file-loader?name=[name].[ext]",
-        exclude: /node_modules/
-      },
-      {
-        test: /\.html$/,
-        loader: "html-loader",
-        exclude: /node_modules/
-      },
-      {
-        test: /\.(js|jsx)$/,
-        loader: "babel-loader",
-        exclude: /node_modules/
-      },
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      },
-    ]
-  },
-  resolve: {
-    alias: alias,
-    extensions: fileExtensions.map(extension => ("." + extension)).concat([".jsx", ".js", ".css",".ts"])
-  },
-  plugins: [
-    // clean the build folder
-    new CleanWebpackPlugin(),
-    // expose and write the allowed env vars on the compiled bundle
-    new webpack.EnvironmentPlugin(["NODE_ENV"]),
-    new CopyWebpackPlugin([{
-      from: "src/manifest.json",
-      transform: function (content, path) {
-        // generates the manifest file using the package.json informations
-        return Buffer.from(JSON.stringify({
-          description: process.env.npm_package_description,
-          version: process.env.npm_package_version,
-          ...JSON.parse(content.toString())
-        }))
-      }
-    }]),
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, "src", "popup.html"),
-      filename: "popup.html",
-      chunks: ["popup"]
-    }),
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, "src", "background.html"),
-      filename: "background.html",
-      chunks: ["background"]
-    }),
-    new WriteFilePlugin()
-  ]
+const ifDirIsNotEmpty = (dir, value) => {
+  return fs.readdirSync(dir).length !== 0 ? value : undefined;
 };
 
-if (env.NODE_ENV === "development") {
-  options.devtool = "cheap-module-eval-source-map";
-}
+/**
+ * @param SrcPath the folder/file name (eg 'popup') or the path relative to the 'src' dir (eg 'scripts/background.ts')
+ * @param value the value to return if the folder is found
+ */
+const ifDirExists = (SrcPath, value) => {
+  return fs.existsSync(path.join(__dirname, 'src', SrcPath))
+    ? value
+    : undefined;
+};
 
-module.exports = options;
+module.exports = (env) => {
+  const { ifProd, ifDev } = getIfUtils(env);
+
+  /**
+   * @param dirPath the path relative to src (eg 'scripts' not 'src/scripts')
+   */
+  const getFolders = (dirPath) => {
+    return fs
+      .readdirSync(path.join(__dirname, 'src', dirPath), {
+        withFileTypes: true,
+      })
+      .filter((dirent) => dirent.isDirectory())
+      .map((dirent) => dirent.name);
+  };
+
+  /**
+   * @param dirPath the path relative to src (eg 'scripts' not 'src/scripts')
+   * @param entryFile the entry point (eg 'index.ts' or 'index.tsx')
+   */
+  const getEntries = (dirPath, entryFile = 'index.tsx') => {
+    const _e = {};
+    // get all folders
+    const folders = getFolders(dirPath);
+
+    folders.forEach((folderName) => {
+      _e[camelCase(folderName)] = path.join(
+        __dirname,
+        'src',
+        dirPath,
+        folderName,
+        entryFile,
+      );
+    });
+
+    return _e;
+  };
+
+  /** get a list of all folders in UIElements (this means the user has added a (react) html page and wants webpack to handle bundling and transpiling) */
+  const UIElementsDir = path.join(__dirname, 'src', 'UIElements');
+  const setUIElementHtml = () => {
+    const htmlPages = [];
+    const UIElements = getFolders('UIElements');
+    UIElements.forEach((folderName) => {
+      htmlPages.push(
+        new HtmlWebpackPlugin({
+          filename: `${camelCase(folderName)}.html`,
+          template: path.join(UIElementsDir, folderName, 'index.html'),
+          chunks: [camelCase(folderName)],
+        }),
+      );
+    });
+    return htmlPages;
+  };
+
+  var fileExtensions = ["jpg", "jpeg", "png", "gif", "eot", "otf", "svg", "ttf", "woff", "woff2", "txt"];
+
+  return {
+    mode: ifProd('production', 'development'),
+    entry: removeEmpty({
+      popup: ifDirExists('popup', path.join(__dirname, 'src/popup/index.js')),
+      options: ifDirExists('options', './src/options/index.tsx'),
+      onboarding: ifDirExists('onboarding', './src/onboarding/index.tsx'),
+      newtab: ifDirExists('newtab', './src/newtab/index.tsx'),
+      serviceworker: ifDirExists('serviceworker/index.ts', {
+        import: './src/serviceworker/index.ts',
+        filename: 'serviceworker.js',
+      }),
+      ...getEntries('UIElements'),
+      ...getEntries('scripts', 'index.ts'),
+    }),
+    output: {
+      path: path.resolve(__dirname, 'build'),
+      filename: 'js/[name].js',
+    },
+    module: {
+      rules: [
+        {
+          test: /\.[jt]sx?$/,
+          use: {
+            loader: 'babel-loader',
+            options: {
+              presets: [
+                '@babel/preset-env',
+                ['@babel/preset-react', { runtime: 'automatic' }],
+                '@babel/preset-typescript',
+              ],
+              plugins: removeEmpty([ifDev('react-refresh/babel')]),
+            },
+          },
+          exclude: /node_modules/,
+          include: [path.resolve(__dirname, 'src')],
+        },
+        {
+          test: /\.(s[ac]|c)ss$/i,
+          use: removeEmpty([
+            ifProd(MiniCssExtractPlugin.loader, 'style-loader'),
+            'css-loader',
+          ]),
+        },
+        {
+          test: new RegExp('\.(' + fileExtensions.join('|') + ')$'),
+          use:{
+            loader: "file-loader?name=[name].[ext]",
+          },
+          exclude: /node_modules/
+        },
+        {
+          test: /\.(woff|woff2|eot|ttf|otf)$/i,
+          type: 'asset/resource',
+          generator: {
+            filename: 'fonts/[hash][ext][query]',
+          },
+        },
+      ],
+    },
+    plugins: removeEmpty([
+      new CleanWebpackPlugin({
+        cleanStaleWebpackAssets: false, // don't remove index.html when using the flag watch
+      }),
+      ifProd(
+        new MiniCssExtractPlugin({
+          filename: 'css/[name].css',
+        }),
+      ),
+      ifDirExists(
+        'popup',
+        new HtmlWebpackPlugin({
+          filename: 'popup.html',
+          template: 'src/popup/index.html',
+          chunks: ['popup'],
+        }),
+      ),
+      ifDirExists(
+        'options',
+        new HtmlWebpackPlugin({
+          filename: 'options.html',
+          template: 'src/options/index.html',
+          chunks: ['options'],
+        }),
+      ),
+      ifDirExists(
+        'newtab',
+        new HtmlWebpackPlugin({
+          filename: 'newtab.html',
+          template: 'src/newtab/index.html',
+          chunks: ['newtab'],
+        }),
+      ),
+      ifDirExists(
+        'onboarding',
+        new HtmlWebpackPlugin({
+          filename: 'onboarding.html',
+          template: 'src/onboarding/index.html',
+          chunks: ['onboarding'],
+        }),
+      ),
+      ...setUIElementHtml(),
+      new CopyPlugin({
+        patterns: removeEmpty([
+          ifDirIsNotEmpty(path.join(__dirname, 'public', 'icons'), {
+            from: 'public/icons',
+            to: 'icons',
+          }),
+          {
+            from: 'public/manifest.json',
+            transform: (buffer) => {
+              const manifestJson = JSON.parse(buffer.toString());
+              return Buffer.from(JSON.stringify(manifestJson));
+            },
+          },
+          {
+            from: 'public/rules.json',
+            transform: (buffer) => {
+              const rulesJson = JSON.parse(buffer.toString());
+              return Buffer.from(JSON.stringify(rulesJson));
+            },
+          }
+        ]),
+      }),
+      ifDev(new ReactRefreshWebpackPlugin()),
+      ifProd(new ProgressBar()),
+    ]),
+    resolve: {
+      extensions: ['.tsx', '.ts', '.js', '.jsx', 'svg', 'png'],
+    },
+    devtool: ifProd(false, 'source-map'),
+    devServer: {
+      //   index: 'index.html', // The filename that is considered the index file.
+      port: 3003,
+      host: 'localhost',
+      open: true, // open the browser after server had been started
+      compress: true,
+      overlay: true, // show compiler errors in the browser
+      static: path.join(__dirname, 'public'),
+    },
+  };
+};
