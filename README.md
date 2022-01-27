@@ -8,9 +8,8 @@
    <img src="https://img.shields.io/github/v/tag/kenmingwang/azusa-player">
    </a>
 </p>
-<h2 align="center">Azusa-Player / 电梓播放器</h2>
-<h3 align="center">A 3rd party Bilibili audio player / 一个Bilibili第三方音频播放器</h2>
-
+<h3 align="center" style="color:purple">Azusa-Player / 电梓播放器</h3>
+<h4 align="center" style="color:purple"">A 3rd party Bilibili audio player / 一个Bilibili第三方音频播放器</h4>
 
 ## 项目简介
 
