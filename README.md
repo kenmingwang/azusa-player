@@ -11,7 +11,6 @@
 <h2 align="center">Azusa-Player / 电梓播放器</h2>
 <h3 align="center">A 3rd party Bilibili audio player / 一个Bilibili第三方音频播放器</h2>
 
-#
 
 ## 项目简介
 
