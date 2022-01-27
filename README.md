@@ -9,7 +9,7 @@
    </a>
 </p>
 <h3 align="center" style="color:purple">Azusa-Player / 电梓播放器</h3>
-<h4 align="center" style="color:purple"">A 3rd party Bilibili audio player / 一个Bilibili第三方音频播放器</h4>
+<h4 align="center" style="color:purple">A 3rd party Bilibili audio player / 一个Bilibili第三方音频播放器</h4>
 
 ## 项目简介
 
@@ -23,7 +23,7 @@
     - 歌名提取不准确的话需要手动输歌名
   - 切片man不易，没有各位切片man也不会有这个项目的意义，请大家溜歌同时多点进视频给他们个赞👍
   - 自用为主要目的，不感兴趣的feature大概不会做，有问题可以[b站私信](https://message.bilibili.com/#/whisper/mid1989881)
-    - 但是欢迎提PR! <del>(虽然代码很烂)
+    - 但是欢迎提PR! <del>(虽然代码很烂)</del>
   
 ### 截图：
    [![imgur](https://github.com/kenmingwang/azusa-player/blob/master/public/img/azusa-player2.gif?raw=true)]()
@@ -34,6 +34,13 @@
  - [react-lrc](https://github.com/mebtte/react-lrc)
  - [react-chrome-extension-MV3](https://github.com/Sirage-t/react-chrome-extension-MV3)
  - 参考了[Listen1](https://github.com/listen1/listen1_chrome_extension)播放器的交互形式
+
+## 安装
+ - [Chrome Store]() 
+ - [Microsoft Store]()
+ - 离线安装
+   - release处下载build文件，解压，Chrome 开启开发者模式，加载解压后的文件夹。
+   - ![imgurl](https://github.com/kenmingwang/azusa-player/blob/master/public/img/azusa-player-tutorial.png?raw=true)
   
 ## 项目协议
 
