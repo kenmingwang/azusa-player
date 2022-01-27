@@ -29,7 +29,7 @@
     - 但是欢迎提PR! <del>(虽然代码很烂)</del>
   
 ### 截图：
-   [![imgur](https://github.com/kenmingwang/azusa-player/blob/master/public/img/azusa-player2.gif?raw=true)]()
+   ![imgur](https://github.com/kenmingwang/azusa-player/blob/master/public/img/azusa-player2.gif?raw=true)
 
 ## 项目技术栈
  - [Chrome Extension](https://developer.chrome.com/docs/extensions/) + [React](https://github.com/facebook/react) + [MUI](https://mui.com/zh/)
