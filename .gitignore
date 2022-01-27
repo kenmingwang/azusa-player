@@ -6,6 +6,7 @@ node_modules
 
 # builds
 build
+build.zip
 dist
 .rpt2_cache
 
