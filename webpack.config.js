@@ -62,23 +62,6 @@ module.exports = (env) => {
     return _e;
   };
 
-  /** get a list of all folders in UIElements (this means the user has added a (react) html page and wants webpack to handle bundling and transpiling) */
-  const UIElementsDir = path.join(__dirname, 'src', 'UIElements');
-  const setUIElementHtml = () => {
-    const htmlPages = [];
-    const UIElements = getFolders('UIElements');
-    UIElements.forEach((folderName) => {
-      htmlPages.push(
-        new HtmlWebpackPlugin({
-          filename: `${camelCase(folderName)}.html`,
-          template: path.join(UIElementsDir, folderName, 'index.html'),
-          chunks: [camelCase(folderName)],
-        }),
-      );
-    });
-    return htmlPages;
-  };
-
   var fileExtensions = ["jpg", "jpeg", "png", "gif", "eot", "otf", "svg", "ttf", "woff", "woff2", "txt"];
 
   return {
@@ -126,7 +109,7 @@ module.exports = (env) => {
         },
         {
           test: new RegExp('\.(' + fileExtensions.join('|') + ')$'),
-          use:{
+          use: {
             loader: "file-loader?name=[name].[ext]",
           },
           exclude: /node_modules/
@@ -181,7 +164,6 @@ module.exports = (env) => {
           chunks: ['onboarding'],
         }),
       ),
-      ...setUIElementHtml(),
       new CopyPlugin({
         patterns: removeEmpty([
           ifDirIsNotEmpty(path.join(__dirname, 'public', 'icons'), {
