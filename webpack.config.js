@@ -75,7 +75,6 @@ module.exports = (env) => {
         import: './src/serviceworker/index.ts',
         filename: 'serviceworker.js',
       }),
-      ...getEntries('UIElements'),
       ...getEntries('scripts', 'index.ts'),
     }),
     output: {
