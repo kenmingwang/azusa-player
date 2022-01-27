@@ -21,8 +21,6 @@
     "128": "icons/icon-128.png"
   },
   "permissions": [
-    "cookies",
-    "downloads",
     "declarativeNetRequest",
     "storage"
   ],
