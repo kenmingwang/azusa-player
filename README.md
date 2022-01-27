@@ -39,7 +39,7 @@
  - [Chrome Store]() 
  - [Microsoft Store]()
  - 离线安装
-   - release处下载build文件，解压，Chrome 开启开发者模式，加载解压后的文件夹。
+   - [下载build文件](https://github.com/kenmingwang/azusa-player/releases/tag/release-0.0.0.1)，解压，Chrome 开启开发者模式，加载解压后的文件夹。
    - ![imgurl](https://github.com/kenmingwang/azusa-player/blob/master/public/img/azusa-player-tutorial.png?raw=true)
   
 ## 项目协议
