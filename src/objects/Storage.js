@@ -1,7 +1,7 @@
 import { getSongList } from '../background/DataProcess'
 import { v4 as uuidv4 } from 'uuid';
+import { fetchPlayUrlPromise } from '../utils/Data'
 
-import { fetchVideoInfo,fetchPlayUrlPromise } from '../utils/Data'
 const INITIAL_PLAYLIST = 'BV1wr4y1v7TA'
 const MY_FAV_LIST_KEY = 'MyFavList'
 const LYRIC_MAPPING = 'LyricMappings'

@@ -3,7 +3,6 @@ import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import { searchLyricOptions, searchLyric } from '../utils/Data'
 import StorageManagerCtx from '../popup/App'
-import { Details } from '@mui/icons-material';
 
 export const LyricSearchBar = function ({ SearchKey, SongId, setLyric, setLyricOffset }) {
     const [options, setOptions] = useState([])

@@ -18,7 +18,7 @@ body {
   z-index: 2000;
 }
 .react-jinke-music-player-main .music-player-panel {
-  background: url(https://github.com/kenmingwang/azusa-player/blob/master/src/img/bg3.png?raw=true)
+  background: url(https://github.com/kenmingwang/azusa-player/blob/master/public/img/bg3.png?raw=true)
     no-repeat;
   width: 100%;
   background-size: cover;

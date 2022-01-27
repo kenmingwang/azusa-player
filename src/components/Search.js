@@ -1,11 +1,9 @@
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
-import React, { useEffect, useState, useContext } from "react";
-import {getSongList} from '../background/DataProcess'
-import StorageManagerCtx from '../popup/App'
-import { SearchDialog } from "./SearchDialog";
+import React, { useState } from "react";
+import { getSongList } from '../background/DataProcess'
 
-export const Search = function ({handleSeach}) {
+export const Search = function ({ handleSeach }) {
 
     const [searchValue, setSearchValue] = useState('')
 
@@ -19,21 +17,21 @@ export const Search = function ({handleSeach}) {
             //console.log('value', inputBvid); // Validation of target Val        
 
             getSongList(inputBvid)
-            .then((songs)=>{
-                const list = {
-                    songList: songs,
-                    info: { title: '搜索歌单-'+inputBvid, id: ('FavList-' + 'Search') }
-                }
-                handleSeach(list)
-            })
-            .catch((error) => {
-                //console.log(error)
-                const list = {
-                    songList: [],
-                    info: { title: '搜索歌单-'+inputBvid, id: ('FavList-' + 'Search') }
-                }
-                handleSeach(list)
-            })
+                .then((songs) => {
+                    const list = {
+                        songList: songs,
+                        info: { title: '搜索歌单-' + inputBvid, id: ('FavList-' + 'Search') }
+                    }
+                    handleSeach(list)
+                })
+                .catch((error) => {
+                    //console.log(error)
+                    const list = {
+                        songList: [],
+                        info: { title: '搜索歌单-' + inputBvid, id: ('FavList-' + 'Search') }
+                    }
+                    handleSeach(list)
+                })
         }
     }
 
@@ -41,9 +39,9 @@ export const Search = function ({handleSeach}) {
         <React.Fragment>
             <Box // Top Grid -- Search  
                 sx={{
-                    gridArea: "search", 
+                    gridArea: "search",
                 }}
-                style={{paddingTop:'12px'}}
+                style={{ paddingTop: '12px' }}
             >
                 <Box // Serch Grid -- SearchBox
                     sx={{ mx: "auto", textAlign: "center" }}>

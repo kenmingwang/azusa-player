@@ -7,8 +7,8 @@ const LAST_PLAY_LIST = 'LastPlayList'
 // Load last-playist from storage, else use DEFAULT_BVID as initial list.
 export const initSongList = async (setCurrentSongList) => {
     chrome.storage.local.get([LAST_PLAY_LIST], async function (result) {
-        if (result[LAST_PLAY_LIST]) {
-            //console.log(result)
+        if (result[LAST_PLAY_LIST].length != 0) {
+            // console.log(result)
             const defaultSongList = result[LAST_PLAY_LIST]
             defaultSongList.map(v => v['musicSrc'] = () => { return fetchPlayUrlPromise(v.bvid, v.id) })
             setCurrentSongList(defaultSongList)
