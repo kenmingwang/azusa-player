@@ -42,8 +42,9 @@
  - [Chrome Store]() 
  - [Microsoft Store](https://microsoftedge.microsoft.com/addons/detail/%E7%94%B5%E6%A2%93%E6%92%AD%E6%94%BE%E5%99%A8%E7%AC%AC%E4%B8%89%E6%96%B9bilibili%E9%9F%B3%E9%A2%91%E6%92%AD%E6%94%BE%E5%99%A8/bikfgaolchpolficinadmbmkkohkbkdf)
  - 离线安装
-   - [下载build文件](https://github.com/kenmingwang/azusa-player/releases/tag/release-0.0.0.1)，解压，Chrome 开启开发者模式，加载解压后的文件夹。
-   - ![imgurl](https://github.com/kenmingwang/azusa-player/blob/master/public/img/azusa-player-tutorial.png?raw=true)
+   - [下载最新build文件](https://github.com/kenmingwang/azusa-player/releases)，解压，Chrome 开启开发者模式，加载解压后的文件夹。
+ 
+![imgurl](https://github.com/kenmingwang/azusa-player/blob/master/public/img/azusa-player-tutorial.png?raw=true)
   
 ## 项目协议
 
