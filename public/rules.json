@@ -8,7 +8,7 @@
           { "header": "referer", "operation": "set", "value": "https://www.bilibili.com/" }
         ]
       },
-      "condition": { "urlFilter" : "bilivideo.com", "resourceTypes": ["media"] }
+      "condition": { "urlFilter" : "bilivideo.com" }
     },
     {
         "id": 2,

@@ -175,7 +175,7 @@ export const Player = function ({ songList }) {
 
     // Initialization effect
     useEffect(() => {
-        console.log('ran Init useEffect - Player',songList)
+        console.log('ran Init useEffect - Player', songList)
         if (!songList || songList[0] == undefined)
             return;
 
@@ -238,7 +238,7 @@ export const Player = function ({ songList }) {
                     >
                         <ReactJkMusicPlayer
                             {...params}
-                            showMediaSession 
+                            showMediaSession
                             onAudioVolumeChange={onAudioVolumeChange}
                             onPlayModeChange={onPlayModeChange}
                             onAudioError={onAudioError}
