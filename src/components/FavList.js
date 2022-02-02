@@ -120,16 +120,25 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
         setOpenAddDialog(true)
     }
 
+    /* 
+        3 Scenarios:
+            1. Single song add, either from searchList or favList
+            2. Whole searchList
+            3. Whole favList 
+    */
     const onAddFav = (fromId, toId, song) => {
         setOpenAddDialog(false)
         if (toId) {
             let fromList = []
             let newSongList = []
             let toList = favLists.find(f => f.info.id == toId)
-            if (fromId == 'FavList-Search')
+
+            if (song)
+                fromList = { songList: [song] }
+            else if (fromId == 'FavList-Search')
                 fromList = searchList
             else
-                fromList = song ? { songList: [song] } : favLists.find(f => f.info.id == fromId) // Handles both single song add and list add
+                fromList = favLists.find(f => f.info.id == fromId) // Handles both single song add and list add
 
             newSongList = fromList.songList.filter(s => undefined === toList.songList.find(v => v.id == s.id))
             //console.log(fromId, toId)
@@ -173,7 +182,7 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
                         </Typography>
                     </Grid>
                     <Grid item xs={3} style={{ textAlign: 'right', paddingRight: '8px' }}>
-                        <AddIcon sx={AddFavIcon} onClick={()=>setOpenNewDialog(true)} />
+                        <AddIcon sx={AddFavIcon} onClick={() => setOpenNewDialog(true)} />
                     </Grid>
                     <NewFavDialog
                         id="NewFav"
