@@ -10,6 +10,9 @@
   <a href="https://github.com/kenmingwang/azusa-player/actions/workflows/webpack.yml">
   <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/kenmingwang/azusa-player/NodeJS%20with%20Webpack">
   </a>
+    <a href="https://github.com/kenmingwang/azusa-player/actions/workflows/webpack.yml">
+  <img alt="GitHub Workflow Status" src="https://img.shields.io/chrome-web-store/users/bdplgemfnbaefommicdebhboajognnhj?color=blue&label=chrome-user">
+  </a>
 </p>
 <h3 align="center" style="color:purple">Azusa-Player / 电梓播放器</h3>
 <h4 align="center" style="color:purple">A 3rd party Bilibili audio player / 一个Bilibili第三方音频播放器</h4>
