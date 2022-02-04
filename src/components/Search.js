@@ -1,11 +1,13 @@
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import React, { useState } from "react";
-import { getSongList } from '../background/DataProcess'
+import { getSongList, getFavList } from '../background/DataProcess'
+import CircularProgress from '@mui/material/CircularProgress';
 
 export const Search = function ({ handleSeach }) {
 
     const [searchValue, setSearchValue] = useState('')
+    const [Loading, setLoading] = useState(false)
 
     const onSearchTextChange = (e) => {
         setSearchValue(e.target.value)
@@ -13,25 +15,51 @@ export const Search = function ({ handleSeach }) {
     const keyPress = (e) => {
         // Enter clicked
         if (e.keyCode == 13) {
-            const inputBvid = e.target.value
-            //console.log('value', inputBvid); // Validation of target Val        
+            const input = e.target.value
+            setLoading(true)
+            //console.log('value', input); // Validation of target Val    
+            // Handles BV search    
+            if (input.startsWith('BV')) {
+                getSongList(input)
+                    .then((songs) => {
+                        const list = {
+                            songList: songs,
+                            info: { title: '搜索歌单-' + input, id: ('FavList-' + 'Search') }
+                        }
+                        handleSeach(list)
+                    })
+                    .catch((error) => {
+                        //console.log(error)
+                        const list = {
+                            songList: [],
+                            info: { title: '搜索歌单-' + input, id: ('FavList-' + 'Search') }
+                        }
+                        handleSeach(list)
 
-            getSongList(inputBvid)
-                .then((songs) => {
-                    const list = {
-                        songList: songs,
-                        info: { title: '搜索歌单-' + inputBvid, id: ('FavList-' + 'Search') }
-                    }
-                    handleSeach(list)
-                })
-                .catch((error) => {
-                    //console.log(error)
-                    const list = {
-                        songList: [],
-                        info: { title: '搜索歌单-' + inputBvid, id: ('FavList-' + 'Search') }
-                    }
-                    handleSeach(list)
-                })
+                    })
+                    .finally(() => setLoading(false))
+            }
+            // Handles Fav search
+            else {
+                getFavList(input)
+                    .then((songs) => {
+                        const list = {
+                            songList: songs,
+                            info: { title: '搜索歌单-' + input, id: ('FavList-' + 'Search') }
+                        }
+                        handleSeach(list)
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                        const list = {
+                            songList: [],
+                            info: { title: '搜索歌单-' + input, id: ('FavList-' + 'Search') }
+                        }
+                        handleSeach(list)
+                    })
+                    .finally(() => setLoading(false))
+            }
+
         }
     }
 
@@ -48,12 +76,13 @@ export const Search = function ({ handleSeach }) {
                     <TextField
                         id="outlined-basic"
                         color="secondary"
-                        label="BVid"
-                        placeholder="BV1w44y1b7MX"
+                        label="BVid/fid"
+                        placeholder="BV1w44y1b7MX/1303535681"
                         onKeyDown={keyPress}
                         onChange={onSearchTextChange}
                         value={searchValue}
                     />
+                    {Loading ? <CircularProgress sx={{ paddingLeft: '16px', paddingRight: '16px', }} /> : ''}
                 </Box>
             </Box>
         </React.Fragment>

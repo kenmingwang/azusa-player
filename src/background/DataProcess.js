@@ -1,4 +1,4 @@
-import { fetchVideoInfo,fetchPlayUrlPromise } from '../utils/Data'
+import { fetchVideoInfo, fetchPlayUrlPromise, fetchFavList } from '../utils/Data'
 import Song from '../objects/Song'
 
 const DEFAULT_BVID = 'BV1BQ4y1X714'
@@ -59,3 +59,45 @@ export const getSongList = async (bvid) => {
     return (songs)
 }
 
+export const getFavList = async (mid) => {
+    const infos = await fetchFavList(mid)
+
+    let songs = []
+
+    infos.forEach(info => {
+        if(!info)
+            return
+        // Case of single part video
+        if (info.pages.length == 1) {
+            // lrc = await fetchLRC(info.title)
+            songs.push(new Song({
+                cid: info.pages[0].cid,
+                bvid: info.pages[0].bvid,
+                name: info.title,
+                singer: info.uploader.name,
+                singerId: info.uploader.mid,
+                cover: info.picSrc,
+                musicSrc: () => { return fetchPlayUrlPromise(info.pages[0].bvid, info.pages[0].cid) }
+            }))
+        }
+        else {
+            // Can't use forEach, does not support await
+            for (let index = 0; index < info.pages.length; index++) {
+                let page = info.pages[index]
+                // lrc = fetchLRC(page.part)
+                songs.push(new Song({
+                    cid: page.cid,
+                    bvid: page.bvid,
+                    name: page.part,
+                    singer: info.uploader.name,
+                    singerId: info.uploader.mid,
+                    cover: info.picSrc,
+                    musicSrc: () => { return fetchPlayUrlPromise(page.bvid, page.cid) }
+
+                }))
+            }
+        }
+    })
+
+    return (songs)
+}
