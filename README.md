@@ -17,6 +17,7 @@
   <a href="https://github.com/kenmingwang/azusa-player/actions/workflows/webpack.yml">
     <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/kenmingwang/azusa-player/NodeJS%20with%20Webpack">
   </a>
+  </br>
   <a href="https://chrome.google.com/webstore/detail/%E7%94%B5%E6%A2%93%E6%92%AD%E6%94%BE%E5%99%A8-%E7%AC%AC%E4%B8%89%E6%96%B9bilibili%E9%9F%B3%E9%A2%91%E6%92%AD%E6%94%BE%E5%99%A8/bdplgemfnbaefommicdebhboajognnhj">
     <img alt="GitHub Workflow Status" src="https://img.shields.io/chrome-web-store/users/bdplgemfnbaefommicdebhboajognnhj?color=blue&label=chrome-user">
   </a>
