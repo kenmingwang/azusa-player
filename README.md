@@ -22,7 +22,7 @@
     <img alt="GitHub Workflow Status" src="https://img.shields.io/chrome-web-store/users/bdplgemfnbaefommicdebhboajognnhj?color=blue&label=chrome-user">
   </a>
   <a href="https://microsoftedge.microsoft.com/addons/detail/%E7%94%B5%E6%A2%93%E6%92%AD%E6%94%BE%E5%99%A8%E7%AC%AC%E4%B8%89%E6%96%B9bilibili%E9%9F%B3%E9%A2%91%E6%92%AD%E6%94%BE%E5%99%A8/bikfgaolchpolficinadmbmkkohkbkdf">
-    <img alt="GitHub all releases" src="https://img.shields.io/badge/dynamic/json?label=microsoft-user&query=%24.activeInstallCount&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fbikfgaolchpolficinadmbmkkohkbkdf">
+    <img alt="GitHub all releases" src="https://img.shields.io/badge/dynamic/json?label=edge-user&query=%24.activeInstallCount&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fbikfgaolchpolficinadmbmkkohkbkdf">
   </a>
   <a href="https://github.com/kenmingwang/azusa-player/releases">
     <img alt="GitHub all releases" src="https://img.shields.io/github/downloads/kenmingwang/azusa-player/total">
