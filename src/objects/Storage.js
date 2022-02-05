@@ -154,7 +154,7 @@ export default class StorageManager {
 
     async getPlayerSetting() {
         const settings = await this.readLocalStorage(PLAYER_SETTINGS)
-        console.log('setting1:' + settings)
+        // console.log('setting1:' + settings)
         return (settings)
     }
 

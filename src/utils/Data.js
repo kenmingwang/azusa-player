@@ -28,13 +28,21 @@ export const fetchPlayUrlPromise = async (bvid, cid) => {
     // Fetch cid from bvid if needed
     if (!cid)
         cid = await fetchCID(bvid).catch((err) => console.log(err))
+
     // Returns a promise that resolves into the audio stream url
     return (new Promise((resolve, reject) => {
-        console.log('Data.js Calling fetchPlayUrl:' + URL_PLAY_URL.replace("{bvid}", bvid).replace("{cid}", cid))
-        fetch(URL_PLAY_URL.replace("{bvid}", bvid).replace("{cid}", cid))
-            .then(res => res.json())
-            .then(json => resolve(extractResponseJson(json, 'AudioUrl')))
-            .catch((err) => reject(console.log(err)))
+        // console.log('Data.js Calling fetchPlayUrl:' + URL_PLAY_URL.replace("{bvid}", bvid).replace("{cid}", cid))
+        chrome.storage.local.get(['CurrentPlaying'], function (result) {
+            // To prohibit current playing audio from fetching a new audio stream
+            if (result.CurrentPlaying && result.CurrentPlaying.cid == cid)
+                resolve(result.playUrl)
+            else {
+                fetch(URL_PLAY_URL.replace("{bvid}", bvid).replace("{cid}", cid))
+                    .then(res => res.json())
+                    .then(json => resolve(extractResponseJson(json, 'AudioUrl')))
+                    .catch((err) => reject(console.log(err)))
+            }
+        })
     }));
 }
 
@@ -89,7 +97,7 @@ export const fetchVideoInfo = async (bvid) => {
             data.owner,
             data.pages.map((s) => { return ({ bvid: bvid, part: s.part, cid: s.cid }) }))
         return v
-    } catch(error){
+    } catch (error) {
         console.log('Some issue happened when fetching', bvid)
     }
 }
@@ -113,7 +121,7 @@ export const fetchFavList = async (mid) => {
     let videoInfos = []
     await Promise.all(pagesPromises)
         .then(async function (v) {
-            console.log(BVidPromises)
+            // console.log(BVidPromises)
             for (let index = 0; index < v.length; index++) {
                 await v[index].json().then(js => js.data.medias.map(m => BVidPromises.push(fetchVideoInfo(m.bvid))))
             }
@@ -175,5 +183,6 @@ export const searchLyric = async (searchMID, setLyric) => {
         return
     }
     const data = json.lyric
+    console.log(data)
     setLyric(data)
 }

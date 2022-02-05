@@ -55,7 +55,7 @@ export const LyricSearchBar = function ({ SearchKey, SongId, setLyric, setLyricO
                 value={value}
                 id="LyricSearchBar"
                 options={options}
-                sx={{ width: 300 }}
+                sx={{ width: 500 }}
                 size="small"
                 renderInput={(params) => <TextField {...params} label="歌词选择" />}
                 isOptionEqualToValue={(option, value) => option.songMid === value.songMid}

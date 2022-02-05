@@ -2,7 +2,7 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
 }
 
 /* #app-container {
@@ -30,21 +30,35 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: "14px";
-  height: "18px";
-  background: "transparent";
+  width: '14px';
+  height: '18px';
+  background: 'transparent';
 }
 
 ::-webkit-scrollbar-thumb {
-  height: "29px";
-  border: "5px solid rgba(0, 0, 0, 0)";
-  background-clip: "padding-box";
-  border-radius: "7px";
-  -webkit-border-radius: "7px";
-  background-color: "#c6acfc";
+  height: '29px';
+  border: '5px solid rgba(0, 0, 0, 0)';
+  background-clip: 'padding-box';
+  border-radius: '7px';
+  -webkit-border-radius: '7px';
+  background-color: '#c6acfc';
 }
 
 #FavTable {
   box-shadow: -4px 5px 6px 2px rgb(166 88 249 / 20%),
     4px -3px 2px 0px rgb(166 88 249 / 20%), 1px 1px 0px 2px rgb(0 0 0 / 12%);
+}
+
+#LrcImg {
+  box-shadow: rgb(114 90 248 / 40%) 5px 5px, rgb(152 92 241 / 30%) 10px 10px,
+    rgb(146 90 247 / 19%) 15px 15px, rgb(172 127 240 / 10%) 20px 20px,
+    rgb(148 119 229 / 5%) 25px 25px;
+}
+
+#blur-glass {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(35px);
 }

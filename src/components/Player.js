@@ -64,6 +64,7 @@ export const Player = function ({ songList }) {
             clearPriorAudioLists: immediatePlay || replaceList,
             audioLists: newAudioLists
         }
+        //console.log(newParam)
         setparams(newParam)
         setplayingList(newAudioLists)
     }, [params, playingList])
@@ -107,21 +108,21 @@ export const Player = function ({ songList }) {
     }, [currentAudioInst])
 
     const onPlayModeChange = (playMode) => {
-        console.log('play mode change:', playMode)
+        //console.log('play mode change:', playMode)
         playerSettings.playMode = playMode
         setPlayerSettings(playerSettings)
         StorageManager.setPlayerSetting(playerSettings)
     }
 
     const onAudioVolumeChange = (currentVolume) => {
-        console.log('audio volume change', currentVolume)
+        // console.log('audio volume change', currentVolume)
         playerSettings.defaultVolume = Math.sqrt(currentVolume)
         setPlayerSettings(playerSettings)
         StorageManager.setPlayerSetting(playerSettings)
     }
 
     const onAudioPlay = useCallback((audioInfo) => {
-        //console.log('audio playing', audioInfo)
+        // console.log('audio playing', audioInfo)
         const link = 'https://www.bilibili.com/video/' + audioInfo.bvid
         const newParam = {
             ...params,
@@ -134,6 +135,7 @@ export const Player = function ({ songList }) {
             )
         }
         setparams(newParam)
+        chrome.storage.local.set({ ['CurrentPlaying']: {cid:audioInfo.id.toString(),playUrl:audioInfo.musicSrc} })
     }, [params])
 
     const onAudioListsChange = useCallback((currentPlayId, audioLists, audioInfo) => {
@@ -175,9 +177,10 @@ export const Player = function ({ songList }) {
 
     // Initialization effect
     useEffect(() => {
-        console.log('ran Init useEffect - Player', songList)
+        // console.log('ran Init useEffect - Player', songList)
         if (!songList || songList[0] == undefined)
             return;
+        chrome.storage.local.set({ ['CurrentPlaying']: {} })
 
         async function initPlayer() {
             let setting = await StorageManager.getPlayerSetting()
@@ -211,7 +214,7 @@ export const Player = function ({ songList }) {
     // //console.log('params')
     // //console.log(params)
     // //console.log('lyric' + lyric)
-    // //console.log(currentAudio)
+    // console.log(currentAudio)
     return (
         <React.Fragment>
             {params && <FavList currentAudioList={params.audioLists}
@@ -225,7 +228,8 @@ export const Player = function ({ songList }) {
                 showLyric={showLyric}
                 currentTime={currentAudio.currentTime}
                 audioName={currentAudio.name}
-                audioId={currentAudio.id} />}
+                audioId={currentAudio.id}
+                audioCover={currentAudio.cover} />}
 
             {params &&
                 <React.Fragment>

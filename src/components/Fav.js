@@ -3,7 +3,6 @@ import { getRandomHeaderGIF } from '../utils/Data'
 import { ScrollBar } from "../styles/styles";
 import { styled } from '@mui/material/styles';
 import PropTypes from 'prop-types';
-import { useTheme } from '@mui/material/styles';
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
@@ -26,6 +25,18 @@ import FirstPageIcon from '@mui/icons-material/FirstPage';
 import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
 import LastPageIcon from '@mui/icons-material/LastPage';
+import { createTheme, ThemeProvider, useTheme } from '@mui/material/styles';
+import { zhCN } from '@mui/material/locale';
+
+const theme = createTheme(
+    {
+        palette: {
+            primary: { main: '#1976d2' },
+        },
+    },
+    zhCN,
+);
+
 
 const columns = [
     { id: 'name', label: '歌曲名', minWidth: '20%' },
@@ -143,6 +154,8 @@ export const Fav = (function ({ FavList, onSongIndexChange, onAddOneFromFav, han
     useEffect(() => {
         setCurrentFavList(FavList)
         setRows(FavList.songList)
+        setPage(0)
+        setRowsPerPage(25)
         //console.log(FavList)
     }, [FavList])
 
@@ -253,30 +266,27 @@ export const Fav = (function ({ FavList, onSongIndexChange, onAddOneFromFav, han
                                         </StyledTableCell>
                                     </StyledTableRow>
                                 )}
-                                {emptyRows > 0 && (
-                                    <StyledTableRow style={{ height: 53 * emptyRows }}>
-                                        <TableCell colSpan={6} />
-                                    </StyledTableRow>
-                                )}
                             </TableBody>
                             <TableFooter>
                                 <TableRow>
-                                    <TablePagination
-                                        rowsPerPageOptions={[25, 75, 100]}
-                                        colSpan={3}
-                                        count={rows.length}
-                                        rowsPerPage={rowsPerPage}
-                                        page={page}
-                                        SelectProps={{
-                                            inputProps: {
-                                                'aria-label': 'rows per page',
-                                            },
-                                            native: true,
-                                        }}
-                                        onPageChange={handleChangePage}
-                                        onRowsPerPageChange={handleChangeRowsPerPage}
-                                        ActionsComponent={TablePaginationActions}
-                                    />
+                                    <ThemeProvider theme={theme}>
+                                        <TablePagination
+                                            rowsPerPageOptions={[25, 75, 100]}
+                                            colSpan={3}
+                                            count={rows.length}
+                                            rowsPerPage={rowsPerPage}
+                                            page={page}
+                                            SelectProps={{
+                                                inputProps: {
+                                                    'aria-label': 'rows per page',
+                                                },
+                                                native: true,
+                                            }}
+                                            onPageChange={handleChangePage}
+                                            onRowsPerPageChange={handleChangeRowsPerPage}
+                                            ActionsComponent={TablePaginationActions}
+                                        />
+                                    </ThemeProvider>
                                 </TableRow>
                             </TableFooter>
                         </Table>
