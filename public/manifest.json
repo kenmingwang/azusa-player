@@ -1,6 +1,6 @@
 {
   "name": "电梓播放器-第三方bilibili音频播放器",
-  "version": "0.0.0.4",
+  "version": "1.0.0.0",
   "description":"电梓播放器 / azusa-player: 一个第三方哔哩哔哩(bilibili.com)音频播放器 / A 3rd party Bilibili audio player.",
   "manifest_version": 3,
   "background": {
@@ -8,7 +8,7 @@
   },
   "action": {
     "default_icon": {
-      "128": "icons/icon-128.png"
+      "128": "icons/logo2-128.png"
     }
   },
   "content_scripts": [
@@ -18,7 +18,7 @@
     }
   ],
   "icons": {
-    "128": "icons/icon-128.png"
+    "128": "icons/logo2-128.png"
   },
   "permissions": [
     "declarativeNetRequest",
