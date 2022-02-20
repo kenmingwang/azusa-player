@@ -27,6 +27,7 @@ import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
 import LastPageIcon from '@mui/icons-material/LastPage';
 import { createTheme, ThemeProvider, useTheme } from '@mui/material/styles';
 import { zhCN } from '@mui/material/locale';
+import Tooltip from '@mui/material/Tooltip';
 
 const theme = createTheme(
     {
@@ -260,9 +261,15 @@ export const Fav = (function ({ FavList, onSongIndexChange, onAddOneFromFav, han
                                             whiteSpace: 'nowrap'
                                         }}
                                             style={{ paddingLeft: '40px', paddingRight: '8px' }}>
-                                            <AddOutlinedIcon sx={CRUDIcon} onClick={() => onAddOneFromFav([song])} />
-                                            <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(currentFavList.info.id, song)} />
-                                            <DeleteOutlineOutlinedIcon sx={CRUDIcon} onClick={() => handleDelteFromSearchList(currentFavList.info.id, index)} />
+                                            <Tooltip title="添加到播放列表">
+                                                <AddOutlinedIcon sx={CRUDIcon} onClick={() => onAddOneFromFav([song])} />
+                                            </Tooltip>
+                                            <Tooltip title="添加到收藏歌单">
+                                                <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(currentFavList.info.id, song)} />
+                                            </Tooltip>
+                                            <Tooltip title="删除歌曲">
+                                                <DeleteOutlineOutlinedIcon sx={CRUDIcon} onClick={() => handleDelteFromSearchList(currentFavList.info.id, index)} />
+                                            </Tooltip>
                                         </StyledTableCell>
                                     </StyledTableRow>
                                 )}

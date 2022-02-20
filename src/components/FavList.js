@@ -14,6 +14,9 @@ import PlaylistPlayIcon from '@mui/icons-material/PlaylistPlay';
 import AlbumOutlinedIcon from '@mui/icons-material/AlbumOutlined';
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import DownloadIcon from '@mui/icons-material/Download';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import AddIcon from '@mui/icons-material/Add';
@@ -166,6 +169,14 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
         onAddFavToList(FavList.songList)
     }
 
+    const exportFav = () => {
+        StorageManager.exportStorage()
+    }
+
+    const importFav = () => {
+        StorageManager.importStorage()
+    }
+
     return (
         <React.Fragment>
             <Search handleSeach={handleSeach} />
@@ -182,7 +193,15 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
                         </Typography>
                     </Grid>
                     <Grid item xs={3} style={{ textAlign: 'right', paddingRight: '8px' }}>
-                        <AddIcon sx={AddFavIcon} onClick={() => setOpenNewDialog(true)} />
+                        <Tooltip title="新建歌单">
+                            <AddIcon sx={AddFavIcon} onClick={() => setOpenNewDialog(true)} />
+                        </Tooltip>
+                        <Tooltip title="导出歌单">
+                            <DownloadIcon sx={AddFavIcon} onClick={() => exportFav()} />
+                        </Tooltip>
+                        <Tooltip title="导入歌单">
+                            <FileUploadIcon sx={AddFavIcon} onClick={() => importFav()} />
+                        </Tooltip>
                     </Grid>
                     <NewFavDialog
                         id="NewFav"
@@ -208,10 +227,18 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
                                 <ListItemText sx={{ color: '#9c55fac9' }} primaryTypographyProps={{ fontSize: '1.1em' }} primary={searchList.info.title} />
                             </ListItemButton>
                             <Box component="div" sx={CRUDBtn}>
-                                <PlaylistPlayIcon sx={CRUDIcon} onClick={() => handlePlayListClick(searchList)} />
-                                <PlaylistAddIcon sx={CRUDIcon} onClick={() => handleAddPlayListClick(searchList)} />
-                                <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(searchList.info.id)} />
-                                <DeleteOutlineOutlinedIcon sx={CRUDIconDisable} />
+                                <Tooltip title="播放歌单">
+                                    <PlaylistPlayIcon sx={CRUDIcon} onClick={() => handlePlayListClick(searchList)} />
+                                </Tooltip>
+                                <Tooltip title="添加到播放列表">
+                                    <PlaylistAddIcon sx={CRUDIcon} onClick={() => handleAddPlayListClick(searchList)} />
+                                </Tooltip>
+                                <Tooltip title="添加到收藏歌单">
+                                    <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(searchList.info.id)} />
+                                </Tooltip>
+                                <Tooltip title="删除歌单">
+                                    <DeleteOutlineOutlinedIcon sx={CRUDIconDisable} />
+                                </Tooltip>
                             </Box>
                         </ListItemButton>
                     </React.Fragment>
@@ -229,10 +256,18 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
                                     <ListItemText sx={{ color: '#9600af94' }} primaryTypographyProps={{ fontSize: '1.1em' }} primary={v.info.title} />
                                 </ListItemButton>
                                 <Box component="div" sx={CRUDBtn}>
-                                    <PlaylistPlayIcon sx={CRUDIcon} onClick={() => handlePlayListClick(v)} />
-                                    <PlaylistAddIcon sx={CRUDIcon} onClick={() => handleAddPlayListClick(v)} />
-                                    <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(v.info.id)} />
-                                    <DeleteOutlineOutlinedIcon sx={CRUDIcon} onClick={() => handleDeleteFavClick(v.info.id)} />
+                                    <Tooltip title="播放歌单">
+                                        <PlaylistPlayIcon sx={CRUDIcon} onClick={() => handlePlayListClick(v)} />
+                                    </Tooltip>
+                                    <Tooltip title="添加到播放列表">
+                                        <PlaylistAddIcon sx={CRUDIcon} onClick={() => handleAddPlayListClick(v)} />
+                                    </Tooltip>
+                                    <Tooltip title="添加到收藏歌单">
+                                        <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(v.info.id)} />
+                                    </Tooltip>
+                                    <Tooltip title="删除歌单">
+                                        <DeleteOutlineOutlinedIcon sx={CRUDIcon} onClick={() => handleDeleteFavClick(v.info.id)} />
+                                    </Tooltip>
                                 </Box>
                             </ListItemButton>
                         </React.Fragment>

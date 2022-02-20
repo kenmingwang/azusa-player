@@ -183,6 +183,6 @@ export const searchLyric = async (searchMID, setLyric) => {
         return
     }
     const data = json.lyric
-    console.log(data)
+    // console.log(data)
     setLyric(data)
 }

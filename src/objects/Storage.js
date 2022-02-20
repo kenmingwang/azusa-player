@@ -161,6 +161,48 @@ export default class StorageManager {
     async setPlayerSetting(newSettings) {
         chrome.storage.local.set({ [PLAYER_SETTINGS]: newSettings })
     }
+
+    async exportStorage() {
+        chrome.storage.local.get(null, function (items) { // null implies all items
+            // Convert object to a string.
+            let result = JSON.stringify(items);
+            const bytes = new TextEncoder().encode(result);
+            const blob = new Blob([bytes], {
+                type: "application/json;charset=utf-8"
+            });
+
+            const href = window.URL.createObjectURL(blob);
+            const link = document.createElement('a')
+            link.href = href
+            link.download = 'AzusaPlayerStorage_' + new Date().toISOString().slice(0, 10) + '.json'
+            document.body.appendChild(link)
+            link.click()
+        });
+    }
+
+    async importStorage() {
+        const _self = this
+        const upload = document.createElement('input')
+        upload.type = "file"
+        document.body.appendChild(upload)
+
+        upload.addEventListener("change", handleFiles, false);
+        function handleFiles() {
+            let fileReader = new FileReader();
+            fileReader.onload = function () {
+                let parsedJSON = JSON.parse(fileReader.result);
+                console.log(parsedJSON);
+                // your code to consume the json
+                chrome.storage.local.clear(() => {
+                    chrome.storage.local.set(parsedJSON, () => {
+                        _self.initFavLists()
+                    })
+                })
+            }
+            fileReader.readAsText(this.files[0]);
+        }
+        upload.click()
+    }
 }
 
 
