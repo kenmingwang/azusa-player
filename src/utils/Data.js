@@ -32,10 +32,12 @@ export const fetchPlayUrlPromise = async (bvid, cid) => {
     // Returns a promise that resolves into the audio stream url
     return (new Promise((resolve, reject) => {
         // console.log('Data.js Calling fetchPlayUrl:' + URL_PLAY_URL.replace("{bvid}", bvid).replace("{cid}", cid))
-        chrome.storage.local.get(['CurrentPlaying'], function (result) {
+        chrome.storage.local.get(['CurrentPlaying','PlayerSetting'], function (result) {
             // To prohibit current playing audio from fetching a new audio stream
-            if (result.CurrentPlaying && result.CurrentPlaying.cid == cid)
+            // If single loop, retreive the promise again.
+            if (result.CurrentPlaying && result.CurrentPlaying.cid == cid && result.PlayerSetting.playMode != 'singleLoop'){
                 resolve(result.playUrl)
+            }
             else {
                 fetch(URL_PLAY_URL.replace("{bvid}", bvid).replace("{cid}", cid))
                     .then(res => res.json())
