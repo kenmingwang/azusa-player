@@ -73,7 +73,7 @@ module.exports = (env) => {
       newtab: ifDirExists('newtab', './src/newtab/index.tsx'),
       serviceworker: ifDirExists('serviceworker/index.ts', {
         import: './src/serviceworker/index.ts',
-        filename: 'serviceworker.js',
+        filename: 'serviceWorker.js',
       }),
       ...getEntries('scripts', 'index.ts'),
     }),
