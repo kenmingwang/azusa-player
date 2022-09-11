@@ -20,7 +20,7 @@ const URL_HEADER_GIF = "https://github.com/kenmingwang/azusa-player-lrcs/blob/ma
 // HEADER GIFs count: https://github.com/kenmingwang/azusa-player-lrcs/tree/main/aziRandomPic
 const COUNT_HEADER_GIFS = 12
 // QQ SongSearch API
-const URL_QQ_SEARCH = "https://c.y.qq.com/soso/fcgi-bin/client_search_cp?g_tk=938407465&uin=0&format=json&inCharset=utf-8&outCharset=utf-8&notice=0&platform=h5&needNewCode=1&w={KeyWord}&zhidaqu=1&catZhida=1&t=0&flag=1&ie=utf-8&sem=1&aggr=0&perpage=20&n=20&p=1&remoteplace=txt.mqq.all&_=1459991037831"
+const URL_QQ_SEARCH = "https://c.y.qq.com/splcloud/fcgi-bin/smartbox_new.fcg?key={KeyWord}"
 // QQ LyricSearchAPI
 const URL_QQ_LYRIC = "https://i.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg?songmid={SongMid}&g_tk=5381&format=json&inCharset=utf8&outCharset=utf-8&nobase64=1"
 
@@ -170,8 +170,8 @@ export const searchLyricOptions = async (searchKey, setOptions, setLyric) => {
     }
     const res = await fetch(URL_QQ_SEARCH.replace("{KeyWord}", searchKey))
     const json = await res.json()
-    const data = json.data.song.list
-    const slimData = data.map((s, v) => { return { key: s.songmid, songMid: s.songmid, label: v + '. ' + s.songname + ' / ' + s.singer[0].name } })
+    const data = json.data.song.itemlist
+    const slimData = data.map((s, v) => { return { key: s.mid, songMid: s.mid, label: v + '. ' + s.name + ' / ' + s.singer } })
 
     setOptions(slimData)
 }

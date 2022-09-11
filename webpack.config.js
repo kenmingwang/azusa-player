@@ -198,7 +198,7 @@ module.exports = (env) => {
       host: 'localhost',
       open: true, // open the browser after server had been started
       compress: true,
-      overlay: true, // show compiler errors in the browser
+      // overlay: true, // show compiler errors in the browser
       static: path.join(__dirname, 'public'),
     },
   };
