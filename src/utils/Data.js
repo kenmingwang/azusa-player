@@ -9,6 +9,8 @@ const URL_PLAY_URL = "https://api.bilibili.com/x/player/playurl?cid={cid}&bvid={
 const URL_BVID_TO_CID = "https://api.bilibili.com/x/player/pagelist?bvid={bvid}&jsonp=jsonp"
 // Video Basic Info
 const URL_VIDEO_INFO = "http://api.bilibili.com/x/web-interface/view?bvid={bvid}"
+// channel series API Extract Info
+const URL_BILISERIES_INFO = "https://api.bilibili.com/x/series/archives?mid={mid}&series_id={sid}&only_normal=true&sort=desc&pn={pn}&ps=30"
 // Fav List
 const URL_FAV_LIST = "https://api.bilibili.com/x/v3/fav/resource/list?media_id={mid}&pn={pn}&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp"
 // LRC Mapping
@@ -102,6 +104,36 @@ export const fetchVideoInfo = async (bvid) => {
     } catch (error) {
         console.log('Some issue happened when fetching', bvid)
     }
+}
+
+// fetch biliseries. copied from yt-dlp.
+// this API does not provide the total number of videos in a list, but will return an empty list if 
+// the queried page exceeds the number of videos; so use a while loop and break when empty is detected
+// everything else is copied from fetchFavList
+export const fetchBiliSeriesInfo = async (mid, sid) => {
+    logger.info("calling fetchBiliSeriesInfo")
+    let page = 1
+    let res = await fetch(URL_BILISERIES_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page))
+    let json = await res.json()
+    let data = json.data
+
+    const BVidPromises = []
+    while (data.archives.length > 0) {
+        for (let i = 0; i < data.archives.length; i++) {
+            BVidPromises.push(fetchVideoInfo(data.archives[i].bvid))
+        }
+        page += 1
+        data = await(await (await fetch(URL_BILISERIES_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page))).json).data
+        if (data === undefined) {
+            break
+        }
+    }
+
+    let videoInfos = []
+    await Promise.all(BVidPromises).then(res => {
+        videoInfos = res
+    })
+    return videoInfos
 }
 
 export const fetchFavList = async (mid) => {

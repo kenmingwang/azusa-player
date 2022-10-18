@@ -59,7 +59,7 @@ const CRUDIcon = {
 }
 
 const songText = {
-    fontSize: 4,
+    fontSize: 15,
     minWidth: 0,
     color: '#ab5fff'
 }
@@ -80,7 +80,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
         color: theme.palette.common.white,
     },
     [`&.${tableCellClasses.body}`]: {
-        fontSize: 6,
+        fontSize: 15,
         padding: 0
     },
 }));
