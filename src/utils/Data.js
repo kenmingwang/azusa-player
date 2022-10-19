@@ -107,26 +107,20 @@ export const fetchVideoInfo = async (bvid) => {
 }
 
 // fetch biliseries. copied from yt-dlp.
-// this API does not provide the total number of videos in a list, but will return an empty list if 
-// the queried page exceeds the number of videos; so use a while loop and break when empty is detected
-// everything else is copied from fetchFavList
+// use page = 0 will return all videos in the list; else use a page number 
+// and # of items in a page (ps; defualt 30)
+// since we have no point of queuing it page by page, its easier to just 
+// load everything by using page = 0
 export const fetchBiliSeriesInfo = async (mid, sid) => {
     logger.info("calling fetchBiliSeriesInfo")
-    let page = 1
+    let page = 0
     let res = await fetch(URL_BILISERIES_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page))
     let json = await res.json()
     let data = json.data
-
+    
     const BVidPromises = []
-    while (data.archives.length > 0) {
-        for (let i = 0; i < data.archives.length; i++) {
-            BVidPromises.push(fetchVideoInfo(data.archives[i].bvid))
-        }
-        page += 1
-        data = await(await (await fetch(URL_BILISERIES_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page))).json).data
-        if (data === undefined) {
-            break
-        }
+    for (let i = 0; i < data.archives.length; i++) {
+        BVidPromises.push(fetchVideoInfo(data.archives[i].bvid))
     }
 
     let videoInfos = []
