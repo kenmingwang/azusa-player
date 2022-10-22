@@ -9,6 +9,8 @@ const URL_PLAY_URL = "https://api.bilibili.com/x/player/playurl?cid={cid}&bvid={
 const URL_BVID_TO_CID = "https://api.bilibili.com/x/player/pagelist?bvid={bvid}&jsonp=jsonp"
 // Video Basic Info
 const URL_VIDEO_INFO = "http://api.bilibili.com/x/web-interface/view?bvid={bvid}"
+// channel series API Extract Info
+const URL_BILISERIES_INFO = "https://api.bilibili.com/x/series/archives?mid={mid}&series_id={sid}&only_normal=true&sort=desc&pn={pn}&ps=30"
 // Fav List
 const URL_FAV_LIST = "https://api.bilibili.com/x/v3/fav/resource/list?media_id={mid}&pn={pn}&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp"
 // LRC Mapping
@@ -102,6 +104,30 @@ export const fetchVideoInfo = async (bvid) => {
     } catch (error) {
         console.log('Some issue happened when fetching', bvid)
     }
+}
+
+// fetch biliseries. copied from yt-dlp.
+// use page = 0 will return all videos in the list; else use a page number 
+// and # of items in a page (ps; defualt 30)
+// since we have no point of queuing it page by page, its easier to just 
+// load everything by using page = 0
+export const fetchBiliSeriesInfo = async (mid, sid) => {
+    logger.info("calling fetchBiliSeriesInfo")
+    let page = 0
+    let res = await fetch(URL_BILISERIES_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page))
+    let json = await res.json()
+    let data = json.data
+    
+    const BVidPromises = []
+    for (let i = 0; i < data.archives.length; i++) {
+        BVidPromises.push(fetchVideoInfo(data.archives[i].bvid))
+    }
+
+    let videoInfos = []
+    await Promise.all(BVidPromises).then(res => {
+        videoInfos = res
+    })
+    return videoInfos
 }
 
 export const fetchFavList = async (mid) => {
