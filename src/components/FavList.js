@@ -91,17 +91,21 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
     }, [])
 
     const handleSeach = useCallback((list) => {
+        list.info.currentTableInfo = {}
         setSearchList(list)
         setSelectedList(list)
     }, [searchList, selectedList])
 
-    const handleDelteFromSearchList = useCallback((id, index) => {
-        let favList = id == 'Search' ? searchList : favLists.find(f => f.info.id == id)
+    // Delete base on ID of the song
+    const handleDelteFromSearchList = useCallback((id, songId, currentTableInfo) => {
+        let favList = id == 'FavList-Search' ? searchList : favLists.find(f => f.info.id == id)
 
-        favList.songList.splice(index, 1)
+        favList.songList = favList.songList.filter(s => s.id != songId)
+        favList.info.currentTableInfo = currentTableInfo
         const updatedToList = { ...favList }
+        setSelectedList(updatedToList)
 
-        id == 'Search' ? setSearchList(updatedToList) : StorageManager.updateFavList(updatedToList)
+        id == 'FavList-Search' ? setSearchList(updatedToList) : StorageManager.updateFavList(updatedToList)
     }, [searchList, selectedList, favLists])
 
     const onNewFav = (val) => {
@@ -177,6 +181,12 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
         StorageManager.importStorage()
     }
 
+    const onNewSelectedList = (list) => {
+        // Resets currentInfo
+        list.info.currentTableInfo = {}
+        setSelectedList(list)
+    }
+
     return (
         <React.Fragment>
             <Search handleSeach={handleSeach} />
@@ -220,7 +230,7 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
                             disableRipple
                             sx={outerLayerBtn}
                         >
-                            <ListItemButton style={{ maxWidth: 'calc(100% - 84px)' }} onClick={() => setSelectedList(searchList)} id={searchList.info.id} >
+                            <ListItemButton style={{ maxWidth: 'calc(100% - 84px)' }} onClick={() => onNewSelectedList(searchList)} id={searchList.info.id} >
                                 <ListItemIcon sx={DiskIcon}>
                                     <ManageSearchIcon />
                                 </ListItemIcon>
@@ -249,7 +259,7 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
                                 disableRipple
                                 sx={outerLayerBtn}
                             >
-                                <ListItemButton style={{ maxWidth: 'calc(100% - 84px)' }} onClick={() => setSelectedList(v)} id={v.info.id} >
+                                <ListItemButton style={{ maxWidth: 'calc(100% - 84px)' }} onClick={() => onNewSelectedList(v)} id={v.info.id} >
                                     <ListItemIcon sx={DiskIcon}>
                                         <AlbumOutlinedIcon />
                                     </ListItemIcon>
