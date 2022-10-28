@@ -109,7 +109,6 @@ export const getFavList = async (mid) => {
     return getSongsFromBVids(await fetchFavList(mid))
 }
 
-
 export const getBiliColleList = async (mid, sid, favList = []) => {
     return getSongsFromBVids(await fetchBiliColleList(mid, sid, favList))
 }
