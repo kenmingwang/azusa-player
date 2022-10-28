@@ -253,7 +253,13 @@ export const searchLyric = async (searchMID, setLyric) => {
         setLyric('[00:00.000] 无法找到歌词,请手动搜索')
         return
     }
-    const data = json.lyric
-    // console.log(data)
-    setLyric(data)
+
+    let finalLrc = json.lyric
+
+    // Merge trans Lyrics
+    if( json.trans )
+        finalLrc = json.trans + '\n' +  finalLrc
+    
+    // console.log(finalLrc)
+    setLyric(finalLrc)
 }

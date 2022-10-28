@@ -155,11 +155,15 @@ export const Fav = (function ({ FavList, onSongIndexChange, onAddOneFromFav, han
     useEffect(() => {
         setCurrentFavList(FavList)
         setRows(FavList.songList)
-        setPage(0)
-        setRowsPerPage(25)
+
+        // Allows Fav to remain on the same page after delete.
+        Object.keys(FavList.info.currentTableInfo).length !== 0 ? 
+            setPage(FavList.info.currentTableInfo.page) : setPage(0)
+        Object.keys(FavList.info.currentTableInfo).length !== 0 ? 
+            setRowsPerPage(FavList.info.currentTableInfo.rowsPerPage) : setRowsPerPage(25)
         //console.log(FavList)
     }, [FavList])
-
+  
     const requestSearch = (e) => {
         const searchedVal = e.target.value
         if (searchedVal == '') {
@@ -268,7 +272,10 @@ export const Fav = (function ({ FavList, onSongIndexChange, onAddOneFromFav, han
                                                 <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(currentFavList.info.id, song)} />
                                             </Tooltip>
                                             <Tooltip title="删除歌曲">
-                                                <DeleteOutlineOutlinedIcon sx={CRUDIcon} onClick={() => handleDelteFromSearchList(currentFavList.info.id, index)} />
+                                                <DeleteOutlineOutlinedIcon sx={CRUDIcon} onClick={() => handleDelteFromSearchList(
+                                                    currentFavList.info.id, 
+                                                    song.id, 
+                                                    {page:page, rowsPerPage:rowsPerPage})} />
                                             </Tooltip>
                                         </StyledTableCell>
                                     </StyledTableRow>
