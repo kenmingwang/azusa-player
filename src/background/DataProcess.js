@@ -36,6 +36,7 @@ export const getSongList = async (bvid) => {
             singerId: info.uploader.mid,
             cover: info.picSrc,
             musicSrc: () => { return fetchPlayUrlPromise(bvid, info.pages[0].cid) },
+            backupSrc: () => { return fetchPlayUrlPromise(bvid, info.pages[0].cid, true) },
             lyric: lrc
         })])
     }
@@ -52,6 +53,7 @@ export const getSongList = async (bvid) => {
             singerId: info.uploader.mid,
             cover: info.picSrc,
             musicSrc: () => { return fetchPlayUrlPromise(bvid, page.cid) },
+            backupSrc: () => { return fetchPlayUrlPromise(bvid, page.cid, true) },
             lyric: lrc
         }))
     }
@@ -76,7 +78,8 @@ const getSongsFromBVids = async (infos) => {
                 singer: info.uploader.name,
                 singerId: info.uploader.mid,
                 cover: info.picSrc,
-                musicSrc: () => { return fetchPlayUrlPromise(info.pages[0].bvid, info.pages[0].cid) }
+                musicSrc: () => { return fetchPlayUrlPromise(info.pages[0].bvid, info.pages[0].cid) },
+                backupSrc: () => { return fetchPlayUrlPromise(info.pages[0].bvid, info.pages[0].cid, true) }
             }))
         }
         else {

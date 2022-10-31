@@ -26,7 +26,7 @@ const URL_QQ_SEARCH = "https://c.y.qq.com/splcloud/fcgi-bin/smartbox_new.fcg?key
 // QQ LyricSearchAPI
 const URL_QQ_LYRIC = "https://i.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg?songmid={SongMid}&g_tk=5381&format=json&inCharset=utf8&outCharset=utf-8&nobase64=1"
 
-export const fetchPlayUrlPromise = async (bvid, cid) => {
+export const fetchPlayUrlPromise = async (bvid, cid, isBackup=false) => {
     // Fetch cid from bvid if needed
     if (!cid)
         cid = await fetchCID(bvid).catch((err) => console.log(err))
@@ -43,7 +43,7 @@ export const fetchPlayUrlPromise = async (bvid, cid) => {
             else {
                 fetch(URL_PLAY_URL.replace("{bvid}", bvid).replace("{cid}", cid))
                     .then(res => res.json())
-                    .then(json => resolve(extractResponseJson(json, 'AudioUrl')))
+                    .then(json => resolve(extractResponseJson(json, 'AudioUrl', isBackup)))
                     .catch((err) => reject(console.log(err)))
             }
         })
@@ -163,9 +163,12 @@ export const fetchFavList = async (mid) => {
 }
 
 // Private Util to extract json according to https://github.com/SocialSisterYi/bilibili-API-collect
-const extractResponseJson = (json, field) => {
+const extractResponseJson = (json, field, isBackup=false) => {
     if (field === 'AudioUrl') {
-        return json.data.dash.audio[0].baseUrl
+        if(isBackup)
+            return json.data.dash.audio[0].backupUrl[0]
+        else
+            return json.data.dash.audio[0].baseUrl
     } else if (field === 'CID') {
         return json.data[0].cid
     } else if (field == 'AudioInfo') {

@@ -145,9 +145,15 @@ export const Player = function ({ songList }) {
         //console.log('audioListChange:', audioLists)
     }, [params, playingList])
 
-    const onAudioError = (errMsg, currentPlayId, audioLists, audioInfo) => {
+    const onAudioError = useCallback((errMsg, currentPlayId, audioLists, audioInfo) => {
         console.error('audio error', errMsg, currentPlayId, audioLists, audioInfo)
-    }
+        console.log('Detected Error playing audio, falling back to backup url')
+
+        const index = audioLists.findIndex(a => a.id === audioInfo.id)
+        audioLists[index].musicSrc = audioLists[index].backupSrc
+        currentAudioInst.playByIndex(index)
+        
+    },[currentAudioInst, playingList])
 
     const onAudioProgress = (audioInfo) => {
         setcurrentAudio(audioInfo)
