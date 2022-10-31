@@ -30,7 +30,8 @@
     "*://*.bilibili.com/*",
     "*://*.hdslb.com/*",
     "*://*.cgvideo.com/*",
-    "*://*.qq.com/*"
+    "*://*.y.qq.com/*",
+    "*://*.bilivideo.cn/*"
   ],
   "declarative_net_request": {
     "rule_resources": [{

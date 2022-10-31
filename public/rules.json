@@ -8,7 +8,7 @@
           { "header": "referer", "operation": "set", "value": "https://www.bilibili.com/" }
         ]
       },
-      "condition": { "urlFilter" : "bilivideo.com" }
+      "condition": { "urlFilter" : "bilivideo" }
     },
     {
         "id": 2,
@@ -19,6 +19,6 @@
             { "header": "referer", "operation": "set", "value": "https://y.qq.com/" }
           ]
         },
-        "condition": { "urlFilter" : "qq.com"  }
+        "condition": { "urlFilter" : "y.qq.com"  }
       }
   ]
