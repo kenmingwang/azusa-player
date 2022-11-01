@@ -3,6 +3,7 @@ import VideoInfo from "../objects/VideoInfo"
 
 const logger = new Logger("Data.js")
 
+
 // Video src info
 const URL_PLAY_URL = "https://api.bilibili.com/x/player/playurl?cid={cid}&bvid={bvid}&qn=64&fnval=16"
 // BVID -> CID
@@ -19,6 +20,22 @@ const URL_LRC_MAPPING = "https://raw.githubusercontent.com/kenmingwang/azusa-pla
 const URL_LRC_BASE = "https://raw.githubusercontent.com/kenmingwang/azusa-player-lrcs/main/{songFile}"
 // Header GIF base
 const URL_HEADER_GIF = "https://github.com/kenmingwang/azusa-player-lrcs/blob/main/aziRandomPic/{count}.gif?raw=true"
+// Header GIF from Bilibili Src
+const URL_HEADER_GIFS = [
+    "https://i0.hdslb.com/bfs/article/956a1680d1408517d60e901b63eded873fe1ed5f.gif",
+    "https://i0.hdslb.com/bfs/article/b845058b7aaff1f51228c7369b473999ffcb7ee7.gif",
+    "https://i0.hdslb.com/bfs/article/bc6b61c2fd818878c1d05da06cb13c5ad425a858.gif",
+    "https://i0.hdslb.com/bfs/article/cd25f747b454b9006a25c81d5e7650f73c69ef17.gif",
+    "https://i0.hdslb.com/bfs/article/b4afccb0ead8ee044d282cc586c35799a7c888ca.gif",
+    "https://i0.hdslb.com/bfs/article/8df79587cda79b6a8e1624715ac5282585769001.gif",
+    "https://i0.hdslb.com/bfs/article/a0553b08da8d80dc0f45833ae40146dd88d999a9.gif",
+    "https://i0.hdslb.com/bfs/article/9d65d749cacccb307bfcc9a19c88224b0516f106.gif",
+    "https://i0.hdslb.com/bfs/article/77c63ef57e4612b5a671d5a417b8513f7285c75e.gif",
+    "https://i0.hdslb.com/bfs/article/768acaed9669b76ba1c105030e7a21c1ba15fa91.gif",
+    "https://i0.hdslb.com/bfs/article/878b50e28dda6050e78f75d620f05f8a6de6a4c1.gif",
+    "https://i0.hdslb.com/bfs/article/28837af291d81ed90500e1cb876769ab9932b91a.gif",
+    "https://i0.hdslb.com/bfs/article/c88cc015b4b3e036e1b5689f262f6720b3e0ab97.gif"
+]
 // HEADER GIFs count: https://github.com/kenmingwang/azusa-player-lrcs/tree/main/aziRandomPic
 const COUNT_HEADER_GIFS = 12
 // QQ SongSearch API
@@ -185,7 +202,8 @@ export const extractSongName = (name) => {
 }
 
 export const getRandomHeaderGIF = () => {
-    return URL_HEADER_GIF.replace('{count}', Math.floor(Math.random() * COUNT_HEADER_GIFS))
+    const randomIndex = Math.floor(Math.random() * (URL_HEADER_GIFS.length - 1))
+    return URL_HEADER_GIFS[randomIndex]
 }
 
 export const searchLyricOptions = async (searchKey, setOptions, setLyric) => {
