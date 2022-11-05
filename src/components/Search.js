@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import React, { useState } from "react";
-import { getSongList, getFavList, getBiliSeriesList, getBiliColleList } from '../background/DataProcess'
+import { getSongList, getFavList, getBiliSeriesList, getBiliColleList, getBiliChannelList } from '../background/DataProcess'
 import CircularProgress from '@mui/material/CircularProgress';
 
 export const Search = function ({ handleSeach }) {
@@ -56,6 +56,29 @@ export const Search = function ({ handleSeach }) {
                         const list = {
                             songList: [],
                             info: { title: `搜索合集出错- 用户${reExtracted[1]}的合集${reExtracted[2]}`, id: ('FavList-' + 'Search') }
+                        }
+                        handleSeach(list)
+                    })
+                    .finally(() => setLoading(false))
+                return null
+            }
+            
+            //https://www.bilibili.com/video/BV1se4y147qM/
+            reExtracted = /.*space.bilibili\.com\/(\d+)\/video.*/.exec(input)
+            if (reExtracted !== null) {
+                getBiliChannelList(reExtracted[1])
+                    .then((songs) => {
+                        const list = {
+                            songList: songs,
+                            info: { title: `搜索合集- 用户${reExtracted[1]}的所有视频`, id: ('FavList-' + 'Search') }
+                        }
+                        handleSeach(list)
+                    })
+                    .catch((error) => {
+                        console.log(error)
+                        const list = {
+                            songList: [],
+                            info: { title: `搜索合集出错- 用户${reExtracted[1]}的所有视频`, id: ('FavList-' + 'Search') }
                         }
                         handleSeach(list)
                     })
