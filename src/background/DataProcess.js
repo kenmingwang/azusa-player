@@ -1,4 +1,4 @@
-import { fetchVideoInfo, fetchPlayUrlPromise, fetchFavList, fetchBiliSeriesInfo, fetchBiliColleList } from '../utils/Data'
+import { fetchVideoInfo, fetchPlayUrlPromise, fetchFavList, fetchBiliSeriesInfo, fetchBiliColleList, fetchBiliChannelList } from '../utils/Data'
 import Song from '../objects/Song'
 
 const DEFAULT_BVID = 'BV1BQ4y1X714'
@@ -111,4 +111,8 @@ export const getFavList = async (mid) => {
 
 export const getBiliColleList = async (mid, sid, favList = []) => {
     return getSongsFromBVids(await fetchBiliColleList(mid, sid, favList))
+}
+
+export const getBiliChannelList = async (mid, progressEmitter = (res) => {}, favList = []) => {
+    return getSongsFromBVids(await fetchBiliChannelList(mid, progressEmitter, parseFavList(favList)))
 }
