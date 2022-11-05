@@ -23,7 +23,7 @@ import AddIcon from '@mui/icons-material/Add';
 import Grid from '@mui/material/Grid';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import Box from "@mui/material/Box";
-import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
+import FiberNewIcon from '@mui/icons-material/FiberNew';
 
 const outerLayerBtn = { padding: 'unset' }
 
@@ -43,8 +43,8 @@ const CRUDIcon = {
     ':hover': {
         cursor: 'pointer'
     },
-    width: '0.7em',
-    height: '0.7em',
+    width: '1em',
+    height: '1em',
     paddingBottom: '2px',
     color: '#ab5fff'
 }
@@ -253,7 +253,7 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
                                     <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(searchList.info.id)} />
                                 </Tooltip>
                                 <Tooltip title="新建为歌单">
-                                    <CreateNewFolderIcon 
+                                    <FiberNewIcon 
                                         sx={CRUDIcon} 
                                         onClick={() => {
                                             setSongsStoredAsNewFav(searchList.songList)
