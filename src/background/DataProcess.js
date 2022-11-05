@@ -114,5 +114,5 @@ export const getBiliColleList = async (mid, sid, favList = []) => {
 }
 
 export const getBiliChannelList = async (mid, progressEmitter = (res) => {}, favList = []) => {
-    return getSongsFromBVids(await fetchBiliChannelList(mid, progressEmitter, parseFavList(favList)))
+    return getSongsFromBVids(await fetchBiliChannelList(mid, progressEmitter, favList))
 }
