@@ -49,16 +49,6 @@ const CRUDIcon = {
     color: '#ab5fff'
 }
 
-const CRUDIconDisable = {
-    ':hover': {
-        cursor: 'default'
-    },
-    width: '0.7em',
-    height: '0.7em',
-    paddingBottom: '2px',
-    color: '##adadad'
-}
-
 const AddFavIcon = {
     ':hover': {
         cursor: 'pointer'
