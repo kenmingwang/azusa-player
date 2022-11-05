@@ -13,6 +13,8 @@ const URL_VIDEO_INFO = "http://api.bilibili.com/x/web-interface/view?bvid={bvid}
 const URL_BILISERIES_INFO = "https://api.bilibili.com/x/series/archives?mid={mid}&series_id={sid}&only_normal=true&sort=desc&pn={pn}&ps=30"
 // channel series API Extract Info
 const URL_BILICOLLE_INFO = 'https://api.bilibili.com/x/polymer/space/seasons_archives_list?mid={mid}&season_id={sid}&sort_reverse=false&page_num={pn}&page_size=30'
+// channel API Extract Info
+const URL_BILICHANNEL_INFO = "https://api.bilibili.com/x/space/arc/search?mid={mid}&pn={pn}&jsonp=jsonp"
 // Fav List
 const URL_FAV_LIST = "https://api.bilibili.com/x/v3/fav/resource/list?media_id={mid}&pn={pn}&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp"
 // LRC Mapping
@@ -132,8 +134,6 @@ export const fetchBiliSeriesInfo = async (mid, sid) => {
     return videoInfos
 }
 
-
-
 // copied from ytdlp. applies to collections such as:
 // https://space.bilibili.com/287837/channel/collectiondetail?sid=793137
 // method is copied from fetchFavList. 
@@ -195,6 +195,45 @@ export const fetchFavList = async (mid) => {
             // console.log(BVidPromises)
             for (let index = 0; index < v.length; index++) {
                 await v[index].json().then(js => js.data.medias.map(m => BVidPromises.push(fetchVideoInfo(m.bvid))))
+            }
+
+            await Promise.all(BVidPromises).then(res => {
+                videoInfos = res
+            })
+        })
+
+    return videoInfos
+}
+
+// copied from ytdlp. applies to an entire bilibili channel such as:
+// https://space.bilibili.com/355371630
+// method is copied from fetchFavList. 
+export const fetchBiliChannelList = async (mid, progressEmitter, favList = []) => {
+    console.log(favList)
+    logger.info("calling fetchBiliColleList")
+    const res = await fetch(URL_BILICHANNEL_INFO.replace('{mid}', mid).replace('{pn}', 1))
+    const json = await res.clone().json()
+    const data = json.data
+
+    const mediaCount = data.page.count
+    let totalPagesRequired = 1 + Math.floor(mediaCount / data.page.ps)
+
+    const BVidPromises = []
+    const pagesPromises = [res]
+
+    for (let page = 2; page <= totalPagesRequired; page++) {
+        pagesPromises.push(await fetch(URL_BILICHANNEL_INFO.replace('{mid}', mid).replace('{pn}', page)))
+    }
+
+    let videoInfos = []
+    await Promise.all(pagesPromises)
+        .then(async function (v) {
+            for (let index = 0, n = v.length; index < n; index++) {
+                await v[index].json().then(js => js.data.list.vlist.map(m => {
+                    if (!favList.includes(m.bvid)) {
+                        BVidPromises.push(fetchVideoInfo(m.bvid))
+                    }
+                }))
             }
 
             await Promise.all(BVidPromises).then(res => {
