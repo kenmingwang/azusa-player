@@ -23,6 +23,7 @@ import AddIcon from '@mui/icons-material/Add';
 import Grid from '@mui/material/Grid';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import Box from "@mui/material/Box";
+import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 
 const outerLayerBtn = { padding: 'unset' }
 
@@ -79,6 +80,7 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
     const [actionFavId, setActionFavId] = useState(null)
     const [actionFavSong, setActionFavSong] = useState(null)
     const [searchList, setSearchList] = useState({ info: { title: '搜索歌单', id: 'Search' }, songList: [] })
+    const [songsStoredAsNewFav, setSongsStoredAsNewFav] = useState(null)
 
     const StorageManager = useContext(StorageManagerCtx)
 
@@ -112,7 +114,11 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
         setOpenNewDialog(false)
         if (val) {
             //console.log(val)
-            StorageManager.addFavList(val, favLists)
+            let favList = StorageManager.addFavList(val, favLists)
+            if (songsStoredAsNewFav) {
+                favList.songList = songsStoredAsNewFav
+                setSongsStoredAsNewFav(null)
+            }
         }
     }
 
@@ -246,8 +252,13 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
                                 <Tooltip title="添加到收藏歌单">
                                     <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(searchList.info.id)} />
                                 </Tooltip>
-                                <Tooltip title="删除歌单">
-                                    <DeleteOutlineOutlinedIcon sx={CRUDIconDisable} />
+                                <Tooltip title="新建为歌单">
+                                    <CreateNewFolderIcon 
+                                        sx={CRUDIcon} 
+                                        onClick={() => {
+                                            setSongsStoredAsNewFav(searchList.songList)
+                                            setOpenNewDialog(true)
+                                        }}/>
                                 </Tooltip>
                             </Box>
                         </ListItemButton>

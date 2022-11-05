@@ -102,6 +102,7 @@ export default class StorageManager {
                 //console.log('AddedFav ' + value.info.id);
             })
         });
+        return value
     }
 
     updateFavList(updatedToList) {
