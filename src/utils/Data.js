@@ -211,7 +211,10 @@ export const fetchFavList = async (mid) => {
         .then(async function (v) {
             // console.log(BVidPromises)
             for (let index = 0; index < v.length; index++) {
-                await v[index].json().then(js => js.data.medias.map(m => BVidPromises.push(fetchVideoInfo(m.bvid))))
+                await v[index].json().then(js => 
+                    js.data.has_more
+                    &&
+                    js.data.medias.map(m => BVidPromises.push(fetchVideoInfo(m.bvid))))
             }
 
             await Promise.all(BVidPromises).then(res => {
