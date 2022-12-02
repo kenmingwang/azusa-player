@@ -119,7 +119,7 @@ export const Search = function ({ handleSeach }) {
                     <TextField
                         id="outlined-basic"
                         color="secondary"
-                        label="BVid/fid"
+                        label="BVid/fid/合集等,详细看帮助"
                         placeholder="BV1w44y1b7MX/1303535681"
                         onKeyDown={keyPress}
                         onChange={onSearchTextChange}
