@@ -197,7 +197,7 @@ export const fetchFavList = async (mid) => {
     const data = json.data
 
     const mediaCount = data.info.media_count
-    let totalPagesRequired = 1 + Math.floor(mediaCount / 20)
+    let totalPagesRequired = Math.ceil(mediaCount / 20);
 
     const BVidPromises = data.medias.map(m => fetchVideoInfo(m.bvid))
     const pagesPromises = []
