@@ -1,8 +1,12 @@
 import { Logger } from "./Logger"
 import VideoInfo from "../objects/VideoInfo"
+import Bottleneck from "bottleneck"
 
 const logger = new Logger("Data.js")
-
+const biliApiLimiter = new Bottleneck({
+    minTime: 200, //200 msec per 
+    maxConcurrent: 5,
+})
 
 // Video src info
 const URL_PLAY_URL = "https://api.bilibili.com/x/player/playurl?cid={cid}&bvid={bvid}&qn=64&fnval=16"
@@ -105,8 +109,7 @@ export const fetchLRC = async (name, setLyric, setSongTitle) => {
     }
 
 }
-
-export const fetchVideoInfo = async (bvid) => {
+export const fetchVideoInfoRaw = async (bvid) => {
     logger.info("calling fetchVideoInfo")
     const res = await fetch(URL_VIDEO_INFO.replace('{bvid}', bvid))
     const json = await res.json()
@@ -123,6 +126,12 @@ export const fetchVideoInfo = async (bvid) => {
     } catch (error) {
         console.log('Some issue happened when fetching', bvid)
     }
+}
+
+export const fetchVideoInfo = async (bvid) => {
+    return biliApiLimiter.schedule(() => {
+        return fetchVideoInfoRaw(bvid)
+    })
 }
 
 // fetch biliseries. copied from yt-dlp.
