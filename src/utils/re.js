@@ -9,7 +9,7 @@ const extractParenthesis = (filename) => {
     }
 }
 
-const extractWith = (filename, reExpressions = []) => {
+export const extractWith = (filename, reExpressions = []) => {
     for (let i=0, n=reExpressions.length; i<n; i++) {
         let extracted = reExpressions[i].exec(filename);
         if (extracted !== null) {

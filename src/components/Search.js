@@ -3,6 +3,7 @@ import TextField from "@mui/material/TextField";
 import React, { useState } from "react";
 import { getSongList, getFavList, getBiliSeriesList, getBiliColleList } from '../background/DataProcess'
 import CircularProgress from '@mui/material/CircularProgress';
+import { extractWith } from '../utils/re';
 
 export const Search = function ({ handleSeach }) {
 
@@ -15,7 +16,7 @@ export const Search = function ({ handleSeach }) {
     const keyPress = (e) => {
         // Enter clicked
         if (e.keyCode == 13) {
-            const input = e.target.value
+            let input = e.target.value
             setLoading(true)
             //console.log('value', input); // Validation of target Val    
             // Handles BV search    
@@ -62,6 +63,13 @@ export const Search = function ({ handleSeach }) {
                     .finally(() => setLoading(false))
                 return null
             }
+            input = extractWith(input, [
+                /(BV[^/?]+)/,
+                // favlist url from a channel page: https://space.bilibili.com/429765143/favlist?fid=452404943
+                /.*bilibili\.com\/\d+\/favlist\?fid=(\d+)/,
+                // https://www.bilibili.com/medialist/detail/ml452404943?type=1
+                /.*bilibili\.com\/medialist\/detail\/ml(\d+)/,
+            ])
             if (input.startsWith('BV')) {
                 getSongList(input)
                     .then((songs) => {
