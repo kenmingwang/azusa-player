@@ -8,6 +8,7 @@
   },
   "action": {
     "default_icon": {
+      "16": "icons/logo2-128.png",
       "128": "icons/logo2-128.png"
     }
   },
@@ -22,7 +23,8 @@
   },
   "permissions": [
     "declarativeNetRequest",
-    "storage"
+    "storage",
+    "contextMenus"
   ],
   "host_permissions": [
     "*://*.acgvideo.com/*",
