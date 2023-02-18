@@ -60,6 +60,7 @@ function create_menu_items(fav_lists_info: any[]) {
     // If there are no favorite items in the list, create a disabled child context menu item
     // with a message prompting the user to create a new list.
     chrome.contextMenus.create({
+      id: 'NoFavList',
       parentId: menu_id,
       title: '请先创建一个歌单',
       enabled: false,

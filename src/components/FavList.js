@@ -98,6 +98,7 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
                   };
                 });
                 setFavLists([...StorageManager.latestFavLists]);
+                updated_fav.info.currentTableInfo = {};
                 setSelectedList(updated_fav);
               });
             }

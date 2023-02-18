@@ -74,6 +74,12 @@ export default class StorageManager {
             chrome.storage.local.set({ 'MyFavList': [value.info.id] }, function () {
                 _self.setFavLists([value])
                 _self.latestFavLists = [value]
+
+              // notify sw to update context menu
+              chrome.runtime.sendMessage({
+                type: 'fav-lists-change',
+                data: _self.latestFavLists.map((v) => v.info),
+              });
             })
         });
     }
