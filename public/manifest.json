@@ -24,7 +24,8 @@
   "permissions": [
     "declarativeNetRequest",
     "storage",
-    "contextMenus"
+    "contextMenus",
+    "notifications"
   ],
   "host_permissions": [
     "*://*.acgvideo.com/*",

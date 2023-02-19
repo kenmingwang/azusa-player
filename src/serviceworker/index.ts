@@ -80,6 +80,7 @@ function update_menu_item_listener(fav_lists_info: any[]) {
     // If the clicked menu item ID matches one of the favorite items,
     // adding video from linkUrl to given fav.
     const fav_id = info.menuItemId;
+    const fav_name = fav_lists_info.find((v) => v.id === fav_id)?.title;
     if (fav_lists_info.find((v) => v.id === fav_id)) {
       const regexp = /BV[a-zA-Z\d]{10}(?=\?|\/)/;
       if (info.linkUrl && regexp.test(info.linkUrl)) {
@@ -92,7 +93,15 @@ function update_menu_item_listener(fav_lists_info: any[]) {
               type: 'fav-update',
               data: { fav_id: fav_id, num: n },
             }, () => {
+              // Catch the error when the popup page is not opened.
               chrome.runtime.lastError;
+            });
+            // Send notification
+            chrome.notifications.create({
+              type: 'basic',
+              iconUrl: 'icons/icon-128.png',
+              title: '已添加',
+              message: `已将 ${BV} 添加到${fav_name}`,
             });
           })
           .catch((err) => {
@@ -105,6 +114,9 @@ function update_menu_item_listener(fav_lists_info: any[]) {
 }
 
 async function add_video_to_fav(BV: string, fav_id: string) {
+  if (BV === '') {
+    throw 'BV is not valid.';
+  }
   const songs = await getSongList(BV);
   const fav = (await get_from_local_storage([fav_id]))[fav_id];
 

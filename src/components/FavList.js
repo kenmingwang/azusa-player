@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, memo, useContext, useRef } from "react";
+import React, { useEffect, useState, useCallback, memo, useContext } from "react";
 import { Search } from '../components/Search'
 import { Fav } from './Fav'
 import { ScrollBar } from "../styles/styles";
