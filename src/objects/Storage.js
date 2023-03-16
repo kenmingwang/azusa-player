@@ -16,17 +16,20 @@ export default class StorageManager {
 
     async initFavLists() {
         const _self = this
-        chrome.storage.local.get(['MyFavList'], function (result) {
-            //console.log(result);
-            if (Object.keys(result).length != 0) {
-                _self.initWithStorage(result["MyFavList"])
-            }
-            else {
-                chrome.storage.local.set({ 'MyFavList': [] }, async function () {
-                    _self.initWithDefault()
-                });
-            }
-        });
+        return new Promise((resolve, reject) => {
+            chrome.storage.local.get(['MyFavList'], function (result) {
+                //console.log(result);
+                if (Object.keys(result).length != 0) {
+                    _self.initWithStorage(result["MyFavList"])
+                }
+                else {
+                    chrome.storage.local.set({ 'MyFavList': [] }, async function () {
+                        _self.initWithDefault()
+                    });
+                }
+                resolve();
+            });
+        })
     }
 
     async initWithStorage(FavListIDs) {
@@ -71,6 +74,12 @@ export default class StorageManager {
             chrome.storage.local.set({ 'MyFavList': [value.info.id] }, function () {
                 _self.setFavLists([value])
                 _self.latestFavLists = [value]
+
+              // notify sw to update context menu
+              chrome.runtime.sendMessage({
+                type: 'fav-lists-change',
+                data: _self.latestFavLists.map((v) => v.info),
+              });
             })
         });
     }
@@ -80,8 +89,14 @@ export default class StorageManager {
         chrome.storage.local.remove(id, function () {
             const newFavListsIds = newFavLists.map(v => v.info.id)
             chrome.storage.local.set({ [MY_FAV_LIST_KEY]: newFavListsIds }, function () {
-                _self.setFavLists(newFavLists)
-                _self.latestFavLists = newFavLists
+              _self.setFavLists(newFavLists);
+              _self.latestFavLists = newFavLists;
+
+              // notify sw to update context menu
+              chrome.runtime.sendMessage({
+                type: 'fav-lists-change',
+                data: _self.latestFavLists.map((v) => v.info),
+              });
             })
         })
     }
@@ -97,9 +112,15 @@ export default class StorageManager {
             _self.latestFavLists.push(value)
             const newListIDs = _self.latestFavLists.map(v => v.info.id)
             chrome.storage.local.set({ 'MyFavList': newListIDs }, function () {
-                _self.setFavLists([..._self.latestFavLists])
+              _self.setFavLists([..._self.latestFavLists]);
 
-                //console.log('AddedFav ' + value.info.id);
+              // notify sw to update context menu
+              chrome.runtime.sendMessage({
+                type: 'fav-lists-change',
+                data: _self.latestFavLists.map((v) => v.info),
+              });
+
+              //console.log('AddedFav ' + value.info.id);
             })
         });
         return value
@@ -111,7 +132,7 @@ export default class StorageManager {
         chrome.storage.local.set({ [updatedToList.info.id]: updatedToList }, function () {
             const index = _self.latestFavLists.findIndex(f => f.info.id == updatedToList.info.id)
             _self.latestFavLists[index].songList = updatedToList.songList
-            _self.setFavLists([..._self.latestFavLists])
+            _self.setFavLists([..._self.latestFavLists]);
         });
     }
 

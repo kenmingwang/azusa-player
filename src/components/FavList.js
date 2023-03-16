@@ -26,6 +26,7 @@ import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import Box from "@mui/material/Box";
 import FiberNewIcon from '@mui/icons-material/FiberNew';
 import Badge from '@mui/material/Badge';
+import { fetchPlayUrlPromise } from "../utils/Data.js";
 
 const outerLayerBtn = { padding: 'unset' }
 
@@ -80,9 +81,29 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
     useEffect(() => {
         // Caches setter and latest favList in StoreMng
         StorageManager.setFavLists = setFavLists
-        StorageManager.initFavLists()
-
-        //console.log(favLists)
+        StorageManager.initFavLists().then(() => {
+          // Ensure `StorageManager.latestFavLists` is not empty 
+          chrome.runtime.onMessage.addListener((message) => {
+            // Update fav list with id `fav_id` since `n` songs are added to it. 
+            if (message.type === 'fav-update') {
+              const { fav_id, n } = message.data;
+              StorageManager.readLocalStorage(fav_id).then((fav) => {
+                const idx = StorageManager.latestFavLists.findIndex(
+                  (f) => f.info.id == fav_id,
+                );
+                const updated_fav = (StorageManager.latestFavLists[idx] = fav);
+                updated_fav.songList.slice(0, n).forEach((song) => {
+                  song.musicSrc = () => {
+                    return fetchPlayUrlPromise(song.bvid, song.id);
+                  };
+                });
+                setFavLists([...StorageManager.latestFavLists]);
+                updated_fav.info.currentTableInfo = {};
+                setSelectedList(updated_fav);
+              });
+            }
+          });
+        });
     }, [])
 
     const handleSeach = useCallback((list) => {
