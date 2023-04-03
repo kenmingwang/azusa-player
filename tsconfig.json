@@ -6,7 +6,7 @@
       "DOM",
       "ESNext"
     ],
-    // "allowJs": true,
+    "allowJs": true,
     // "checkJs": true,
     "jsx": "react",
     // "declaration": true,

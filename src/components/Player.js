@@ -229,6 +229,7 @@ export const Player = function ({ songList }) {
                 currentTime={currentAudio.currentTime}
                 audioName={currentAudio.name}
                 audioId={currentAudio.id}
+                artist={currentAudio.singer}
                 audioCover={currentAudio.cover} />}
 
             {params &&

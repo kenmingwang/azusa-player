@@ -3,7 +3,7 @@ import { Search } from '../components/Search'
 import { Fav } from './Fav'
 import { ScrollBar } from "../styles/styles";
 import { AlertDialog } from "./ConfirmDialog"
-import { AddFavDialog, NewFavDialog } from "./AddFavDialog"
+import { AddFavDialog, NewFavDialog, HelpDialog } from "./AddFavDialog"
 import StorageManagerCtx from '../popup/App'
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -13,6 +13,7 @@ import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import PlaylistPlayIcon from '@mui/icons-material/PlaylistPlay';
 import AlbumOutlinedIcon from '@mui/icons-material/AlbumOutlined';
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import DownloadIcon from '@mui/icons-material/Download';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
@@ -24,6 +25,8 @@ import Grid from '@mui/material/Grid';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import Box from "@mui/material/Box";
 import FiberNewIcon from '@mui/icons-material/FiberNew';
+import Badge from '@mui/material/Badge';
+import { fetchPlayUrlPromise } from "../utils/Data.js";
 
 const outerLayerBtn = { padding: 'unset' }
 
@@ -67,6 +70,7 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
     const [openAddDialog, setOpenAddDialog] = useState(false)
     const [openNewDialog, setOpenNewDialog] = useState(false)
+    const [openHelpDialog, setOpenHelpDialog] = useState(false)
     const [actionFavId, setActionFavId] = useState(null)
     const [actionFavSong, setActionFavSong] = useState(null)
     const [searchList, setSearchList] = useState({ info: { title: '搜索歌单', id: 'Search' }, songList: [] })
@@ -77,9 +81,29 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
     useEffect(() => {
         // Caches setter and latest favList in StoreMng
         StorageManager.setFavLists = setFavLists
-        StorageManager.initFavLists()
-
-        //console.log(favLists)
+        StorageManager.initFavLists().then(() => {
+          // Ensure `StorageManager.latestFavLists` is not empty 
+          chrome.runtime.onMessage.addListener((message) => {
+            // Update fav list with id `fav_id` since `n` songs are added to it. 
+            if (message.type === 'fav-update') {
+              const { fav_id, n } = message.data;
+              StorageManager.readLocalStorage(fav_id).then((fav) => {
+                const idx = StorageManager.latestFavLists.findIndex(
+                  (f) => f.info.id == fav_id,
+                );
+                const updated_fav = (StorageManager.latestFavLists[idx] = fav);
+                updated_fav.songList.slice(0, n).forEach((song) => {
+                  song.musicSrc = () => {
+                    return fetchPlayUrlPromise(song.bvid, song.id);
+                  };
+                });
+                setFavLists([...StorageManager.latestFavLists]);
+                updated_fav.info.currentTableInfo = {};
+                setSelectedList(updated_fav);
+              });
+            }
+          });
+        });
     }, [])
 
     const handleSeach = useCallback((list) => {
@@ -209,12 +233,23 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
                         <Tooltip title="导入歌单">
                             <FileUploadIcon sx={AddFavIcon} onClick={() => importFav()} />
                         </Tooltip>
+                        <Badge color="secondary" variant="dot" style={{ verticalAlign: 'baseline'}}>
+                            <Tooltip title="搜索帮助">
+                                <HelpOutlineIcon sx={AddFavIcon} onClick={() => setOpenHelpDialog(true)}/>
+                            </Tooltip>
+                        </Badge>
                     </Grid>
                     <NewFavDialog
                         id="NewFav"
                         keepMounted
                         openState={openNewDialog}
                         onClose={onNewFav}
+                    />
+                    <HelpDialog
+                        id="Help"
+                        keepMounted
+                        openState={openHelpDialog}
+                        onClose={() => setOpenHelpDialog(false)}
                     />
                 </Grid>
                 <Divider light />

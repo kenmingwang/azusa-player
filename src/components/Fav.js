@@ -151,6 +151,7 @@ export const Fav = (function ({ FavList, onSongIndexChange, onAddOneFromFav, han
     const [rows, setRows] = useState(null)
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(25);
+    const [filterString, setFilterString] = useState('');
 
     useEffect(() => {
         setCurrentFavList(FavList)
@@ -162,10 +163,14 @@ export const Fav = (function ({ FavList, onSongIndexChange, onAddOneFromFav, han
         Object.keys(FavList.info.currentTableInfo).length !== 0 ? 
             setRowsPerPage(FavList.info.currentTableInfo.rowsPerPage) : setRowsPerPage(25)
         //console.log(FavList)
+
+        // Keep search result after delete.
+        requestSearch(FavList.info?.currentTableInfo?.filterString ?? '');
     }, [FavList])
   
-    const requestSearch = (e) => {
-        const searchedVal = e.target.value
+    const requestSearch = (searchedVal) => {
+        // const searchedVal = e.target.value
+        setFilterString(searchedVal)
         if (searchedVal == '') {
             setRows(FavList.songList)
             return
@@ -216,7 +221,7 @@ export const Fav = (function ({ FavList, onSongIndexChange, onAddOneFromFav, han
                                     color="secondary"
                                     size="small"
                                     label="搜索歌曲"
-                                    onChange={requestSearch}
+                                    onChange={(e) => requestSearch(e.target.value)}
                                 />
                             </Grid>
                         </Grid>
@@ -275,7 +280,7 @@ export const Fav = (function ({ FavList, onSongIndexChange, onAddOneFromFav, han
                                                 <DeleteOutlineOutlinedIcon sx={CRUDIcon} onClick={() => handleDelteFromSearchList(
                                                     currentFavList.info.id, 
                                                     song.id, 
-                                                    {page:page, rowsPerPage:rowsPerPage})} />
+                                                    {page:page, rowsPerPage:rowsPerPage, filterString:filterString})} />
                                             </Tooltip>
                                         </StyledTableCell>
                                     </StyledTableRow>

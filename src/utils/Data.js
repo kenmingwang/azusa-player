@@ -197,7 +197,7 @@ export const fetchFavList = async (mid) => {
     const data = json.data
 
     const mediaCount = data.info.media_count
-    let totalPagesRequired = 1 + Math.floor(mediaCount / 20)
+    let totalPagesRequired = Math.ceil(mediaCount / 20);
 
     const BVidPromises = data.medias.map(m => fetchVideoInfo(m.bvid))
     const pagesPromises = []
@@ -211,7 +211,10 @@ export const fetchFavList = async (mid) => {
         .then(async function (v) {
             // console.log(BVidPromises)
             for (let index = 0; index < v.length; index++) {
-                await v[index].json().then(js => js.data.medias.map(m => BVidPromises.push(fetchVideoInfo(m.bvid))))
+                await v[index].json().then(js => 
+                    js.data.has_more
+                    &&
+                    js.data.medias.map(m => BVidPromises.push(fetchVideoInfo(m.bvid))))
             }
 
             await Promise.all(BVidPromises).then(res => {

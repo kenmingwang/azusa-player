@@ -5,7 +5,7 @@ import { ScrollBar } from "../styles/styles";
 import TextField from "@mui/material/TextField";
 import { withStyles } from '@mui/styles';
 import Grid from "@mui/material/Grid";
-import { extractSongName } from '../utils/Data'
+import { reExtractSongName as extractSongName } from '../utils/re'
 import { LyricSearchBar } from './LyricSearchBar'
 import StorageManagerCtx from '../popup/App'
 
@@ -33,12 +33,12 @@ export const Lyric = withStyles(styles)((props) => {
     const [songTitle, setSongTitle] = useState('')
     const [favListID, setFavListID] = useState(null)
 
-    const { classes, currentTime, audioName, audioId, audioCover } = props;
+    const { classes, currentTime, audioName, audioId, audioCover, artist } = props;
     const StorageManager = useContext(StorageManagerCtx)
 
     useEffect(() => {
-        const extractedName = extractSongName(audioName)
-        //console.log('Lrc changed to %s', extractedName)
+        const extractedName = extractSongName(audioName, artist)
+        // console.log('Lrc changed to %s', extractedName)
         // fetchLRC(audioName, setLyric, setSongTitle)
         setSongTitle(extractedName)
     }, [audioName])
