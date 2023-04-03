@@ -2,7 +2,7 @@
   "name": "azusa-player",
   "description": "电梓播放器 / azusa-player: 一个第三方哔哩哔哩(bilibili.com)音频播放器 / A 3rd party Bilibili audio player.",
   "main": "index.js",
-  "author": "Sirage-T",
+  "author": "Ken Wang",
   "private": true,
   "license": "MIT",
   "scripts": {
