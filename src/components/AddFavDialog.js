@@ -147,6 +147,9 @@ export const HelpDialog = function ({ onClose, openState }) {
           <DialogContentText>
             - Series:合集,需整个url放入搜索框(https://space.bilibili.com/5053504/channel/seriesdetail?sid=2440602)
           </DialogContentText>
+          <DialogContentText id='alert-dialog-description'>
+            右键B站视频可以快捷添加到歌单
+          </DialogContentText>
         </DialogContent>
 
         <DialogActions>
