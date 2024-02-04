@@ -44,6 +44,37 @@ const COUNT_HEADER_GIFS = 12
 const URL_QQ_SEARCH = "https://c.y.qq.com/splcloud/fcgi-bin/smartbox_new.fcg?key={KeyWord}"
 // QQ LyricSearchAPI
 const URL_QQ_LYRIC = "https://i.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg?songmid={SongMid}&g_tk=5381&format=json&inCharset=utf8&outCharset=utf-8&nobase64=1"
+/**
+ *  QQ SongSearch API POST
+ */
+const URL_QQ_SEARCH_POST = {
+    src: 'https://u.y.qq.com/cgi-bin/musicu.fcg',
+    params: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      referrer: 'https://u.qq.com/',
+      body: {
+        comm: {
+          ct: '19',
+          cv: '1859',
+          uin: '0',
+        },
+        req: {
+          method: 'DoSearchForQQMusicDesktop',
+          module: 'music.search.SearchCgiService',
+          param: {
+            grp: 1,
+            num_per_page: 20,
+            page_num: 1,
+            query: '',
+            search_type: 0,
+          },
+        },
+      },
+    },
+  };
 
 export const fetchPlayUrlPromise = async (bvid, cid) => {
     // Fetch cid from bvid if needed
@@ -53,10 +84,10 @@ export const fetchPlayUrlPromise = async (bvid, cid) => {
     // Returns a promise that resolves into the audio stream url
     return (new Promise((resolve, reject) => {
         // console.log('Data.js Calling fetchPlayUrl:' + URL_PLAY_URL.replace("{bvid}", bvid).replace("{cid}", cid))
-        chrome.storage.local.get(['CurrentPlaying','PlayerSetting'], function (result) {
+        chrome.storage.local.get(['CurrentPlaying', 'PlayerSetting'], function (result) {
             // To prohibit current playing audio from fetching a new audio stream
             // If single loop, retreive the promise again.
-            if (result.CurrentPlaying && result.CurrentPlaying.cid == cid && result.PlayerSetting.playMode != 'singleLoop'){
+            if (result.CurrentPlaying && result.CurrentPlaying.cid == cid && result.PlayerSetting.playMode != 'singleLoop') {
                 resolve(result.playUrl)
             }
             else {
@@ -136,7 +167,7 @@ export const fetchBiliSeriesInfo = async (mid, sid) => {
     let res = await fetch(URL_BILISERIES_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page))
     let json = await res.json()
     let data = json.data
-    
+
     const BVidPromises = []
     for (let i = 0; i < data.archives.length; i++) {
         BVidPromises.push(fetchVideoInfo(data.archives[i].bvid))
@@ -211,7 +242,7 @@ export const fetchFavList = async (mid) => {
         .then(async function (v) {
             // console.log(BVidPromises)
             for (let index = 0; index < v.length; index++) {
-                await v[index].json().then(js => 
+                await v[index].json().then(js =>
                     js.data.has_more
                     &&
                     js.data.medias.map(m => BVidPromises.push(fetchVideoInfo(m.bvid))))
@@ -263,8 +294,38 @@ export const searchLyricOptions = async (searchKey, setOptions, setLyric) => {
     const data = json.data.song.itemlist
     const slimData = data.map((s, v) => { return { key: s.mid, songMid: s.mid, label: v + '. ' + s.name + ' / ' + s.singer } })
 
-    setOptions(slimData)
+    if(slimData.length)
+        setOptions(slimData)
+    else
+        searchLyricOptionsFallBack(searchKey, setOptions, setLyric)
 }
+
+export const searchLyricOptionsFallBack = async (searchKey, setOptions, setLyric) => {
+    logger.info("calling searchLyricOptions")
+    if (searchKey == "") {
+        setOptions([])
+        return
+    }
+    logger.info(`calling searchLyricOptionsFallBack: ${searchKey}`);
+    const API = getQQSearchAPI(searchKey);
+    const res = await fetch(API.src, API.params);
+    const json = await res.json();
+    console.debug(json);
+    const data = json.req.data.body.song.list;
+    const slimData = data.map((s, v) => ({
+        key: s.mid,
+        songMid: s.mid,
+        label: `${v}. ${s.name} / ${s.singer[0].name}`,
+    }));
+    setOptions(slimData);
+};
+
+const getQQSearchAPI = searchKey => {
+    let API = JSON.parse(JSON.stringify(URL_QQ_SEARCH_POST));
+    API.params.body.req.param.query = searchKey;
+    API.params.body = JSON.stringify(API.params.body);
+    return API;
+};
 
 export const searchLyric = async (searchMID, setLyric) => {
     logger.info("calling searchLyric")
@@ -278,9 +339,9 @@ export const searchLyric = async (searchMID, setLyric) => {
     let finalLrc = json.lyric
 
     // Merge trans Lyrics
-    if( json.trans )
-        finalLrc = json.trans + '\n' +  finalLrc
-    
+    if (json.trans)
+        finalLrc = json.trans + '\n' + finalLrc
+
     // console.log(finalLrc)
     setLyric(finalLrc)
 }

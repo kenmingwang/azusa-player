@@ -32,15 +32,25 @@ export const Lyric = withStyles(styles)((props) => {
     const [lyric, setLyric] = useState('')
     const [songTitle, setSongTitle] = useState('')
     const [favListID, setFavListID] = useState(null)
+    const [localOption, setLocalOption] = useState(null)
 
     const { classes, currentTime, audioName, audioId, audioCover, artist } = props;
     const StorageManager = useContext(StorageManagerCtx)
 
     useEffect(() => {
-        const extractedName = extractSongName(audioName, artist)
-        // console.log('Lrc changed to %s', extractedName)
-        // fetchLRC(audioName, setLyric, setSongTitle)
-        setSongTitle(extractedName)
+        async function initLyric() {
+            const detail = await StorageManager.getLyricDetail(audioId.toString())
+            console.log('Calling InitLyric with', detail)
+            if (undefined != detail) {
+                setLyricOffset(detail.lrcOffset)
+                setLocalOption(detail)
+            }
+            const extractedName = extractSongName(audioName, artist)
+            console.log('Lrc changed to %s', extractedName)
+            // fetchLRC(audioName, setLyric, setSongTitle)
+            setSongTitle(extractedName)
+        }
+        initLyric()
     }, [audioName])
 
     const onEnterPress = (e) => {
@@ -84,7 +94,7 @@ export const Lyric = withStyles(styles)((props) => {
     return (
         <React.Fragment>
 
-            <Grid container spacing={1} sx={{ maxHeight: '100vh',minHeight: '100vh', overflow: 'hidden' }}>
+            <Grid container spacing={1} sx={{ maxHeight: '100vh', minHeight: '100vh', overflow: 'hidden' }}>
                 <Grid align="center" sx={{ alignItems: 'center', paddingBottom: 10, overflow: "hidden", minHeight: 'calc(100% - 100px)' }} item xs={6}>
                     <Grid container spacing={0} sx={{ maxHeight: '100vh', overflow: 'hidden', marginTop: '50px' }}>
                         <Grid align="center" sx={{ paddingTop: '8px', paddingLeft: '2px', overflow: "hidden" }} item xs={12}>
@@ -129,6 +139,7 @@ export const Lyric = withStyles(styles)((props) => {
                                 SongId={audioId}
                                 setLyricOffset={setLyricOffset}
                                 setLyric={onSongTitleChange}
+                                localOption={localOption}
                             />
                         </Grid>
 

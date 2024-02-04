@@ -4,7 +4,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import { searchLyricOptions, searchLyric } from '../utils/Data'
 import StorageManagerCtx from '../popup/App'
 
-export const LyricSearchBar = function ({ SearchKey, SongId, setLyric, setLyricOffset }) {
+export const LyricSearchBar = function ({ SearchKey, SongId, setLyric, localOption }) {
     const [options, setOptions] = useState([])
     const [value, setValue] = useState('');
     const StorageManager = useContext(StorageManagerCtx)
@@ -16,26 +16,12 @@ export const LyricSearchBar = function ({ SearchKey, SongId, setLyric, setLyricO
     }, [SearchKey])
 
     useEffect(() => {
-        if (options.length == 0)
-            return
-        async function initLyric() {
-            const detail = await StorageManager.getLyricDetail(SongId.toString())
-            if (undefined != detail) {
-                setLyricOffset(detail.lrcOffset)
-                const index = options.findIndex(v => v.songMid == detail.lrc.songMid)
-                if (index != -1){
-                    onOptionSet({},options[index])
-                    return
-                }
-                else{
-                    options.unshift(detail.lrc)
-                    setOptions(options)
-                }
-            }
+        if (undefined != localOption)
+            searchLyric(localOption.lrc.songMid, setLyric)
+        else if(options.length > 0 ){
             onOptionSet({}, options[0])
         }
-        initLyric()
-    }, [options])
+    }, [options, localOption])
 
     const onOptionSet = (e, newValue) => {
         if (newValue != undefined) {

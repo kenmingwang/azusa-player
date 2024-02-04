@@ -20,5 +20,16 @@
           ]
         },
         "condition": { "urlFilter" : "y.qq.com"  }
+      },
+      {
+        "id": 3,
+        "priority": 1,
+        "action": {
+          "type": "modifyHeaders",
+          "requestHeaders": [
+            { "header": "referer", "operation": "set", "value": "https://www.bilibili.com/" }
+          ]
+        },
+        "condition": { "urlFilter" : "akamaized" }
       }
   ]
