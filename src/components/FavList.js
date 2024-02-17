@@ -39,15 +39,18 @@ const CRUDBtn = {
     marginBottom: '-30px',
     paddingTop: '30px',
     paddingLeft: '8px',
-    paddingRight: '8px'
+    paddingRight: '8px',
+    // 增加按键大小
+    fontSize: '1.2em', // 或者根据需要调整为更大的值
+    padding: '10px 15px' // 根据需要调整内边距
 }
 
 const CRUDIcon = {
     ':hover': {
         cursor: 'pointer'
     },
-    width: '1em',
-    height: '1em',
+    width: '1.2em', // 增加图标大小
+    height: '1.2em', // 增加图标大小
     paddingBottom: '2px',
     color: '#ab5fff'
 }
