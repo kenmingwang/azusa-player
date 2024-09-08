@@ -176,9 +176,11 @@ export const Fav = (function ({ FavList, onSongIndexChange, onAddOneFromFav, han
             return
         }
 
+        const lowerCaseSearchedVal = searchedVal.toLowerCase();
         const filteredRows = FavList.songList.filter((row) => {
             // const cleanString = row.name.replace('《') // TODO: some english char can't search
-            return row.name.includes(searchedVal)
+            // return row.name.includes(searchedVal)
+            return row.name.toLowerCase().includes(lowerCaseSearchedVal)
         })
         setRows(filteredRows)
     }
