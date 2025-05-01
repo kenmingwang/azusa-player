@@ -113,7 +113,7 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
     }, [searchList, selectedList])
 
     // Delete base on ID of the song
-    const handleDelteFromSearchList = useCallback((id, songId, currentTableInfo) => {
+    const handleDeleteFromSearchList = useCallback((id, songId, currentTableInfo) => {
         let favList = id == 'FavList-Search' ? searchList : favLists.find(f => f.info.id == id)
 
         favList.songList = favList.songList.filter(s => s.id != songId)
@@ -329,7 +329,7 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
                         onSongListChange={onSongListChange}
                         onSongIndexChange={onPlayOneFromFav}
                         onAddOneFromFav={onAddOneFromFav}
-                        handleDelteFromSearchList={handleDelteFromSearchList}
+                        handleDeleteFromSearchList={handleDeleteFromSearchList}
                         handleAddToFavClick={handleAddToFavClick}
                     />}
             </Box>

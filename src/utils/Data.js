@@ -16,6 +16,7 @@ const URL_BILISERIES_INFO = "https://api.bilibili.com/x/series/archives?mid={mid
 const URL_BILICOLLE_INFO = 'https://api.bilibili.com/x/polymer/space/seasons_archives_list?mid={mid}&season_id={sid}&sort_reverse=false&page_num={pn}&page_size=30'
 // Fav List
 const URL_FAV_LIST = "https://api.bilibili.com/x/v3/fav/resource/list?media_id={mid}&pn={pn}&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp"
+const URL_FAV_LIST_UNPAGED = "https://api.bilibili.com/x/v3/fav/resource/ids?media_id={mid}"
 // LRC Mapping
 const URL_LRC_MAPPING = "https://raw.githubusercontent.com/kenmingwang/azusa-player-lrcs/main/mappings.txt"
 // LRC Base
@@ -180,8 +181,6 @@ export const fetchBiliSeriesInfo = async (mid, sid) => {
     return videoInfos
 }
 
-
-
 // copied from ytdlp. applies to collections such as:
 // https://space.bilibili.com/287837/channel/collectiondetail?sid=793137
 // method is copied from fetchFavList. 
@@ -221,39 +220,13 @@ export const fetchBiliColleList = async (mid, sid, favList = []) => {
     return videoInfos
 }
 
+// Simplified by using unpaged api
 export const fetchFavList = async (mid) => {
     logger.info("calling fetchFavList")
-    const res = await fetch(URL_FAV_LIST.replace('{mid}', mid).replace('{pn}', 1))
+    const res = await fetch(URL_FAV_LIST_UNPAGED.replace('{mid}', mid))
     const json = await res.json()
-    const data = json.data
-
-    const mediaCount = data.info.media_count
-    let totalPagesRequired = Math.ceil(mediaCount / 20);
-
-    const BVidPromises = data.medias.map(m => fetchVideoInfo(m.bvid))
-    const pagesPromises = []
-
-    for (let page = 2; page <= totalPagesRequired; page++) {
-        pagesPromises.push(fetch(URL_FAV_LIST.replace('{mid}', mid).replace('{pn}', page)))
-    }
-
-    let videoInfos = []
-    await Promise.all(pagesPromises)
-        .then(async function (v) {
-            // console.log(BVidPromises)
-            for (let index = 0; index < v.length; index++) {
-                await v[index].json().then(js =>
-                    js.data.has_more
-                    &&
-                    js.data.medias.map(m => BVidPromises.push(fetchVideoInfo(m.bvid))))
-            }
-
-            await Promise.all(BVidPromises).then(res => {
-                videoInfos = res
-            })
-        })
-
-    return videoInfos
+    const videoInfos = await Promise.all(json.data.map(m => fetchVideoInfo(m.bvid)))
+    return videoInfos.filter(Boolean)
 }
 
 // Private Util to extract json according to https://github.com/SocialSisterYi/bilibili-API-collect

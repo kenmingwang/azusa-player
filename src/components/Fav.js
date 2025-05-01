@@ -146,7 +146,7 @@ TablePaginationActions.propTypes = {
     rowsPerPage: PropTypes.number.isRequired,
 };
 
-export const Fav = (function ({ FavList, onSongIndexChange, onAddOneFromFav, handleDelteFromSearchList, handleAddToFavClick }) {
+export const Fav = (function ({ FavList, onSongIndexChange, onAddOneFromFav, handleDeleteFromSearchList, handleAddToFavClick }) {
     const [currentFavList, setCurrentFavList] = useState(null)
     const [rows, setRows] = useState(null)
     const [page, setPage] = useState(0);
@@ -279,7 +279,7 @@ export const Fav = (function ({ FavList, onSongIndexChange, onAddOneFromFav, han
                                                 <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(currentFavList.info.id, song)} />
                                             </Tooltip>
                                             <Tooltip title="删除歌曲">
-                                                <DeleteOutlineOutlinedIcon sx={CRUDIcon} onClick={() => handleDelteFromSearchList(
+                                                <DeleteOutlineOutlinedIcon sx={CRUDIcon} onClick={() => handleDeleteFromSearchList(
                                                     currentFavList.info.id, 
                                                     song.id, 
                                                     {page:page, rowsPerPage:rowsPerPage, filterString:filterString})} />
