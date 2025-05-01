@@ -35,9 +35,9 @@ const CRUDBtn = {
         cursor: 'default'
     },
     marginTop: '-30px',
-    paddingBottom: '30px',
+    paddingBottom: '8px',
     marginBottom: '-30px',
-    paddingTop: '30px',
+    paddingTop: '8px',
     paddingLeft: '8px',
     paddingRight: '8px'
 }
