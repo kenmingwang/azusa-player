@@ -14,6 +14,8 @@ const URL_VIDEO_INFO = "http://api.bilibili.com/x/web-interface/view?bvid={bvid}
 const URL_BILISERIES_INFO = "https://api.bilibili.com/x/series/archives?mid={mid}&series_id={sid}&only_normal=true&sort=desc&pn={pn}&ps=30"
 // channel series API Extract Info
 const URL_BILICOLLE_INFO = 'https://api.bilibili.com/x/polymer/space/seasons_archives_list?mid={mid}&season_id={sid}&sort_reverse=false&page_num={pn}&page_size=30'
+// channel series API Extract Info
+const URL_SEASON_INFO = 'https://api.bilibili.com/x/polymer/web-space/seasons_archives_list?mid={mid}&season_id={sid}&sort_reverse=false&page_num={pn}&page_size=30'
 // Fav List
 const URL_FAV_LIST = "https://api.bilibili.com/x/v3/fav/resource/list?media_id={mid}&pn={pn}&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp"
 // LRC Mapping
@@ -202,6 +204,45 @@ export const fetchBiliColleList = async (mid, sid, favList = []) => {
         pagesPromises.push(await fetch(URL_BILICOLLE_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page)))
     }
 
+    let videoInfos = []
+    await Promise.all(pagesPromises)
+        .then(async function (v) {
+            for (let index = 0, n = v.length; index < n; index++) {
+                await v[index].json().then(js => js.data.archives.map(m => {
+                    if (!favList.includes(m.bvid)) {
+                        BVidPromises.push(fetchVideoInfo(m.bvid))
+                    }
+                }))
+            }
+
+            await Promise.all(BVidPromises).then(res => {
+                videoInfos = res
+            })
+        })
+
+    return videoInfos
+}
+
+// copied from ytdlp. applies to seasonlist such as:
+// https://space.bilibili.com/3493093607213343/lists/3836622?type=season
+// method is copied from fetchBiliColleList. 
+
+export const fetchSeasonList = async (mid, sid, favList = []) => {
+    console.log(favList)
+    logger.info("calling fetchBiliSeasonList")
+    const res = await fetch(URL_SEASON_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', 1))
+    const json = await res.clone().json()
+
+    const data = json.data
+
+    const mediaCount = data.meta.total
+    let totalPagesRequired = 1 + Math.floor(mediaCount / data.page.page_size)
+    const BVidPromises = []
+    const pagesPromises = [res]
+    // search all pages
+    for (let page = 2; page <= totalPagesRequired; page++) {
+        pagesPromises.push(await fetch(URL_SEASON_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page)))
+    }
     let videoInfos = []
     await Promise.all(pagesPromises)
         .then(async function (v) {

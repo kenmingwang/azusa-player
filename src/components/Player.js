@@ -174,6 +174,10 @@ export const Player = function ({ songList }) {
     const onCoverClick = () => {
         setShowLyric(!showLyric)
     }
+    // 关闭歌词面板的方法
+    const handleCloseLyric = () => {
+        setShowLyric(false);
+    };
 
     // Initialization effect
     useEffect(() => {
@@ -230,7 +234,8 @@ export const Player = function ({ songList }) {
                 audioName={currentAudio.name}
                 audioId={currentAudio.id}
                 artist={currentAudio.singer}
-                audioCover={currentAudio.cover} />}
+                audioCover={currentAudio.cover}
+                onClose={handleCloseLyric} />}
 
             {params &&
                 <React.Fragment>

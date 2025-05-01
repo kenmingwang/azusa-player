@@ -14,22 +14,17 @@ const theme = {
     background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)',
   };
 
-export const LyricOverlay = memo(function ({ showLyric, currentTime, audioName, audioId, audioCover, artist = "" }) {
-    const [open, setOpen] = useState(true);
-
-    useEffect(() => {
-        setOpen(!open)
-    }, [showLyric])
+export const LyricOverlay = memo(function ({ showLyric, currentTime, audioName, audioId, audioCover, artist = "", onClose}) {
 
     const handleClose = () => {
-        setOpen(false);
+        onClose(); 
     };
 
     return (
         <div >
             <Dialog
                 fullScreen
-                open={open}
+                open={showLyric}
                 onClose={handleClose}
                 hideBackdrop
                 TransitionComponent={Transition}
@@ -40,6 +35,9 @@ export const LyricOverlay = memo(function ({ showLyric, currentTime, audioName, 
                         boxShadow: 'none',
                     },
                 }}
+                // Ìí¼ÓÎÞÕÏ°­ÐÞ¸´
+                aria-modal="true" 
+                role="dialog"
             >
                 <div id="blur-glass" style={{display:'flex',flexDirection: 'column',overflow: 'hidden'}}>
                     <IconButton
