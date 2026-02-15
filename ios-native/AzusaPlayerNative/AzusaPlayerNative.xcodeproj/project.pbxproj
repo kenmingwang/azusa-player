@@ -1,0 +1,368 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		039629BF8062BFD51BF4BBFD /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF62C3E71F687CC4C713962 /* ContentView.swift */; };
+		0DDCF62F1BA6292219D93694 /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD9F9FB5DB174B0F1D92816E /* StorageService.swift */; };
+		292DFFE92EDC2EF5B21524EE /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = 453DACCF7A25AF28F0559F14 /* Song.swift */; };
+		4670F064456E4D8D89596FD5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F7B814BFDF33071D67E22D54 /* Foundation.framework */; };
+		77B81D04B3802394A795AF2C /* AzusaPlayerNativeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D93F37E120964EB0F7D972A /* AzusaPlayerNativeApp.swift */; };
+		87DE4C57DFF8028AD085C9D8 /* LyricService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADE97A7430EC7DF85FAA4B8C /* LyricService.swift */; };
+		A4A8271E17B2D2F13AC3DC2E /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9642CBDF511B2692B76F4121 /* AppLogger.swift */; };
+		CEB23B4B59D9A32D128196E6 /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D99B850757DEA34BCB0CF1 /* PlayerViewModel.swift */; };
+		EA57E8711EC96440C6617896 /* BilibiliService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2E654809B0798ADA752A999 /* BilibiliService.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		08D99B850757DEA34BCB0CF1 /* PlayerViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PlayerViewModel.swift; path = ViewModels/PlayerViewModel.swift; sourceTree = "<group>"; };
+		453DACCF7A25AF28F0559F14 /* Song.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Song.swift; path = Models/Song.swift; sourceTree = "<group>"; };
+		7D93F37E120964EB0F7D972A /* AzusaPlayerNativeApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AzusaPlayerNativeApp.swift; path = App/AzusaPlayerNativeApp.swift; sourceTree = "<group>"; };
+		9642CBDF511B2692B76F4121 /* AppLogger.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppLogger.swift; path = Services/AppLogger.swift; sourceTree = "<group>"; };
+		A2E654809B0798ADA752A999 /* BilibiliService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BilibiliService.swift; path = Services/BilibiliService.swift; sourceTree = "<group>"; };
+		ADE97A7430EC7DF85FAA4B8C /* LyricService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LyricService.swift; path = Services/LyricService.swift; sourceTree = "<group>"; };
+		CCA026AF2CD7FFD56D033F18 /* AzusaPlayerNative.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AzusaPlayerNative.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD9F9FB5DB174B0F1D92816E /* StorageService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StorageService.swift; path = Services/StorageService.swift; sourceTree = "<group>"; };
+		D1FB9E30AF25B116DE60F766 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = Resources/Info.plist; sourceTree = "<group>"; };
+		EEF62C3E71F687CC4C713962 /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = Views/ContentView.swift; sourceTree = "<group>"; };
+		F7B814BFDF33071D67E22D54 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A979E0AA5899F97E440058B0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4670F064456E4D8D89596FD5 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		027DD9342A6E58B1ED7649F5 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CCA026AF2CD7FFD56D033F18 /* AzusaPlayerNative.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		038A5CFCF5BB8089E854A64C = {
+			isa = PBXGroup;
+			children = (
+				027DD9342A6E58B1ED7649F5 /* Products */,
+				59941E8039E1685053CD22B7 /* Frameworks */,
+				D4B36A019DDADCB8CD35484A /* AzusaPlayerNative */,
+			);
+			sourceTree = "<group>";
+		};
+		59941E8039E1685053CD22B7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F825CE4E8E007FD91A15BF8B /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		7CC1A3680057B521B1A4F655 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D1FB9E30AF25B116DE60F766 /* Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		D4B36A019DDADCB8CD35484A /* AzusaPlayerNative */ = {
+			isa = PBXGroup;
+			children = (
+				7D93F37E120964EB0F7D972A /* AzusaPlayerNativeApp.swift */,
+				453DACCF7A25AF28F0559F14 /* Song.swift */,
+				9642CBDF511B2692B76F4121 /* AppLogger.swift */,
+				A2E654809B0798ADA752A999 /* BilibiliService.swift */,
+				ADE97A7430EC7DF85FAA4B8C /* LyricService.swift */,
+				CD9F9FB5DB174B0F1D92816E /* StorageService.swift */,
+				08D99B850757DEA34BCB0CF1 /* PlayerViewModel.swift */,
+				EEF62C3E71F687CC4C713962 /* ContentView.swift */,
+				7CC1A3680057B521B1A4F655 /* Resources */,
+			);
+			name = AzusaPlayerNative;
+			path = .;
+			sourceTree = "<group>";
+		};
+		F825CE4E8E007FD91A15BF8B /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				F7B814BFDF33071D67E22D54 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		15B1F3287B8876DF255B0322 /* AzusaPlayerNative */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 88F94B9CA2613BDD0D38906A /* Build configuration list for PBXNativeTarget "AzusaPlayerNative" */;
+			buildPhases = (
+				3CB63583DEA71E843F569993 /* Sources */,
+				A979E0AA5899F97E440058B0 /* Frameworks */,
+				B4C7C3687954D571A7BFC610 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AzusaPlayerNative;
+			productName = AzusaPlayerNative;
+			productReference = CCA026AF2CD7FFD56D033F18 /* AzusaPlayerNative.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C7EA3EC9AB086BECB049FA85 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					15B1F3287B8876DF255B0322 = {
+						CreatedOnToolsVersion = 16.4;
+					};
+				};
+			};
+			buildConfigurationList = 0D822AD4C5B2271A20ACD29B /* Build configuration list for PBXProject "AzusaPlayerNative" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 038A5CFCF5BB8089E854A64C;
+			minimizedProjectReferenceProxies = 0;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 027DD9342A6E58B1ED7649F5 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				15B1F3287B8876DF255B0322 /* AzusaPlayerNative */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B4C7C3687954D571A7BFC610 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3CB63583DEA71E843F569993 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				77B81D04B3802394A795AF2C /* AzusaPlayerNativeApp.swift in Sources */,
+				292DFFE92EDC2EF5B21524EE /* Song.swift in Sources */,
+				A4A8271E17B2D2F13AC3DC2E /* AppLogger.swift in Sources */,
+				EA57E8711EC96440C6617896 /* BilibiliService.swift in Sources */,
+				87DE4C57DFF8028AD085C9D8 /* LyricService.swift in Sources */,
+				0DDCF62F1BA6292219D93694 /* StorageService.swift in Sources */,
+				CEB23B4B59D9A32D128196E6 /* PlayerViewModel.swift in Sources */,
+				039629BF8062BFD51BF4BBFD /* ContentView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		82BC28258151102D923A3ADA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.kenmingwang.azusaplayer.native;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		ADAE6CF917272FB2E3892FB7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.kenmingwang.azusaplayer.native;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		B2105960937C93492699F56D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		EEB320B5A456F152E747A302 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0D822AD4C5B2271A20ACD29B /* Build configuration list for PBXProject "AzusaPlayerNative" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B2105960937C93492699F56D /* Debug */,
+				EEB320B5A456F152E747A302 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		88F94B9CA2613BDD0D38906A /* Build configuration list for PBXNativeTarget "AzusaPlayerNative" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				82BC28258151102D923A3ADA /* Release */,
+				ADAE6CF917272FB2E3892FB7 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C7EA3EC9AB086BECB049FA85 /* Project object */;
+}
