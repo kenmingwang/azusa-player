@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Azusa Player",
+    "slug": "azusa-player-ios",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "../public/icons/logo2-128.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "../public/icons/logo2-128.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f9f8f5"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.kenmingwang.azusaplayer"
+    }
+  }
+}
