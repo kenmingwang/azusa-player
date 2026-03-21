@@ -1,347 +1,332 @@
-import { Logger } from "./Logger"
-import VideoInfo from "../objects/VideoInfo"
+﻿import { Logger } from './Logger';
+import VideoInfo from '../objects/VideoInfo';
 
-const logger = new Logger("Data.js")
+const logger = new Logger('Data.js');
 
+const URL_PLAY_URL = 'https://api.bilibili.com/x/player/playurl?cid={cid}&bvid={bvid}&qn=64&fnval=16';
+const URL_BVID_TO_CID = 'https://api.bilibili.com/x/player/pagelist?bvid={bvid}&jsonp=jsonp';
+const URL_VIDEO_INFO = 'https://api.bilibili.com/x/web-interface/view?bvid={bvid}';
+const URL_BILISERIES_INFO =
+  'https://api.bilibili.com/x/series/archives?mid={mid}&series_id={sid}&only_normal=true&sort=desc&pn={pn}&ps=30';
+const URL_BILICOLLE_INFO =
+  'https://api.bilibili.com/x/polymer/space/seasons_archives_list?mid={mid}&season_id={sid}&sort_reverse=false&page_num={pn}&page_size=30';
+const URL_FAV_LIST =
+  'https://api.bilibili.com/x/v3/fav/resource/list?media_id={mid}&pn={pn}&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp';
 
-// Video src info
-const URL_PLAY_URL = "https://api.bilibili.com/x/player/playurl?cid={cid}&bvid={bvid}&qn=64&fnval=16"
-// BVID -> CID
-const URL_BVID_TO_CID = "https://api.bilibili.com/x/player/pagelist?bvid={bvid}&jsonp=jsonp"
-// Video Basic Info
-const URL_VIDEO_INFO = "http://api.bilibili.com/x/web-interface/view?bvid={bvid}"
-// channel series API Extract Info
-const URL_BILISERIES_INFO = "https://api.bilibili.com/x/series/archives?mid={mid}&series_id={sid}&only_normal=true&sort=desc&pn={pn}&ps=30"
-// channel series API Extract Info
-const URL_BILICOLLE_INFO = 'https://api.bilibili.com/x/polymer/space/seasons_archives_list?mid={mid}&season_id={sid}&sort_reverse=false&page_num={pn}&page_size=30'
-// Fav List
-const URL_FAV_LIST = "https://api.bilibili.com/x/v3/fav/resource/list?media_id={mid}&pn={pn}&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp"
-// LRC Mapping
-const URL_LRC_MAPPING = "https://raw.githubusercontent.com/kenmingwang/azusa-player-lrcs/main/mappings.txt"
-// LRC Base
-const URL_LRC_BASE = "https://raw.githubusercontent.com/kenmingwang/azusa-player-lrcs/main/{songFile}"
-// Header GIF base
-const URL_HEADER_GIF = "https://github.com/kenmingwang/azusa-player-lrcs/blob/main/aziRandomPic/{count}.gif?raw=true"
-// Header GIF from Bilibili Src
+const URL_LRC_MAPPING = 'https://raw.githubusercontent.com/kenmingwang/azusa-player-lrcs/main/mappings.txt';
+const URL_LRC_BASE = 'https://raw.githubusercontent.com/kenmingwang/azusa-player-lrcs/main/{songFile}';
 const URL_HEADER_GIFS = [
-    "https://i0.hdslb.com/bfs/article/956a1680d1408517d60e901b63eded873fe1ed5f.gif",
-    "https://i0.hdslb.com/bfs/article/b845058b7aaff1f51228c7369b473999ffcb7ee7.gif",
-    "https://i0.hdslb.com/bfs/article/bc6b61c2fd818878c1d05da06cb13c5ad425a858.gif",
-    "https://i0.hdslb.com/bfs/article/cd25f747b454b9006a25c81d5e7650f73c69ef17.gif",
-    "https://i0.hdslb.com/bfs/article/b4afccb0ead8ee044d282cc586c35799a7c888ca.gif",
-    "https://i0.hdslb.com/bfs/article/8df79587cda79b6a8e1624715ac5282585769001.gif",
-    "https://i0.hdslb.com/bfs/article/a0553b08da8d80dc0f45833ae40146dd88d999a9.gif",
-    "https://i0.hdslb.com/bfs/article/9d65d749cacccb307bfcc9a19c88224b0516f106.gif",
-    "https://i0.hdslb.com/bfs/article/77c63ef57e4612b5a671d5a417b8513f7285c75e.gif",
-    "https://i0.hdslb.com/bfs/article/768acaed9669b76ba1c105030e7a21c1ba15fa91.gif",
-    "https://i0.hdslb.com/bfs/article/878b50e28dda6050e78f75d620f05f8a6de6a4c1.gif",
-    "https://i0.hdslb.com/bfs/article/28837af291d81ed90500e1cb876769ab9932b91a.gif",
-    "https://i0.hdslb.com/bfs/article/c88cc015b4b3e036e1b5689f262f6720b3e0ab97.gif"
-]
-// HEADER GIFs count: https://github.com/kenmingwang/azusa-player-lrcs/tree/main/aziRandomPic
-const COUNT_HEADER_GIFS = 12
-// QQ SongSearch API
-const URL_QQ_SEARCH = "https://c.y.qq.com/splcloud/fcgi-bin/smartbox_new.fcg?key={KeyWord}"
-// QQ LyricSearchAPI
-const URL_QQ_LYRIC = "https://i.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg?songmid={SongMid}&g_tk=5381&format=json&inCharset=utf8&outCharset=utf-8&nobase64=1"
-/**
- *  QQ SongSearch API POST
- */
+  'https://i0.hdslb.com/bfs/article/956a1680d1408517d60e901b63eded873fe1ed5f.gif',
+  'https://i0.hdslb.com/bfs/article/b845058b7aaff1f51228c7369b473999ffcb7ee7.gif',
+  'https://i0.hdslb.com/bfs/article/bc6b61c2fd818878c1d05da06cb13c5ad425a858.gif',
+  'https://i0.hdslb.com/bfs/article/cd25f747b454b9006a25c81d5e7650f73c69ef17.gif',
+  'https://i0.hdslb.com/bfs/article/b4afccb0ead8ee044d282cc586c35799a7c888ca.gif',
+  'https://i0.hdslb.com/bfs/article/8df79587cda79b6a8e1624715ac5282585769001.gif',
+  'https://i0.hdslb.com/bfs/article/a0553b08da8d80dc0f45833ae40146dd88d999a9.gif',
+  'https://i0.hdslb.com/bfs/article/9d65d749cacccb307bfcc9a19c88224b0516f106.gif',
+  'https://i0.hdslb.com/bfs/article/77c63ef57e4612b5a671d5a417b8513f7285c75e.gif',
+  'https://i0.hdslb.com/bfs/article/768acaed9669b76ba1c105030e7a21c1ba15fa91.gif',
+  'https://i0.hdslb.com/bfs/article/878b50e28dda6050e78f75d620f05f8a6de6a4c1.gif',
+  'https://i0.hdslb.com/bfs/article/28837af291d81ed90500e1cb876769ab9932b91a.gif',
+  'https://i0.hdslb.com/bfs/article/c88cc015b4b3e036e1b5689f262f6720b3e0ab97.gif',
+];
+
+const URL_QQ_SEARCH = 'https://c.y.qq.com/splcloud/fcgi-bin/smartbox_new.fcg?key={KeyWord}';
+const URL_QQ_LYRIC =
+  'https://i.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg?songmid={SongMid}&g_tk=5381&format=json&inCharset=utf8&outCharset=utf-8&nobase64=1';
 const URL_QQ_SEARCH_POST = {
-    src: 'https://u.y.qq.com/cgi-bin/musicu.fcg',
-    params: {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+  src: 'https://u.y.qq.com/cgi-bin/musicu.fcg',
+  params: {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    referrer: 'https://u.qq.com/',
+    body: {
+      comm: {
+        ct: '19',
+        cv: '1859',
+        uin: '0',
       },
-      referrer: 'https://u.qq.com/',
-      body: {
-        comm: {
-          ct: '19',
-          cv: '1859',
-          uin: '0',
-        },
-        req: {
-          method: 'DoSearchForQQMusicDesktop',
-          module: 'music.search.SearchCgiService',
-          param: {
-            grp: 1,
-            num_per_page: 20,
-            page_num: 1,
-            query: '',
-            search_type: 0,
-          },
+      req: {
+        method: 'DoSearchForQQMusicDesktop',
+        module: 'music.search.SearchCgiService',
+        param: {
+          grp: 1,
+          num_per_page: 20,
+          page_num: 1,
+          query: '',
+          search_type: 0,
         },
       },
     },
-  };
-
-export const fetchPlayUrlPromise = async (bvid, cid) => {
-    // Fetch cid from bvid if needed
-    if (!cid)
-        cid = await fetchCID(bvid).catch((err) => console.log(err))
-
-    // Returns a promise that resolves into the audio stream url
-    return (new Promise((resolve, reject) => {
-        // console.log('Data.js Calling fetchPlayUrl:' + URL_PLAY_URL.replace("{bvid}", bvid).replace("{cid}", cid))
-        chrome.storage.local.get(['CurrentPlaying', 'PlayerSetting'], function (result) {
-            // To prohibit current playing audio from fetching a new audio stream
-            // If single loop, retreive the promise again.
-            if (result.CurrentPlaying && result.CurrentPlaying.cid == cid && result.PlayerSetting.playMode != 'singleLoop') {
-                resolve(result.playUrl)
-            }
-            else {
-                fetch(URL_PLAY_URL.replace("{bvid}", bvid).replace("{cid}", cid))
-                    .then(res => res.json())
-                    .then(json => resolve(extractResponseJson(json, 'AudioUrl')))
-                    .catch((err) => reject(console.log(err)))
-            }
-        })
-    }));
-}
-
-export const fetchCID = async (bvid) => {
-    //console.log('Data.js Calling fetchCID:' + URL_BVID_TO_CID.replace("{bvid}", bvid))
-    const res = await fetch(URL_BVID_TO_CID.replace("{bvid}", bvid))
-    const json = await res.json()
-    const cid = extractResponseJson(json, 'CID')
-    return cid
-}
-
-// Refactor needed for this func
-export const fetchLRC = async (name, setLyric, setSongTitle) => {
-    //console.log('Data.js Calling: fetchLRC')
-    // Get song mapping name and song name from title
-    const res = await fetch(URL_LRC_MAPPING)
-    const mappings = await res.text()
-    const songs = mappings.split("\n")
-    const songName = extractSongName(name)
-    setSongTitle(songName)
-
-    const songFile = songs.find((v, i, a) => v.includes(songName))
-    // use song name to get the LRC
-    try {
-        const lrc = await fetch(URL_LRC_BASE.replace('{songFile}', songFile))
-        if (lrc.status != '200') {
-            setLyric('[00:00.000] 无法找到歌词')
-            return
-        }
-
-        const text = await lrc.text()
-        setLyric(text.replaceAll('\r\n', '\n'))
-        return text.replaceAll('\r\n', '\n')
-    } catch (error) {
-        setLyric('[00:00.000] 无法找到歌词')
-        return
-    }
-
-}
-
-export const fetchVideoInfo = async (bvid) => {
-    logger.info("calling fetchVideoInfo")
-    const res = await fetch(URL_VIDEO_INFO.replace('{bvid}', bvid))
-    const json = await res.json()
-    try {
-        const data = json.data
-        const v = new VideoInfo(
-            data.title,
-            data.desc,
-            data.videos,
-            data.pic,
-            data.owner,
-            data.pages.map((s) => { return ({ bvid: bvid, part: s.part, cid: s.cid }) }))
-        return v
-    } catch (error) {
-        console.log('Some issue happened when fetching', bvid)
-    }
-}
-
-// fetch biliseries. copied from yt-dlp.
-// use page = 0 will return all videos in the list; else use a page number 
-// and # of items in a page (ps; defualt 30)
-// since we have no point of queuing it page by page, its easier to just 
-// load everything by using page = 0
-export const fetchBiliSeriesInfo = async (mid, sid) => {
-    logger.info("calling fetchBiliSeriesInfo")
-    let page = 0
-    let res = await fetch(URL_BILISERIES_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page))
-    let json = await res.json()
-    let data = json.data
-
-    const BVidPromises = []
-    for (let i = 0; i < data.archives.length; i++) {
-        BVidPromises.push(fetchVideoInfo(data.archives[i].bvid))
-    }
-
-    let videoInfos = []
-    await Promise.all(BVidPromises).then(res => {
-        videoInfos = res
-    })
-    return videoInfos
-}
-
-
-
-// copied from ytdlp. applies to collections such as:
-// https://space.bilibili.com/287837/channel/collectiondetail?sid=793137
-// method is copied from fetchFavList. 
-export const fetchBiliColleList = async (mid, sid, favList = []) => {
-    console.log(favList)
-    logger.info("calling fetchBiliColleList")
-    const res = await fetch(URL_BILICOLLE_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', 1))
-    const json = await res.clone().json()
-    const data = json.data
-
-    const mediaCount = data.meta.total
-    let totalPagesRequired = 1 + Math.floor(mediaCount / data.page.page_size)
-
-    const BVidPromises = []
-    const pagesPromises = [res]
-
-    for (let page = 2; page <= totalPagesRequired; page++) {
-        pagesPromises.push(await fetch(URL_BILICOLLE_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page)))
-    }
-
-    let videoInfos = []
-    await Promise.all(pagesPromises)
-        .then(async function (v) {
-            for (let index = 0, n = v.length; index < n; index++) {
-                await v[index].json().then(js => js.data.archives.map(m => {
-                    if (!favList.includes(m.bvid)) {
-                        BVidPromises.push(fetchVideoInfo(m.bvid))
-                    }
-                }))
-            }
-
-            await Promise.all(BVidPromises).then(res => {
-                videoInfos = res
-            })
-        })
-
-    return videoInfos
-}
-
-export const fetchFavList = async (mid) => {
-    logger.info("calling fetchFavList")
-    const res = await fetch(URL_FAV_LIST.replace('{mid}', mid).replace('{pn}', 1))
-    const json = await res.json()
-    const data = json.data
-
-    const mediaCount = data.info.media_count
-    let totalPagesRequired = Math.ceil(mediaCount / 20);
-
-    const BVidPromises = data.medias.map(m => fetchVideoInfo(m.bvid))
-    const pagesPromises = []
-
-    for (let page = 2; page <= totalPagesRequired; page++) {
-        pagesPromises.push(fetch(URL_FAV_LIST.replace('{mid}', mid).replace('{pn}', page)))
-    }
-
-    let videoInfos = []
-    await Promise.all(pagesPromises)
-        .then(async function (v) {
-            // console.log(BVidPromises)
-            for (let index = 0; index < v.length; index++) {
-                await v[index].json().then(js =>
-                    js.data.has_more
-                    &&
-                    js.data.medias.map(m => BVidPromises.push(fetchVideoInfo(m.bvid))))
-            }
-
-            await Promise.all(BVidPromises).then(res => {
-                videoInfos = res
-            })
-        })
-
-    return videoInfos
-}
-
-// Private Util to extract json according to https://github.com/SocialSisterYi/bilibili-API-collect
-const extractResponseJson = (json, field) => {
-    if (field === 'AudioUrl') {
-        return json.data.dash.audio[0].baseUrl
-    } else if (field === 'CID') {
-        return json.data[0].cid
-    } else if (field == 'AudioInfo') {
-        return {}
-    }
-}
-
-export const extractSongName = (name) => {
-    const nameReg = new RegExp("《.*》"); // For single-list BVID, we need to extract name from title
-    const res = nameReg.exec(name)
-    if (res)
-        return (res.length > 0 ? res[0].substring(1, res[0].length - 1) : "") // Remove the brackets
-
-    // var nameReg = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/ // Check if name is just one string, no special chars
-    // if(!nameReg.test(name))
-    return (name)
-}
-
-export const getRandomHeaderGIF = () => {
-    const randomIndex = Math.floor(Math.random() * (URL_HEADER_GIFS.length - 1))
-    return URL_HEADER_GIFS[randomIndex]
-}
-
-export const searchLyricOptions = async (searchKey, setOptions, setLyric) => {
-    logger.info("calling searchLyricOptions")
-    if (searchKey == "") {
-        setOptions([])
-        return
-    }
-    const res = await fetch(URL_QQ_SEARCH.replace("{KeyWord}", searchKey))
-    const json = await res.json()
-    const data = json.data.song.itemlist
-    const slimData = data.map((s, v) => { return { key: s.mid, songMid: s.mid, label: v + '. ' + s.name + ' / ' + s.singer } })
-
-    if(slimData.length)
-        setOptions(slimData)
-    else
-        searchLyricOptionsFallBack(searchKey, setOptions, setLyric)
-}
-
-export const searchLyricOptionsFallBack = async (searchKey, setOptions, setLyric) => {
-    logger.info("calling searchLyricOptions")
-    if (searchKey == "") {
-        setOptions([])
-        return
-    }
-    logger.info(`calling searchLyricOptionsFallBack: ${searchKey}`);
-    const API = getQQSearchAPI(searchKey);
-    const res = await fetch(API.src, API.params);
-    const json = await res.json();
-    console.debug(json);
-    const data = json.req.data.body.song.list;
-    const slimData = data.map((s, v) => ({
-        key: s.mid,
-        songMid: s.mid,
-        label: `${v}. ${s.name} / ${s.singer[0].name}`,
-    }));
-    setOptions(slimData);
+  },
 };
 
-const getQQSearchAPI = searchKey => {
-    let API = JSON.parse(JSON.stringify(URL_QQ_SEARCH_POST));
-    API.params.body.req.param.query = searchKey;
-    API.params.body = JSON.stringify(API.params.body);
-    return API;
+const normalizeLineBreak = (text = '') => String(text).replace(/\r\n/g, '\n');
+
+const tryFixMojibake = (text = '') => {
+  const source = String(text);
+  if (!/[??D???é]/.test(source)) return source;
+  try {
+    return decodeURIComponent(escape(source));
+  } catch {
+    return source;
+  }
+};
+
+const normalizeLyricText = (text = '') => normalizeLineBreak(tryFixMojibake(text));
+
+const extractResponseJson = (json, field) => {
+  if (field === 'AudioUrl') {
+    const audios = json?.data?.dash?.audio || [];
+    if (audios.length === 0) return '';
+
+    const ordered = [...audios].sort((a, b) => {
+      const aScore = Number(a?.bandwidth || a?.id || 0);
+      const bScore = Number(b?.bandwidth || b?.id || 0);
+      return bScore - aScore;
+    });
+
+    const preferred = ordered.find((a) => String(a?.codecs || '').includes('mp4a')) || ordered[0];
+    return preferred?.baseUrl || preferred?.base_url || preferred?.backupUrl?.[0] || preferred?.backup_url?.[0] || '';
+  }
+
+  if (field === 'CID') {
+    return json?.data?.[0]?.cid;
+  }
+
+  return {};
+};
+
+export const fetchPlayUrlPromise = async (bvid, cid) => {
+  if (!cid) {
+    cid = await fetchCID(bvid).catch((err) => {
+      console.log(err);
+      return undefined;
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(['CurrentPlaying', 'PlayerSetting'], function (result) {
+      const currentPlaying = result?.CurrentPlaying;
+      const playMode = result?.PlayerSetting?.playMode;
+      if (currentPlaying && currentPlaying.cid == cid && playMode !== 'singleLoop' && currentPlaying.playUrl) {
+        resolve(currentPlaying.playUrl);
+        return;
+      }
+
+      fetch(URL_PLAY_URL.replace('{bvid}', bvid).replace('{cid}', cid))
+        .then((res) => res.json())
+        .then((json) => resolve(extractResponseJson(json, 'AudioUrl')))
+        .catch((err) => {
+          console.log(err);
+          reject(err);
+        });
+    });
+  });
+};
+
+export const fetchCID = async (bvid) => {
+  const res = await fetch(URL_BVID_TO_CID.replace('{bvid}', bvid));
+  const json = await res.json();
+  return extractResponseJson(json, 'CID');
+};
+
+export const fetchLRC = async (name, setLyric, setSongTitle) => {
+  const res = await fetch(URL_LRC_MAPPING);
+  const mappings = await res.text();
+  const songs = mappings.split('\n');
+  const songName = extractSongName(name);
+  setSongTitle(songName);
+
+  const songFile = songs.find((v) => v.includes(songName));
+  if (!songFile) {
+    setLyric('[00:00.000] 无法找到歌词');
+    return;
+  }
+
+  try {
+    const lrcRes = await fetch(URL_LRC_BASE.replace('{songFile}', songFile));
+    if (!lrcRes.ok) {
+      setLyric('[00:00.000] 无法找到歌词');
+      return;
+    }
+
+    const text = normalizeLyricText(await lrcRes.text());
+    setLyric(text);
+    return text;
+  } catch {
+    setLyric('[00:00.000] 无法找到歌词');
+  }
+};
+
+export const fetchVideoInfo = async (bvid) => {
+  logger.info('calling fetchVideoInfo');
+  const res = await fetch(URL_VIDEO_INFO.replace('{bvid}', bvid));
+  const json = await res.json();
+
+  try {
+    const data = json.data;
+    return new VideoInfo(
+      data.title,
+      data.desc,
+      data.videos,
+      data.pic,
+      data.owner,
+      data.pages.map((s) => ({ bvid, part: s.part, cid: s.cid })),
+    );
+  } catch {
+    console.log('Some issue happened when fetching', bvid);
+    return undefined;
+  }
+};
+
+export const fetchBiliSeriesInfo = async (mid, sid) => {
+  logger.info('calling fetchBiliSeriesInfo');
+  const page = 0;
+  const res = await fetch(URL_BILISERIES_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page));
+  const json = await res.json();
+  const data = json.data;
+
+  const bvidPromises = (data.archives || []).map((v) => fetchVideoInfo(v.bvid));
+  return Promise.all(bvidPromises);
+};
+
+export const fetchBiliColleList = async (mid, sid, favList = []) => {
+  logger.info('calling fetchBiliColleList');
+  const res = await fetch(URL_BILICOLLE_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', 1));
+  const json = await res.clone().json();
+  const data = json.data;
+
+  const mediaCount = data.meta.total;
+  const totalPagesRequired = 1 + Math.floor(mediaCount / data.page.page_size);
+
+  const bvidPromises = [];
+  const pagesPromises = [res];
+
+  for (let page = 2; page <= totalPagesRequired; page++) {
+    pagesPromises.push(fetch(URL_BILICOLLE_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page)));
+  }
+
+  const pages = await Promise.all(pagesPromises);
+  for (const response of pages) {
+    const pageJson = await response.json();
+    const archives = pageJson?.data?.archives || [];
+    archives.forEach((m) => {
+      if (!favList.includes(m.bvid)) {
+        bvidPromises.push(fetchVideoInfo(m.bvid));
+      }
+    });
+  }
+
+  return Promise.all(bvidPromises);
+};
+
+export const fetchFavList = async (mid) => {
+  logger.info('calling fetchFavList');
+  const res = await fetch(URL_FAV_LIST.replace('{mid}', mid).replace('{pn}', 1));
+  const json = await res.json();
+  const data = json.data;
+
+  const mediaCount = data.info.media_count;
+  const totalPagesRequired = Math.ceil(mediaCount / 20);
+
+  const bvidPromises = (data.medias || []).map((m) => fetchVideoInfo(m.bvid));
+  const pagesPromises = [];
+
+  for (let page = 2; page <= totalPagesRequired; page++) {
+    pagesPromises.push(fetch(URL_FAV_LIST.replace('{mid}', mid).replace('{pn}', page)));
+  }
+
+  const pages = await Promise.all(pagesPromises);
+  for (const response of pages) {
+    const pageJson = await response.json();
+    const medias = pageJson?.data?.medias || [];
+    medias.forEach((m) => bvidPromises.push(fetchVideoInfo(m.bvid)));
+  }
+
+  return Promise.all(bvidPromises);
+};
+
+export const extractSongName = (name) => {
+  const source = String(name || '');
+  const match = source.match(/《([^》]+)》/);
+  if (match?.[1]) return match[1];
+  return source;
+};
+
+export const getRandomHeaderGIF = () => {
+  const randomIndex = Math.floor(Math.random() * URL_HEADER_GIFS.length);
+  return URL_HEADER_GIFS[randomIndex];
+};
+
+export const searchLyricOptions = async (searchKey, setOptions) => {
+  logger.info('calling searchLyricOptions');
+  if (searchKey == '') {
+    setOptions([]);
+    return;
+  }
+
+  const res = await fetch(URL_QQ_SEARCH.replace('{KeyWord}', searchKey));
+  const json = await res.json();
+  const data = json?.data?.song?.itemlist || [];
+  const slimData = data.map((s, i) => ({
+    key: s.mid,
+    songMid: s.mid,
+    label: `${i}. ${s.name} / ${s.singer}`,
+  }));
+
+  if (slimData.length) {
+    setOptions(slimData);
+  } else {
+    searchLyricOptionsFallBack(searchKey, setOptions);
+  }
+};
+
+export const searchLyricOptionsFallBack = async (searchKey, setOptions) => {
+  logger.info('calling searchLyricOptionsFallBack');
+  if (searchKey == '') {
+    setOptions([]);
+    return;
+  }
+
+  const api = getQQSearchAPI(searchKey);
+  const res = await fetch(api.src, api.params);
+  const json = await res.json();
+  const data = json?.req?.data?.body?.song?.list || [];
+
+  setOptions(
+    data.map((s, i) => ({
+      key: s.mid,
+      songMid: s.mid,
+      label: `${i}. ${s.name} / ${s.singer?.[0]?.name || ''}`,
+    })),
+  );
+};
+
+const getQQSearchAPI = (searchKey) => {
+  const api = JSON.parse(JSON.stringify(URL_QQ_SEARCH_POST));
+  api.params.body.req.param.query = searchKey;
+  api.params.body = JSON.stringify(api.params.body);
+  return api;
 };
 
 export const searchLyric = async (searchMID, setLyric) => {
-    logger.info("calling searchLyric")
-    const res = await fetch(URL_QQ_LYRIC.replace("{SongMid}", searchMID))
-    const json = await res.json()
-    if (!json.lyric) {
-        setLyric('[00:00.000] 无法找到歌词,请手动搜索')
-        return
-    }
+  logger.info('calling searchLyric');
+  const res = await fetch(URL_QQ_LYRIC.replace('{SongMid}', searchMID));
+  const json = await res.json();
 
-    let finalLrc = json.lyric
+  if (!json.lyric) {
+    setLyric('[00:00.000] 无法找到歌词, 请手动搜索');
+    return;
+  }
 
-    // Merge trans Lyrics
-    if (json.trans)
-        finalLrc = json.trans + '\n' + finalLrc
+  let finalLrc = normalizeLyricText(json.lyric);
+  if (json.trans) {
+    finalLrc = `${normalizeLyricText(json.trans)}\n${finalLrc}`;
+  }
 
-    // console.log(finalLrc)
-    setLyric(finalLrc)
-}
+  setLyric(finalLrc);
+};
+
