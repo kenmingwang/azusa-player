@@ -1,12 +1,13 @@
 {
   "name": "电梓播放器-第三方bilibili音频播放器",
   "version": "1.3.0.0",
-  "description":"电梓播放器 / azusa-player: 一个第三方哔哩哔哩(bilibili.com)音频播放器 / A 3rd party Bilibili audio player.",
+  "description": "电梓播放器 / azusa-player: 一个第三方哔哩哔哩(bilibili.com)音频播放器 / A 3rd party Bilibili audio player.",
   "manifest_version": 3,
   "background": {
-    "service_worker": "serviceWorker.js"
+    "service_worker": "src/serviceworker/index.ts"
   },
   "action": {
+    "default_popup": "src/popup/index.html",
     "default_icon": {
       "16": "icons/logo2-128.png",
       "128": "icons/logo2-128.png"
@@ -14,8 +15,12 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*/*"],
-      "js": ["js/contentscript.js"]
+      "matches": [
+        "*://*/*"
+      ],
+      "js": [
+        "src/scripts/contentscript/index.ts"
+      ]
     }
   ],
   "icons": {
@@ -38,10 +43,12 @@
     "*://*.akamaized.net/*"
   ],
   "declarative_net_request": {
-    "rule_resources": [{
-      "id": "ruleset_1",
-      "enabled": true,
-      "path": "rules.json"
-    }]
+    "rule_resources": [
+      {
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
   }
 }

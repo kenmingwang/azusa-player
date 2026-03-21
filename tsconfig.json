@@ -1,48 +1,36 @@
 {
   "compilerOptions": {
-    "target": "ES5",
-    "module": "ES6",
+    "target": "ESNext",
+    "useDefineForClassFields": true,
     "lib": [
       "DOM",
+      "DOM.Iterable",
       "ESNext"
     ],
     "allowJs": true,
-    // "checkJs": true,
-    "jsx": "react",
-    // "declaration": true,
-    "sourceMap": true,
-    "outDir": "./build",
-    "rootDir": "./src",
-    "removeComments": true,
-    "noEmit": true,
-    "isolatedModules": true,
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    // "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    // "allowUmdGlobalAccess": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    }
   },
   "include": [
-    "src"
+    "src",
+    "vite.config.ts"
   ],
   "exclude": [
-    "node_modules",
-    "build",
-    "public"
+    "node_modules"
   ]
 }
