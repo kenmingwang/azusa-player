@@ -52,6 +52,17 @@ const shuffleWithoutImmediateRepeat = (songs: SongLike[] = [], keepSongId?: stri
   return list;
 };
 
+const dedupeSongsById = (songs: SongLike[] = []) => {
+  const deduped: SongLike[] = [];
+  const seen = new Set<string>();
+  for (const song of songs) {
+    if (!song?.id || seen.has(song.id)) continue;
+    seen.add(song.id);
+    deduped.push(song);
+  }
+  return deduped;
+};
+
 export const Player = function ({ songList }: PlayerProps) {
   const [params, setParams] = useState<any>(null);
   const [playingList, setPlayingList] = useState<SongLike[]>([]);
@@ -62,7 +73,8 @@ export const Player = function ({ songList }: PlayerProps) {
   const lastProgressSaveAtRef = useRef(0);
   const StorageManager = useContext(StorageManagerCtx);
 
-  const buildExternalLink = (audioInfo: SongLike) => {
+  const buildExternalLink = (audioInfo?: Partial<SongLike> | null) => {
+    if (!audioInfo?.bvid) return null;
     const link = `https://www.bilibili.com/video/${audioInfo.bvid}`;
     return (
       <span className='group audio-download' title='Bilibili'>
@@ -79,14 +91,7 @@ export const Player = function ({ songList }: PlayerProps) {
       const baseList = replaceList ? [] : playingList;
       const merged = immediatePlay ? [...songs, ...baseList] : [...baseList, ...songs];
 
-      const deduped: SongLike[] = [];
-      const seen = new Set<string>();
-      for (const song of merged) {
-        if (!seen.has(song.id)) {
-          seen.add(song.id);
-          deduped.push(song);
-        }
-      }
+      const deduped = dedupeSongsById(merged);
 
       const maybeShuffled =
         playerSettings?.playMode === 'shufflePlay'
@@ -155,14 +160,8 @@ export const Player = function ({ songList }: PlayerProps) {
     const nextSettings = { ...playerSettings, playMode };
     setPlayerSettings(nextSettings);
     StorageManager.setPlayerSetting(nextSettings);
-
-    if (playMode === 'shufflePlay') {
-      const shuffled = shuffleWithoutImmediateRepeat(playingList, currentAudio?.id);
-      setPlayingList(shuffled);
-      setParams({ ...params, audioLists: shuffled, playMode: 'orderLoop' });
-      return;
-    }
-
+    // Keep mode switching lightweight: do not rebuild audioLists here,
+    // otherwise player resets and causes visible pause/flicker.
     setParams({ ...params, playMode });
   };
 
@@ -174,11 +173,11 @@ export const Player = function ({ songList }: PlayerProps) {
   };
 
   const onAudioPlay = useCallback(
-    (audioInfo: SongLike) => {
-      if (!params) return;
+    (audioInfo?: SongLike) => {
+      if (!params || !audioInfo?.id) return;
       setParams({ ...params, extendsContent: buildExternalLink(audioInfo) });
       chrome.storage.local.set({
-        CurrentPlaying: { cid: audioInfo.id.toString(), playUrl: audioInfo.musicSrc },
+        CurrentPlaying: { cid: String(audioInfo.id), playUrl: audioInfo.musicSrc },
       });
 
       chrome.storage.local.get(['SongProgressMap'], (result) => {
@@ -199,8 +198,9 @@ export const Player = function ({ songList }: PlayerProps) {
 
   const onAudioListsChange = useCallback(
     (_currentPlayId: string, audioLists: SongLike[]) => {
-      StorageManager.setLastPlayList(audioLists as any);
-      setPlayingList(audioLists);
+      const deduped = dedupeSongsById(audioLists);
+      StorageManager.setLastPlayList(deduped as any);
+      setPlayingList(deduped);
     },
     [StorageManager],
   );
@@ -305,12 +305,12 @@ export const Player = function ({ songList }: PlayerProps) {
         StorageManager.setPlayerSetting(setting);
       }
 
-      const lists = setting.playMode === 'shufflePlay' ? shuffleWithoutImmediateRepeat(songList) : songList;
+      const lists = dedupeSongsById(songList as SongLike[]);
 
       const initialParams = {
         ...options,
         ...setting,
-        playMode: setting.playMode === 'shufflePlay' ? 'orderLoop' : setting.playMode,
+        playMode: setting.playMode,
         audioLists: lists,
         extendsContent: buildExternalLink(lists[0]),
       };
@@ -346,7 +346,7 @@ export const Player = function ({ songList }: PlayerProps) {
       ) : null}
 
       {params ? (
-        <Box display='flex' flex='1' justifyContent='space-around' style={{ maxHeight: '100%', height: '64px' }} sx={{ gridArea: 'footer' }}>
+        <Box display='flex' flex='1' justifyContent='space-around' sx={{ gridArea: 'footer', height: '84px', width: '100%' }}>
           <ReactJkMusicPlayer
             {...params}
             showMediaSession

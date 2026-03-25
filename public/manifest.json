@@ -6,8 +6,9 @@
   "background": {
     "service_worker": "src/serviceworker/index.ts"
   },
+  "options_page": "src/popup/index.html",
   "action": {
-    "default_popup": "src/popup/index.html",
+    "default_title": "Azusa Player",
     "default_icon": {
       "16": "icons/logo2-128.png",
       "128": "icons/logo2-128.png"

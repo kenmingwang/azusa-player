@@ -13,38 +13,54 @@ interface LyricOverlayProps {
   showLyric: boolean;
   currentTime: number;
   audioName: string;
-  audioId: string;
+  audioId?: string | number;
   audioCover: string;
   artist?: string;
 }
 
 export const LyricOverlay = memo(function ({ showLyric, currentTime, audioName, audioId, audioCover, artist = '' }: LyricOverlayProps) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(showLyric);
 
   useEffect(() => {
-    setOpen((v) => !v);
+    setOpen(showLyric);
   }, [showLyric]);
 
   return (
     <Dialog
-      fullScreen
       open={open}
       onClose={() => setOpen(false)}
       hideBackdrop
       TransitionComponent={Transition}
+      sx={{
+        zIndex: 900,
+        pointerEvents: 'none',
+        '& .MuiDialog-container': {
+          alignItems: 'flex-start',
+          pointerEvents: 'none',
+        },
+        '& .MuiPaper-root': { pointerEvents: 'auto' },
+      }}
       PaperProps={{
         style: {
           backgroundImage: `url(${audioCover})`,
           backgroundSize: 'cover',
+          backgroundPosition: 'center',
           boxShadow: 'none',
+          width: '100vw',
+          maxWidth: '100vw',
+          height: 'calc(100dvh - 80px)',
+          margin: 0,
+          borderRadius: 0,
         },
       }}
     >
-      <div id='blur-glass' style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div id='blur-glass' style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%' }}>
         <IconButton color='inherit' onClick={() => setOpen(false)} aria-label='close' style={{ borderRadius: '0' }}>
           <KeyboardArrowDownIcon />
         </IconButton>
-        <Lyric currentTime={currentTime} audioName={audioName} audioId={audioId} audioCover={audioCover} artist={artist} />
+        <div style={{ flex: 1, minHeight: 0 }}>
+          <Lyric currentTime={currentTime} audioName={audioName} audioId={audioId} audioCover={audioCover} artist={artist} />
+        </div>
       </div>
     </Dialog>
   );

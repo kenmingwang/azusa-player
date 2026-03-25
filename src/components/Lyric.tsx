@@ -1,56 +1,42 @@
 ﻿import React, { useEffect, useState, useCallback, useContext } from 'react';
 import { Lrc } from 'react-lrc';
 const LrcAny: any = Lrc;
-import { ScrollBar } from '../styles/styles';
 import TextField from '@mui/material/TextField';
-import { withStyles } from '@mui/styles';
 import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
 import { reExtractSongName as extractSongName } from '../utils/re';
 import { LyricSearchBar } from './LyricSearchBar';
 import StorageManagerCtx from '../popup/App';
 
-const INTERVAL_OF_RECOVERING_AUTO_SCROLL_AFTER_USER_SCROLL = 5000;
-
-const styles = () => ({
-  inputOffset: {
-    height: 40,
-    width: 140,
-  },
-  inputLrc: {
-    height: 40,
-    width: 375,
-  },
-});
+const INTERVAL_OF_RECOVERING_AUTO_SCROLL_AFTER_USER_SCROLL = 3000;
 
 interface LyricProps {
-  classes: any;
   currentTime: number;
   audioName: string;
-  audioId: string;
+  audioId?: string | number;
   audioCover: string;
   artist: string;
 }
 
-export const Lyric = withStyles(styles)((props: LyricProps) => {
+export const Lyric = function ({ currentTime, audioName, audioId, audioCover, artist }: LyricProps) {
   const [lyricOffset, setLyricOffset] = useState(0);
   const [lyric, setLyric] = useState('');
   const [songTitle, setSongTitle] = useState('');
   const [localOption, setLocalOption] = useState<any>(null);
 
-  const { classes, currentTime, audioName, audioId, audioCover, artist } = props;
   const StorageManager = useContext(StorageManagerCtx);
+  const resolvedAudioId = audioId == null ? '' : String(audioId);
 
   useEffect(() => {
     async function initLyric() {
-      const detail = await StorageManager.getLyricDetail(audioId.toString());
-      if (detail != undefined) {
-        setLyricOffset(detail.lrcOffset || 0);
-        setLocalOption(detail);
-      }
       setSongTitle(extractSongName(audioName, artist));
+      if (!resolvedAudioId) return;
+      const detail = await StorageManager.getLyricDetail(resolvedAudioId);
+      setLyricOffset(detail?.lrcOffset || 0);
+      setLocalOption(detail || null);
     }
     initLyric();
-  }, [audioName, audioId, artist]);
+  }, [audioName, artist, resolvedAudioId]);
 
   const onSongTitleChange = useCallback((lrc: string) => {
     setLyric(lrc);
@@ -59,80 +45,101 @@ export const Lyric = withStyles(styles)((props: LyricProps) => {
   const onLrcOffsetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const offset = Number(e.target.value);
     setLyricOffset(offset);
-    StorageManager.setLyricOffset(audioId, offset);
+    if (!resolvedAudioId) return;
+    StorageManager.setLyricOffset(resolvedAudioId, offset);
   };
 
-  const className = ScrollBar().root;
-
   return (
-    <>
-      <Grid container spacing={1} sx={{ maxHeight: '100vh', minHeight: '100vh', overflow: 'hidden' }}>
-        <Grid sx={{ alignItems: 'center', pb: 10, overflow: 'hidden', minHeight: 'calc(100% - 100px)' }} item xs={6}>
-          <Grid container spacing={0} sx={{ maxHeight: '100vh', overflow: 'hidden', mt: '50px' }}>
-            <Grid sx={{ pt: '8px', pl: '2px', overflow: 'hidden' }} item xs={12}>
-              <img id='LrcImg' src={audioCover} style={{ maxWidth: '500px' }} alt='cover' />
-            </Grid>
-            <Grid sx={{ pt: '8px', pl: '2px', overflow: 'hidden' }} item xs={12}>
-              <Grid container spacing={0} sx={{ maxHeight: '100vh', overflow: 'hidden', width: '500px' }}>
-                <Grid sx={{ pt: '8px', pr: '2px', overflow: 'hidden' }} item xs={3}>
-                  <TextField
-                    type='number'
-                    variant='outlined'
-                    label='歌词偏移(ms)'
-                    InputProps={{
-                      className: classes.inputOffset,
-                      inputProps: { min: -9999, max: 9999 },
-                    }}
-                    value={lyricOffset}
-                    onChange={onLrcOffsetChange}
-                  />
-                </Grid>
-                <Grid sx={{ pt: '8px', overflow: 'hidden' }} style={{ maxWidth: 'fit-content' }} item xs={9}>
-                  <TextField
-                    variant='outlined'
-                    label='歌词搜索'
-                    InputProps={{ className: classes.inputLrc }}
-                    InputLabelProps={{ shrink: true }}
-                    placeholder={songTitle}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                      if (e.key === 'Enter') setSongTitle((e.target as HTMLInputElement).value);
-                    }}
-                  />
-                </Grid>
-              </Grid>
-            </Grid>
+    <Box
+      sx={{
+        height: '100%',
+        minHeight: 0,
+        overflow: 'hidden',
+        px: { xs: 1.5, md: 2.5 },
+        pb: { xs: 1.25, md: 2 },
+        pt: 0.75,
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', sm: 'minmax(280px, 42%) minmax(0, 1fr)' },
+        gap: { xs: 1, md: 2 },
+      }}
+    >
+      <Box sx={{ minHeight: 0, overflowY: 'auto', overflowX: 'hidden', pr: { xs: 0, sm: 0.75 } }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', pb: { xs: 2.75, md: 3.25 } }}>
+          <img
+            id='LrcImg'
+            src={audioCover}
+            alt='cover'
+            style={{ width: '100%', maxWidth: '560px', borderRadius: '6px', objectFit: 'cover' }}
+          />
+        </Box>
 
-            <Grid sx={{ pt: '8px', pl: '2px', overflow: 'hidden' }} item xs={12}>
-              <LyricSearchBar SearchKey={songTitle} SongId={audioId} setLyric={onSongTitleChange} localOption={localOption} />
-            </Grid>
+        <Grid
+          container
+          spacing={1.25}
+          sx={{ width: '100%', maxWidth: 560, mx: 'auto', px: { xs: 0.25, sm: 0.5 }, pb: 0.5, mt: { xs: 0.5, md: 0.75 } }}
+        >
+          <Grid item xs={4} sm={3}>
+            <TextField
+              fullWidth
+              type='number'
+              size='small'
+              variant='outlined'
+              label={'\u6b4c\u8bcd\u504f\u79fb(ms)'}
+              inputProps={{ min: -9999, max: 9999 }}
+              value={lyricOffset}
+              onChange={onLrcOffsetChange}
+            />
+          </Grid>
+          <Grid item xs={8} sm={9}>
+            <TextField
+              fullWidth
+              size='small'
+              variant='outlined'
+              label={'\u6b4c\u8bcd\u641c\u7d22'}
+              InputLabelProps={{ shrink: true }}
+              placeholder={songTitle}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === 'Enter') {
+                  setSongTitle((e.target as HTMLInputElement).value);
+                }
+              }}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <LyricSearchBar SearchKey={songTitle} SongId={resolvedAudioId} setLyric={onSongTitleChange} localOption={localOption} />
           </Grid>
         </Grid>
+      </Box>
 
-        <Grid style={{ paddingBottom: 10, overflow: 'auto', maxHeight: 'calc(100% - 130px)' }} item xs={6}>
-          <LrcAny
-            className={className}
-            style={{ maxHeight: '100%', paddingRight: '80px' }}
-            lrc={lyric}
-            autoScroll
-            lineRenderer={({ line: { content }, active }: any) => (
-              <div
-                style={{
-                  textAlign: 'center',
-                  color: active ? '#c660e7' : '#4d388f',
-                  padding: '6px 12px',
-                  fontSize: active ? '18px' : '15px',
-                  fontFamily: "Georgia,'Microsoft YaHei',simsun,serif",
-                }}
-              >
-                {content}
-              </div>
-            )}
-            currentMillisecond={+currentTime * 1000 + +lyricOffset}
-            intervalOfRecoveringAutoScrollAfterUserScroll={INTERVAL_OF_RECOVERING_AUTO_SCROLL_AFTER_USER_SCROLL}
-          />
-        </Grid>
-      </Grid>
-    </>
+      <Box sx={{ minHeight: 0, overflow: 'hidden' }}>
+        <LrcAny
+          style={{
+            height: '100%',
+            minHeight: '100%',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            padding: '6px 12px 20px',
+            boxSizing: 'border-box',
+          }}
+          lrc={lyric}
+          autoScroll
+          lineRenderer={({ line: { content }, active }: any) => (
+            <div
+              style={{
+                textAlign: 'center',
+                color: active ? '#c660e7' : '#4d388f',
+                padding: '6px 10px',
+                fontSize: active ? '19px' : '15px',
+                fontFamily: "Georgia,'Microsoft YaHei',simsun,serif",
+              }}
+            >
+              {content}
+            </div>
+          )}
+          currentMillisecond={+currentTime * 1000 + +lyricOffset}
+          intervalOfRecoveringAutoScrollAfterUserScroll={INTERVAL_OF_RECOVERING_AUTO_SCROLL_AFTER_USER_SCROLL}
+        />
+      </Box>
+    </Box>
   );
-});
-
+};

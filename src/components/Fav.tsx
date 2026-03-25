@@ -68,16 +68,17 @@ const columns = [
 
 const CRUDIcon = {
   ':hover': { cursor: 'pointer' },
-  width: '0.85em',
-  height: '0.85em',
+  width: '1.05em',
+  height: '1.05em',
   color: '#8e5fab',
 };
 
 const songText = {
-  fontSize: 15,
+  fontSize: 14,
   minWidth: 0,
   color: '#ab5fff',
   textTransform: 'none',
+  justifyContent: 'flex-start',
 };
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -91,8 +92,8 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
     color: theme.palette.common.white,
   },
   [`&.${tableCellClasses.body}`]: {
-    fontSize: 15,
-    padding: 0,
+    fontSize: 14,
+    padding: '6px 8px',
   },
 }));
 
@@ -202,68 +203,71 @@ export const Fav = function ({
   return (
     <>
       {currentFavList ? (
-        <>
-          <Box sx={{ flexGrow: 1, maxHeight: '92px' }}>
-            <Grid container spacing={1.5} style={{ paddingTop: '8px' }}>
-              <Grid item xs={4} style={{ textAlign: 'left', paddingLeft: '16px', paddingTop: '4px' }}>
-                <Typography variant='h6' style={{ color: '#9600af94', whiteSpace: 'nowrap', fontSize: '1rem' }}>
+        <Box sx={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ px: { xs: 0.5, md: 1 }, pt: 0.5 }}>
+            <Grid container spacing={1} alignItems='center'>
+              <Grid item xs={12} sm={5} md={6}>
+                <Typography variant='h6' sx={{ color: '#9600af94', whiteSpace: 'nowrap', fontSize: '1rem' }}>
                   {currentFavList.info.title}
                 </Typography>
               </Grid>
-              <Grid item xs={4} style={{ textAlign: 'center' }}>
-                <img style={{ width: '44px', height: '44px' }} src={getRandomHeaderGIF()} alt='header' />
+              <Grid item xs={12} sm={7} md={6}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
+                  <img style={{ width: '40px', height: '40px' }} src={getRandomHeaderGIF()} alt='header' />
+                  <TextField
+                    id='fav-search'
+                    color='secondary'
+                    size='small'
+                    label='搜索歌曲'
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => requestSearch(e.target.value)}
+                    value={filterString}
+                    sx={{ width: { xs: '100%', sm: '220px' }, maxWidth: '100%' }}
+                  />
+                </Box>
               </Grid>
-              <Grid item xs={4} style={{ textAlign: 'right', paddingRight: '8px' }}>
-                <TextField
-                  id='fav-search'
-                  color='secondary'
-                  size='small'
-                  label='搜索歌曲'
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => requestSearch(e.target.value)}
-                  value={filterString}
-                />
-              </Grid>
-              <Grid item xs={12} style={{ textAlign: 'right', paddingRight: '8px' }}>
-                <Tooltip title='批量加入播放列表'>
-                  <span>
-                    <Button size='small' disabled={!selectedSongs.length} onClick={() => onAddOneFromFav(selectedSongs)}>
-                      加入播放列表({selectedSongs.length})
-                    </Button>
-                  </span>
-                </Tooltip>
-                <Tooltip title='批量添加到其它歌单'>
-                  <span>
-                    <Button
-                      size='small'
-                      disabled={!selectedSongs.length}
-                      onClick={() => handleAddToFavClick(currentFavList.info.id, selectedSongs)}
-                    >
-                      添加到歌单
-                    </Button>
-                  </span>
-                </Tooltip>
-                <Tooltip title='批量删除选中歌曲'>
-                  <span>
-                    <Button
-                      size='small'
-                      color='error'
-                      disabled={!selectedSongs.length}
-                      onClick={() => handleDeleteSongs(currentFavList.info.id, selectedSongIds, tableInfo)}
-                    >
-                      删除选中
-                    </Button>
-                  </span>
-                </Tooltip>
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 0.75 }}>
+                  <Tooltip title='批量加入播放列表'>
+                    <span>
+                      <Button size='small' disabled={!selectedSongs.length} onClick={() => onAddOneFromFav(selectedSongs)}>
+                        加入播放列表({selectedSongs.length})
+                      </Button>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title='批量添加到其它歌单'>
+                    <span>
+                      <Button
+                        size='small'
+                        disabled={!selectedSongs.length}
+                        onClick={() => handleAddToFavClick(currentFavList.info.id, selectedSongs)}
+                      >
+                        添加到歌单
+                      </Button>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title='批量删除选中歌曲'>
+                    <span>
+                      <Button
+                        size='small'
+                        color='error'
+                        disabled={!selectedSongs.length}
+                        onClick={() => handleDeleteSongs(currentFavList.info.id, selectedSongIds, tableInfo)}
+                      >
+                        删除选中
+                      </Button>
+                    </span>
+                  </Tooltip>
+                </Box>
               </Grid>
             </Grid>
           </Box>
 
-          <TableContainer className={className} id='FavTable' component={Paper} sx={{ maxHeight: 'calc(100% - 64px)' }}>
-            <Table stickyHeader aria-label='fav table'>
+          <TableContainer className={className} id='FavTable' component={Paper} sx={{ flex: 1, minHeight: 0 }}>
+            <Table stickyHeader aria-label='fav table' size='small' sx={{ tableLayout: 'fixed', minWidth: 560 }}>
               <TableHead>
                 <TableRow>
                   {columns.map((column) => (
-                    <TableCell key={column.id} align={(column as any).align} sx={{ width: column.minWidth }}>
+                    <TableCell key={column.id} align={(column as any).align} sx={{ width: column.minWidth, whiteSpace: 'nowrap' }}>
                       {column.id === 'check' ? (
                         <Checkbox
                           size='small'
@@ -290,40 +294,48 @@ export const Fav = function ({
                     <StyledTableCell align='center'>
                       <Checkbox size='small' checked={selectedSongIds.includes(song.id)} onChange={() => toggleSong(song.id)} />
                     </StyledTableCell>
-                    <StyledTableCell align='left' sx={{ paddingLeft: '8px', width: '40%', whiteSpace: 'nowrap' }}>
-                      <Button variant='text' sx={songText} onClick={() => onSongIndexChange([song])}>
-                        {song.name}
-                      </Button>
+                    <StyledTableCell align='left' sx={{ width: '45%', minWidth: 0, overflow: 'hidden' }}>
+                      <Tooltip title={song.name}>
+                        <Button
+                          variant='text'
+                          sx={{ ...songText, width: '100%', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          onClick={() => onSongIndexChange([song])}
+                        >
+                          {song.name}
+                        </Button>
+                      </Tooltip>
                     </StyledTableCell>
-                    <StyledTableCell align='center' sx={{ minWidth: 0, color: '#ab5fff' }}>
+                    <StyledTableCell align='center' sx={{ minWidth: 0, color: '#ab5fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       <a href={`https://space.bilibili.com/${song.singerId}`} target='_blank' rel='noreferrer' style={{ color: 'inherit', textDecoration: 'none' }}>
                         {song.singer}
                       </a>
                     </StyledTableCell>
-                    <StyledTableCell align='right' sx={{ pr: 1.5, width: '40%', whiteSpace: 'nowrap' }}>
-                      <Tooltip title='加入播放列表'>
-                        <AddOutlinedIcon sx={CRUDIcon} onClick={() => onAddOneFromFav([song])} />
-                      </Tooltip>
-                      <Tooltip title='添加到歌单'>
-                        <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(currentFavList.info.id, [song])} />
-                      </Tooltip>
-                      <Tooltip title='重命名歌曲'>
-                        <EditOutlinedIcon
-                          sx={CRUDIcon}
-                          onClick={() => {
-                            const newName = window.prompt('请输入新歌名', song.name);
-                            if (newName && newName.trim()) {
-                              handleRenameSong(currentFavList.info.id, song.id, newName.trim(), tableInfo);
-                            }
-                          }}
-                        />
-                      </Tooltip>
-                      <Tooltip title='删除歌曲'>
-                        <DeleteOutlineOutlinedIcon
-                          sx={CRUDIcon}
-                          onClick={() => handleDelteFromSearchList(currentFavList.info.id, song.id, tableInfo)}
-                        />
-                      </Tooltip>
+                    <StyledTableCell align='right' sx={{ width: '30%', minWidth: 0 }}>
+                      <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.75 }}>
+                        <Tooltip title='加入播放列表'>
+                          <AddOutlinedIcon sx={CRUDIcon} onClick={() => onAddOneFromFav([song])} />
+                        </Tooltip>
+                        <Tooltip title='添加到歌单'>
+                          <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(currentFavList.info.id, [song])} />
+                        </Tooltip>
+                        <Tooltip title='重命名歌曲'>
+                          <EditOutlinedIcon
+                            sx={CRUDIcon}
+                            onClick={() => {
+                              const newName = window.prompt('请输入新歌名', song.name);
+                              if (newName && newName.trim()) {
+                                handleRenameSong(currentFavList.info.id, song.id, newName.trim(), tableInfo);
+                              }
+                            }}
+                          />
+                        </Tooltip>
+                        <Tooltip title='删除歌曲'>
+                          <DeleteOutlineOutlinedIcon
+                            sx={CRUDIcon}
+                            onClick={() => handleDelteFromSearchList(currentFavList.info.id, song.id, tableInfo)}
+                          />
+                        </Tooltip>
+                      </Box>
                     </StyledTableCell>
                   </StyledTableRow>
                 ))}
@@ -332,7 +344,7 @@ export const Fav = function ({
                 <TableRow>
                   <ThemeProvider theme={theme}>
                     <TablePagination
-                      rowsPerPageOptions={[25, 75, 100]}
+                      rowsPerPageOptions={[25, 50, 100]}
                       colSpan={4}
                       count={rows.length}
                       rowsPerPage={rowsPerPage}
@@ -350,7 +362,7 @@ export const Fav = function ({
               </TableFooter>
             </Table>
           </TableContainer>
-        </>
+        </Box>
       ) : null}
     </>
   );

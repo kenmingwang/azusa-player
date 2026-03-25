@@ -52,11 +52,10 @@ export const LyricSearchBar = function ({ SearchKey, SongId, setLyric, localOpti
       value={value}
       id='LyricSearchBar'
       options={options}
-      sx={{ width: 500 }}
+      sx={{ width: '100%' }}
       size='small'
-      renderInput={(params) => <TextField {...params} label='歌词候选' />}
+      renderInput={(params) => <TextField {...params} label={'\u6b4c\u8bcd\u5019\u9009'} />}
       isOptionEqualToValue={(option, selected) => option.songMid === selected.songMid}
     />
   );
 };
-

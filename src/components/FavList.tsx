@@ -55,34 +55,38 @@ interface FavListProps {
   onAddOneFromFav: (songs: any[]) => void;
 }
 
-const outerLayerBtn = { padding: 'unset' };
+const outerLayerBtn = {
+  px: 1,
+  py: 0.5,
+  borderRadius: 1,
+  minHeight: 44,
+};
 
 const CRUDBtn = {
-  ':hover': { cursor: 'default' },
-  marginTop: '-30px',
-  paddingBottom: '8px',
-  marginBottom: '-30px',
-  paddingTop: '8px',
-  paddingLeft: '8px',
-  paddingRight: '8px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: 0.35,
+  flexShrink: 0,
+  ml: 0.5,
+  color: '#ab5fff',
 };
 
 const CRUDIcon = {
   ':hover': { cursor: 'pointer' },
-  width: '1.2em',
-  height: '1.2em',
-  paddingBottom: '2px',
-  color: '#ab5fff',
+  width: '1.15em',
+  height: '1.15em',
+  color: 'inherit',
 };
 
 const AddFavIcon = {
   ':hover': { cursor: 'pointer' },
-  width: '0.95em',
-  height: '0.95em',
+  width: '1.05em',
+  height: '1.05em',
   color: '#ab5fff',
 };
 
-const DiskIcon = { minWidth: '36px' };
+const DiskIcon = { minWidth: '32px', color: '#7f7f7f' };
 
 const cloneWithTableInfo = (list: FavLike, currentTableInfo: Record<string, unknown> = {}): FavLike => ({
   ...list,
@@ -277,28 +281,47 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
     <>
       <Search handleSeach={handleSeach} />
 
-      <Box className={ScrollBar().root} style={{ overflow: 'auto', maxHeight: '96%' }} sx={{ gridArea: 'sidebar' }}>
-        <Grid container spacing={2}>
-          <Grid item xs={9}>
-            <Typography variant='subtitle1' style={{ color: '#9600af94', paddingLeft: '8px' }}>
+      <Box
+        className={ScrollBar().root}
+        sx={{
+          gridArea: 'sidebar',
+          minHeight: 0,
+          overflow: 'auto',
+          px: { xs: 0.5, md: 0.75 },
+          pt: { xs: 0.5, md: 0.75 },
+          borderLeft: { xs: 'none', md: '1px solid rgba(171, 95, 255, 0.22)' },
+          borderTop: { xs: '1px solid rgba(171, 95, 255, 0.22)', md: 'none' },
+        }}
+      >
+        <Grid container alignItems='center' sx={{ px: 0.5, pb: 0.5 }}>
+          <Grid item xs={6}>
+            <Typography variant='subtitle1' sx={{ color: '#9600af94' }}>
               我的歌单
             </Typography>
           </Grid>
-          <Grid item xs={3} style={{ textAlign: 'right', paddingRight: '8px' }}>
-            <Tooltip title='新建歌单'>
-              <AddIcon sx={AddFavIcon} onClick={() => { setRenameTarget(null); setOpenNewDialog(true); }} />
-            </Tooltip>
-            <Tooltip title='导出歌单'>
-              <DownloadIcon sx={AddFavIcon} onClick={() => StorageManager.exportStorage()} />
-            </Tooltip>
-            <Tooltip title='导入歌单'>
-              <FileUploadIcon sx={AddFavIcon} onClick={() => StorageManager.importStorage()} />
-            </Tooltip>
-            <Badge color='secondary' variant='dot' style={{ verticalAlign: 'baseline' }}>
-              <Tooltip title='搜索帮助'>
-                <HelpOutlineIcon sx={AddFavIcon} onClick={() => setOpenHelpDialog(true)} />
+          <Grid item xs={6}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 0.5 }}>
+              <Tooltip title='新建歌单'>
+                <AddIcon
+                  sx={AddFavIcon}
+                  onClick={() => {
+                    setRenameTarget(null);
+                    setOpenNewDialog(true);
+                  }}
+                />
               </Tooltip>
-            </Badge>
+              <Tooltip title='导出歌单'>
+                <DownloadIcon sx={AddFavIcon} onClick={() => StorageManager.exportStorage()} />
+              </Tooltip>
+              <Tooltip title='导入歌单'>
+                <FileUploadIcon sx={AddFavIcon} onClick={() => StorageManager.importStorage()} />
+              </Tooltip>
+              <Badge color='secondary' variant='dot' sx={{ verticalAlign: 'baseline' }}>
+                <Tooltip title='搜索帮助'>
+                  <HelpOutlineIcon sx={AddFavIcon} onClick={() => setOpenHelpDialog(true)} />
+                </Tooltip>
+              </Badge>
+            </Box>
           </Grid>
 
           <NewFavDialog id='NewFav' openState={openNewDialog} defaultValue={renameTarget?.info?.title ?? ''} onClose={onNewFav} />
@@ -306,16 +329,24 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
         </Grid>
 
         <Divider light />
-        <List sx={{ width: '100%' }} component='nav'>
+        <List sx={{ width: '100%', py: 0.5 }} component='nav'>
           <React.Fragment key='search-list'>
-            <ListItemButton disableRipple sx={outerLayerBtn}>
-              <ListItemButton style={{ maxWidth: 'calc(100% - 116px)' }} onClick={() => onNewSelectedList(searchList)} id={searchList.info.id}>
-                <ListItemIcon sx={DiskIcon}>
-                  <ManageSearchIcon />
-                </ListItemIcon>
-                <ListItemText sx={{ color: '#9c55fac9' }} primaryTypographyProps={{ fontSize: '1.1em' }} primary={searchList.info.title} />
-              </ListItemButton>
-              <Box component='div' sx={CRUDBtn}>
+            <ListItemButton
+              disableRipple
+              sx={outerLayerBtn}
+              selected={selectedList?.info.id === searchList.info.id}
+              onClick={() => onNewSelectedList(searchList)}
+              id={searchList.info.id}
+            >
+              <ListItemIcon sx={DiskIcon}>
+                <ManageSearchIcon />
+              </ListItemIcon>
+              <ListItemText
+                sx={{ color: '#9c55fac9', minWidth: 0, overflow: 'hidden' }}
+                primaryTypographyProps={{ fontSize: '1.02rem', noWrap: true }}
+                primary={searchList.info.title}
+              />
+              <Box component='div' sx={CRUDBtn} onClick={(e) => e.stopPropagation()}>
                 <Tooltip title='播放歌单'>
                   <PlaylistPlayIcon sx={CRUDIcon} onClick={() => onPlayAllFromFav(searchList.songList)} />
                 </Tooltip>
@@ -342,14 +373,22 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
           {favLists &&
             favLists.map((v, i) => (
               <React.Fragment key={i}>
-                <ListItemButton disableRipple sx={outerLayerBtn}>
-                  <ListItemButton style={{ maxWidth: 'calc(100% - 116px)' }} onClick={() => onNewSelectedList(v)} id={v.info.id}>
-                    <ListItemIcon sx={DiskIcon}>
-                      <AlbumOutlinedIcon />
-                    </ListItemIcon>
-                    <ListItemText sx={{ color: '#9600af94' }} primaryTypographyProps={{ fontSize: '1.1em' }} primary={v.info.title} />
-                  </ListItemButton>
-                  <Box component='div' sx={CRUDBtn}>
+                <ListItemButton
+                  disableRipple
+                  sx={outerLayerBtn}
+                  selected={selectedList?.info.id === v.info.id}
+                  onClick={() => onNewSelectedList(v)}
+                  id={v.info.id}
+                >
+                  <ListItemIcon sx={DiskIcon}>
+                    <AlbumOutlinedIcon />
+                  </ListItemIcon>
+                  <ListItemText
+                    sx={{ color: '#9600af94', minWidth: 0, overflow: 'hidden' }}
+                    primaryTypographyProps={{ fontSize: '1.02rem', noWrap: true }}
+                    primary={v.info.title}
+                  />
+                  <Box component='div' sx={CRUDBtn} onClick={(e) => e.stopPropagation()}>
                     <Tooltip title='播放歌单'>
                       <PlaylistPlayIcon sx={CRUDIcon} onClick={() => onPlayAllFromFav(v.songList)} />
                     </Tooltip>
@@ -378,7 +417,18 @@ export const FavList = memo(function ({ onSongListChange, onPlayOneFromFav, onPl
         </List>
       </Box>
 
-      <Box style={{ maxHeight: '100%', paddingTop: '20px', paddingLeft: '20px', overflow: 'auto' }} sx={{ gridArea: 'Lrc', padding: '0.2em' }}>
+      <Box
+        sx={{
+          gridArea: 'Lrc',
+          minHeight: 0,
+          minWidth: 0,
+          overflow: 'auto',
+          pt: { xs: 0.5, md: 1 },
+          pl: { xs: 0.5, sm: 1, md: 1.5 },
+          pr: { xs: 0.5, sm: 1, md: 1 },
+          pb: 0.5,
+        }}
+      >
         {selectedList ? (
           <Fav
             FavList={selectedList}

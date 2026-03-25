@@ -1,10 +1,7 @@
 import { getSongList } from '../background/DataProcess'
 
 chrome.action.onClicked.addListener(function (tab) {
-    //console.log('onClicked')
-    chrome.tabs.create({
-        'url': chrome.runtime.getURL("popup.html")
-    });
+    chrome.runtime.openOptionsPage()
 });
 
 const MY_FAV_LIST_KEY = 'MyFavList';
