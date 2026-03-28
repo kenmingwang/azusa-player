@@ -50,10 +50,12 @@ export default class StorageManager {
   private static instance: StorageManager;
   public setFavLists: (lists: PlayList[]) => void;
   public latestFavLists: PlayList[];
+  private hasWarnedSyncQuotaExceeded: boolean;
 
   private constructor() {
     this.setFavLists = () => {};
     this.latestFavLists = [];
+    this.hasWarnedSyncQuotaExceeded = false;
   }
 
   public static getInstance(): StorageManager {
@@ -89,10 +91,25 @@ export default class StorageManager {
       })),
     };
 
+    const quotaPerItem = Number((browserApi.storage.sync as any)?.QUOTA_BYTES_PER_ITEM ?? 8192);
+    const estimatedBytes = new TextEncoder().encode(JSON.stringify({ [SYNC_FAV_LIST_KEY]: payload })).length;
+
+    if (estimatedBytes > quotaPerItem) {
+      if (!this.hasWarnedSyncQuotaExceeded) {
+        console.warn(
+          `sync storage skipped: playlist payload ${estimatedBytes}B exceeds per-item quota ${quotaPerItem}B`,
+        );
+        this.hasWarnedSyncQuotaExceeded = true;
+      }
+      return;
+    }
+
     browserApi.storage.sync.set({ [SYNC_FAV_LIST_KEY]: payload }, () => {
       if (browserApi.runtime.lastError) {
         console.warn('sync storage warning:', browserApi.runtime.lastError.message);
+        return;
       }
+      this.hasWarnedSyncQuotaExceeded = false;
     });
   }
 

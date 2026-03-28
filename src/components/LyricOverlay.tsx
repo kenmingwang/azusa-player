@@ -1,4 +1,4 @@
-import React, { forwardRef, memo } from 'react';
+import React, { forwardRef, memo, useEffect, useRef } from 'react';
 import { Lyric } from './Lyric';
 import Dialog from '@mui/material/Dialog';
 import IconButton from '@mui/material/IconButton';
@@ -28,11 +28,22 @@ export const LyricOverlay = memo(function ({
   audioCover,
   artist = '',
 }: LyricOverlayProps) {
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (!showLyric) return;
+    const timer = window.setTimeout(() => {
+      closeButtonRef.current?.focus();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [showLyric]);
+
   return (
     <Dialog
       open={showLyric}
       onClose={onRequestClose}
       hideBackdrop
+      disableRestoreFocus
       TransitionComponent={Transition}
       sx={{
         zIndex: 900,
@@ -61,6 +72,7 @@ export const LyricOverlay = memo(function ({
       <div id='blur-glass' style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '4px', paddingBottom: '4px' }}>
           <IconButton
+            ref={closeButtonRef}
             color='inherit'
             onClick={onRequestClose}
             aria-label='close'
