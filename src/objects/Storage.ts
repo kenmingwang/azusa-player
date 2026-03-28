@@ -1,7 +1,9 @@
 ﻿import { getSongList } from '../background/DataProcess';
 import { v4 as uuidv4 } from 'uuid';
+import type { SearchSource } from '../background/DataProcess';
 import { fetchPlayUrlPromise } from '../utils/Data';
 import Song from './Song';
+import { browserApi, isExtensionRuntime } from '../platform/browserApi';
 
 const INITIAL_PLAYLIST = 'BV1wr4y1v7TA';
 const MY_FAV_LIST_KEY = 'MyFavList';
@@ -16,6 +18,7 @@ export interface PlayList {
     title: string;
     id: string;
     currentTableInfo?: Record<string, unknown>;
+    source?: SearchSource;
   };
 }
 
@@ -86,16 +89,16 @@ export default class StorageManager {
       })),
     };
 
-    chrome.storage.sync.set({ [SYNC_FAV_LIST_KEY]: payload }, () => {
-      if (chrome.runtime.lastError) {
-        console.warn('sync storage warning:', chrome.runtime.lastError.message);
+    browserApi.storage.sync.set({ [SYNC_FAV_LIST_KEY]: payload }, () => {
+      if (browserApi.runtime.lastError) {
+        console.warn('sync storage warning:', browserApi.runtime.lastError.message);
       }
     });
   }
 
   private async restoreFromSyncIfNeeded(): Promise<boolean> {
     return new Promise((resolve) => {
-      chrome.storage.sync.get([SYNC_FAV_LIST_KEY], (result) => {
+      browserApi.storage.sync.get([SYNC_FAV_LIST_KEY], (result) => {
         const syncData = result?.[SYNC_FAV_LIST_KEY] as SyncFavPayload | undefined;
         if (!syncData?.ids?.length || !syncData?.lists?.length) {
           resolve(false);
@@ -110,7 +113,7 @@ export default class StorageManager {
           };
         });
 
-        chrome.storage.local.set(
+        browserApi.storage.local.set(
           {
             [MY_FAV_LIST_KEY]: syncData.ids,
             [LYRIC_MAPPING]: [],
@@ -123,10 +126,12 @@ export default class StorageManager {
               .filter(Boolean);
             this.setFavLists([...this.latestFavLists]);
 
-            chrome.runtime.sendMessage({
-              type: 'fav-lists-change',
-              data: this.latestFavLists.map((v) => v.info),
-            });
+            if (isExtensionRuntime()) {
+              browserApi.runtime.sendMessage({
+                type: 'fav-lists-change',
+                data: this.latestFavLists.map((v) => v.info),
+              });
+            }
             resolve(true);
           },
         );
@@ -145,13 +150,13 @@ export default class StorageManager {
     const restored = await this.restoreFromSyncIfNeeded();
     if (restored) return;
 
-    chrome.storage.local.set({ [MY_FAV_LIST_KEY]: [] }, async () => {
+    browserApi.storage.local.set({ [MY_FAV_LIST_KEY]: [] }, async () => {
       await this.initWithDefault();
     });
   }
 
   async initWithStorage(favListIDs: string[]) {
-    chrome.storage.local.get(favListIDs, (result) => {
+    browserApi.storage.local.get(favListIDs, (result) => {
       const favLists: PlayList[] = [];
       const favListsSorted: PlayList[] = [];
 
@@ -178,39 +183,43 @@ export default class StorageManager {
       info: { title: 'Azusa 默认歌单', id: `FavList-${uuidv4()}` },
     };
 
-    chrome.storage.local.set(
+    browserApi.storage.local.set(
       {
         [value.info.id]: value,
         [LAST_PLAY_LIST]: [],
         [LYRIC_MAPPING]: [],
       },
       () => {
-        chrome.storage.local.set({ [MY_FAV_LIST_KEY]: [value.info.id] }, () => {
+        browserApi.storage.local.set({ [MY_FAV_LIST_KEY]: [value.info.id] }, () => {
           this.setFavLists([value]);
           this.latestFavLists = [value];
           this.syncFavListsToCloud();
 
-          chrome.runtime.sendMessage({
-            type: 'fav-lists-change',
-            data: this.latestFavLists.map((v) => v.info),
-          });
+          if (isExtensionRuntime()) {
+            browserApi.runtime.sendMessage({
+              type: 'fav-lists-change',
+              data: this.latestFavLists.map((v) => v.info),
+            });
+          }
         });
       },
     );
   }
 
   deleteFavList(id: string, newFavLists: PlayList[]) {
-    chrome.storage.local.remove(id, () => {
+    browserApi.storage.local.remove(id, () => {
       const newFavListIds = newFavLists.map((v) => v.info.id);
-      chrome.storage.local.set({ [MY_FAV_LIST_KEY]: newFavListIds }, () => {
+      browserApi.storage.local.set({ [MY_FAV_LIST_KEY]: newFavListIds }, () => {
         this.setFavLists(newFavLists);
         this.latestFavLists = newFavLists;
         this.syncFavListsToCloud();
 
-        chrome.runtime.sendMessage({
-          type: 'fav-lists-change',
-          data: this.latestFavLists.map((v) => v.info),
-        });
+        if (isExtensionRuntime()) {
+          browserApi.runtime.sendMessage({
+            type: 'fav-lists-change',
+            data: this.latestFavLists.map((v) => v.info),
+          });
+        }
       });
     });
   }
@@ -221,24 +230,26 @@ export default class StorageManager {
       info: { title: favName, id: `FavList-${uuidv4()}` },
     };
 
-    chrome.storage.local.set({ [value.info.id]: value }, () => {
+    browserApi.storage.local.set({ [value.info.id]: value }, () => {
       this.latestFavLists.push(value);
       const newListIDs = this.latestFavLists.map((v) => v.info.id);
-      chrome.storage.local.set({ [MY_FAV_LIST_KEY]: newListIDs }, () => {
+      browserApi.storage.local.set({ [MY_FAV_LIST_KEY]: newListIDs }, () => {
         this.setFavLists([...this.latestFavLists]);
         this.syncFavListsToCloud();
 
-        chrome.runtime.sendMessage({
-          type: 'fav-lists-change',
-          data: this.latestFavLists.map((v) => v.info),
-        });
+        if (isExtensionRuntime()) {
+          browserApi.runtime.sendMessage({
+            type: 'fav-lists-change',
+            data: this.latestFavLists.map((v) => v.info),
+          });
+        }
       });
     });
     return value;
   }
 
   updateFavList(updatedToList: PlayList) {
-    chrome.storage.local.set({ [updatedToList.info.id]: updatedToList }, () => {
+    browserApi.storage.local.set({ [updatedToList.info.id]: updatedToList }, () => {
       const index = this.latestFavLists.findIndex((f) => f.info.id == updatedToList.info.id);
       if (index !== -1) {
         this.latestFavLists[index] = {
@@ -252,7 +263,7 @@ export default class StorageManager {
   }
 
   setLastPlayList(audioLists: Song[]) {
-    chrome.storage.local.set({ [LAST_PLAY_LIST]: audioLists });
+    browserApi.storage.local.set({ [LAST_PLAY_LIST]: audioLists });
   }
 
   async setLyricOffset(songId: string, lrcOffset: number) {
@@ -260,7 +271,7 @@ export default class StorageManager {
     const detailIndex = lyricMappings.findIndex((l) => l.id == songId);
     if (detailIndex != -1) {
       lyricMappings[detailIndex].lrcOffset = lrcOffset;
-      chrome.storage.local.set({ [LYRIC_MAPPING]: lyricMappings });
+      browserApi.storage.local.set({ [LYRIC_MAPPING]: lyricMappings });
     }
   }
 
@@ -272,7 +283,7 @@ export default class StorageManager {
     } else {
       lyricMappings.push({ key: songId, id: songId, lrc, lrcOffset: 0 });
     }
-    chrome.storage.local.set({ [LYRIC_MAPPING]: lyricMappings });
+    browserApi.storage.local.set({ [LYRIC_MAPPING]: lyricMappings });
   }
 
   async getLyricDetail(songId: string): Promise<LyricDetail | undefined> {
@@ -283,7 +294,7 @@ export default class StorageManager {
 
   async readLocalStorage(key: string): Promise<any> {
     return new Promise((resolve) => {
-      chrome.storage.local.get([key], (result) => {
+      browserApi.storage.local.get([key], (result) => {
         resolve(result[key]);
       });
     });
@@ -294,11 +305,11 @@ export default class StorageManager {
   }
 
   async setPlayerSetting(newSettings: any) {
-    chrome.storage.local.set({ [PLAYER_SETTINGS]: newSettings });
+    browserApi.storage.local.set({ [PLAYER_SETTINGS]: newSettings });
   }
 
   async exportStorage() {
-    chrome.storage.local.get(null, (items) => {
+    browserApi.storage.local.get(null, (items) => {
       const result = JSON.stringify(items);
       const bytes = new TextEncoder().encode(result);
       const blob = new Blob([bytes], {
@@ -328,8 +339,8 @@ export default class StorageManager {
           fileReader.onload = () => {
             if (typeof fileReader.result === 'string') {
               const parsedJSON = JSON.parse(fileReader.result);
-              chrome.storage.local.clear(() => {
-                chrome.storage.local.set(parsedJSON, () => {
+              browserApi.storage.local.clear(() => {
+                browserApi.storage.local.set(parsedJSON, () => {
                   this.initFavLists();
                 });
               });

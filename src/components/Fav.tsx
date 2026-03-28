@@ -30,6 +30,7 @@ import { createTheme, ThemeProvider, useTheme } from '@mui/material/styles';
 import { zhCN } from '@mui/material/locale';
 import Tooltip from '@mui/material/Tooltip';
 import Checkbox from '@mui/material/Checkbox';
+import type { SearchSource } from '../background/DataProcess';
 
 interface SongLike {
   id: string;
@@ -42,15 +43,17 @@ interface SongLike {
 }
 
 interface FavLike {
-  info: { id: string; title: string; currentTableInfo?: Record<string, any> };
+  info: { id: string; title: string; currentTableInfo?: Record<string, any>; source?: SearchSource };
   songList: SongLike[];
 }
 
 interface FavProps {
   FavList: FavLike;
+  currentAudioId?: string;
   onSongListChange?: (songs: any[]) => void;
   onSongIndexChange: (songs: any[]) => void;
   onAddOneFromFav: (songs: any[]) => void;
+  onRefreshFromSource?: (list: any) => void;
   handleDelteFromSearchList: (id: string, songId: string, tableInfo: Record<string, any>) => void;
   handleAddToFavClick: (id: string, songs: any[]) => void;
   handleDeleteSongs: (id: string, songIds: string[], tableInfo: Record<string, any>) => void;
@@ -136,8 +139,10 @@ TablePaginationActions.propTypes = {
 
 export const Fav = function ({
   FavList,
+  currentAudioId,
   onSongIndexChange,
   onAddOneFromFav,
+  onRefreshFromSource,
   handleDelteFromSearchList,
   handleAddToFavClick,
   handleDeleteSongs,
@@ -149,6 +154,7 @@ export const Fav = function ({
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [filterString, setFilterString] = useState('');
   const [selectedSongIds, setSelectedSongIds] = useState<string[]>([]);
+  const [highlightSongId, setHighlightSongId] = useState('');
 
   useEffect(() => {
     setCurrentFavList(FavList);
@@ -157,6 +163,7 @@ export const Fav = function ({
     const currentInfo = FavList.info.currentTableInfo || {};
     setPage(currentInfo.page ?? 0);
     setRowsPerPage(currentInfo.rowsPerPage ?? 25);
+    setHighlightSongId(String(currentInfo.highlightSongId || ''));
 
     requestSearch(currentInfo.filterString ?? '');
     setSelectedSongIds([]);
@@ -257,6 +264,15 @@ export const Fav = function ({
                       </Button>
                     </span>
                   </Tooltip>
+                  {currentFavList.info.source ? (
+                    <Tooltip title='按原始来源刷新歌单'>
+                      <span>
+                        <Button size='small' onClick={() => onRefreshFromSource?.(currentFavList)}>
+                          刷新来源
+                        </Button>
+                      </span>
+                    </Tooltip>
+                  ) : null}
                 </Box>
               </Grid>
             </Grid>
@@ -290,7 +306,15 @@ export const Fav = function ({
               </TableHead>
               <TableBody>
                 {visibleRows.map((song, index) => (
-                  <StyledTableRow key={`${song.id}-${index}`} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <StyledTableRow
+                    key={`${song.id}-${index}`}
+                    sx={{
+                      '&:last-child td, &:last-child th': { border: 0 },
+                      ...(String(song.id) === String(highlightSongId || currentAudioId || '')
+                        ? { backgroundColor: 'rgba(171, 95, 255, 0.16)' }
+                        : {}),
+                    }}
+                  >
                     <StyledTableCell align='center'>
                       <Checkbox size='small' checked={selectedSongIds.includes(song.id)} onChange={() => toggleSong(song.id)} />
                     </StyledTableCell>

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useContext } from 'react';
+﻿import React, { useState, useEffect, useContext, useRef } from 'react';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import { searchLyricOptions, searchLyric } from '../utils/Data';
@@ -21,14 +21,22 @@ export const LyricSearchBar = function ({ SearchKey, SongId, setLyric, localOpti
   const [options, setOptions] = useState<LyricOption[]>([]);
   const [value, setValue] = useState<LyricOption | undefined>(undefined);
   const StorageManager = useContext(StorageManagerCtx);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
-    searchLyricOptions(SearchKey, setOptions);
-  }, [SearchKey]);
+    const requestId = ++requestIdRef.current;
+    setOptions([]);
+    setValue(undefined);
+    searchLyricOptions(SearchKey, (nextOptions: LyricOption[]) => {
+      if (requestIdRef.current !== requestId) return;
+      setOptions(nextOptions);
+    });
+  }, [SearchKey, SongId]);
 
   useEffect(() => {
     const songMidFromLocal = localOption?.songMid || localOption?.lrc?.songMid || localOption?.lrc;
     if (songMidFromLocal) {
+      setValue(undefined);
       searchLyric(songMidFromLocal, setLyric);
       return;
     }

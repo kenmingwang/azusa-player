@@ -65,4 +65,22 @@ describe('StorageManager CRUD regression', () => {
     expect(detail?.lrcOffset).toBe(233);
     expect(detail?.lrc).toEqual({ songMid: 'mid-1' });
   });
+
+  it('persists source metadata and player settings', async () => {
+    const manager = StorageManager.getInstance();
+    const created = manager.addFavList('Syncable List');
+    await tick();
+
+    manager.updateFavList({
+      info: { ...created.info, source: { type: 'fav', mid: '1042352181' } },
+      songList: [],
+    } as any);
+    await tick();
+
+    const storedList = await manager.readLocalStorage(created.info.id);
+    expect(storedList.info.source).toEqual({ type: 'fav', mid: '1042352181' });
+
+    await manager.setPlayerSetting({ lyricFontSize: 18 });
+    expect(await manager.getPlayerSetting()).toEqual({ lyricFontSize: 18 });
+  });
 });

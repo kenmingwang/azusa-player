@@ -37,8 +37,9 @@ function create_menu_items(fav_lists_info: any[]) {
   chrome.contextMenus.create({
     id: menu_id,
     title: '添加到歌单',
-    contexts: ['link'],
+    contexts: ['link', 'page'],
     targetUrlPatterns: ['https://*.bilibili.com/video/BV*'],
+    documentUrlPatterns: ['https://*.bilibili.com/video/BV*'],
   });
 
   // If there are favorite items in the list, create a child context menu item for each one.
@@ -48,7 +49,7 @@ function create_menu_items(fav_lists_info: any[]) {
         id: info.id,
         parentId: menu_id,
         title: info.title,
-        contexts: ['link'],
+        contexts: ['link', 'page'],
       });
     });
     // Add a click event listener for the child context menu items.
@@ -61,7 +62,7 @@ function create_menu_items(fav_lists_info: any[]) {
       parentId: menu_id,
       title: '请先创建一个歌单',
       enabled: false,
-      contexts: ['link'],
+      contexts: ['link', 'page'],
     });
   }
 }
@@ -79,9 +80,10 @@ function update_menu_item_listener(fav_lists_info: any[]) {
     const fav_id = info.menuItemId;
     const fav_name = fav_lists_info.find((v) => v.id === fav_id)?.title;
     if (fav_lists_info.find((v) => v.id === fav_id)) {
-      const regexp = /BV[a-zA-Z\d]{10}(?=\?|\/)/;
-      if (info.linkUrl && regexp.test(info.linkUrl)) {
-        const BV = regexp.exec(info.linkUrl)?.[0];
+      const regexp = /BV[a-zA-Z\d]{10}(?=$|[/?#])/;
+      const targetUrl = info.linkUrl || info.pageUrl;
+      if (targetUrl && regexp.test(targetUrl)) {
+        const BV = regexp.exec(targetUrl)?.[0];
         add_video_to_fav(BV ?? '', fav_id)
           .then((n) => {
             console.log(`${BV} added to ${fav_id}`);

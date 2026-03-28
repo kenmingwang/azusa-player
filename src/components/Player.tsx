@@ -6,6 +6,7 @@ import { FavList } from './FavList';
 import { BiliBiliIcon } from './bilibiliIcon';
 import { LyricOverlay } from './LyricOverlay';
 import StorageManagerCtx from '../popup/App';
+import { browserApi } from '../platform/browserApi';
 
 interface SongLike {
   id: string;
@@ -20,9 +21,17 @@ interface PlayerProps {
   songList: any[];
 }
 
+interface CurrentAudioView {
+  id: string;
+  name: string;
+  singer: string;
+  cover: string;
+}
+
 interface PlayerSettings {
   playMode: string;
   defaultVolume: number;
+  darkMode?: boolean;
 }
 
 const options = {
@@ -35,6 +44,8 @@ const options = {
   autoPlay: false,
   defaultPlayIndex: 0,
 };
+
+const LYRIC_UI_SYNC_INTERVAL_MS = 180;
 
 const shuffleWithoutImmediateRepeat = (songs: SongLike[] = [], keepSongId?: string) => {
   const list = [...songs];
@@ -66,11 +77,14 @@ const dedupeSongsById = (songs: SongLike[] = []) => {
 export const Player = function ({ songList }: PlayerProps) {
   const [params, setParams] = useState<any>(null);
   const [playingList, setPlayingList] = useState<SongLike[]>([]);
-  const [currentAudio, setCurrentAudio] = useState<any>(null);
+  const [currentAudio, setCurrentAudio] = useState<CurrentAudioView | null>(null);
+  const [lyricCurrentTime, setLyricCurrentTime] = useState(0);
   const [currentAudioInst, setCurrentAudioInst] = useState<any>(null);
   const [showLyric, setShowLyric] = useState(false);
   const [playerSettings, setPlayerSettings] = useState<PlayerSettings | null>(null);
   const lastProgressSaveAtRef = useRef(0);
+  const lastLyricUiSyncAtRef = useRef(0);
+  const currentTrackRef = useRef<CurrentAudioView | null>(null);
   const StorageManager = useContext(StorageManagerCtx);
 
   const buildExternalLink = (audioInfo?: Partial<SongLike> | null) => {
@@ -172,15 +186,43 @@ export const Player = function ({ songList }: PlayerProps) {
     StorageManager.setPlayerSetting(nextSettings);
   };
 
+  const syncCurrentTrack = useCallback((audioInfo?: Partial<SongLike> & { id?: string | number; singer?: string }) => {
+    if (!audioInfo?.id) return false;
+    const nextTrack: CurrentAudioView = {
+      id: String(audioInfo.id),
+      name: String(audioInfo.name || ''),
+      singer: String(audioInfo.singer || ''),
+      cover: String(audioInfo.cover || ''),
+    };
+    const prevTrack = currentTrackRef.current;
+    if (
+      prevTrack &&
+      prevTrack.id === nextTrack.id &&
+      prevTrack.name === nextTrack.name &&
+      prevTrack.singer === nextTrack.singer &&
+      prevTrack.cover === nextTrack.cover
+    ) {
+      return false;
+    }
+    currentTrackRef.current = nextTrack;
+    setCurrentAudio(nextTrack);
+    return true;
+  }, []);
+
   const onAudioPlay = useCallback(
     (audioInfo?: SongLike) => {
       if (!params || !audioInfo?.id) return;
+      const trackChanged = syncCurrentTrack(audioInfo);
+      if (trackChanged) {
+        setLyricCurrentTime(0);
+      }
+      lastLyricUiSyncAtRef.current = 0;
       setParams({ ...params, extendsContent: buildExternalLink(audioInfo) });
-      chrome.storage.local.set({
+      browserApi.storage.local.set({
         CurrentPlaying: { cid: String(audioInfo.id), playUrl: audioInfo.musicSrc },
       });
 
-      chrome.storage.local.get(['SongProgressMap'], (result) => {
+      browserApi.storage.local.get(['SongProgressMap'], (result) => {
         const map = result?.SongProgressMap || {};
         const savedTime = Number(map?.[audioInfo.id] || 0);
         if (savedTime > 1) {
@@ -193,7 +235,7 @@ export const Player = function ({ songList }: PlayerProps) {
         }
       });
     },
-    [params],
+    [params, syncCurrentTrack],
   );
 
   const onAudioListsChange = useCallback(
@@ -206,16 +248,22 @@ export const Player = function ({ songList }: PlayerProps) {
   );
 
   const onAudioProgress = (audioInfo: any) => {
-    setCurrentAudio(audioInfo);
     const now = Date.now();
+    const trackChanged = syncCurrentTrack(audioInfo);
+    const nextTime = Number(audioInfo?.currentTime || 0);
+    if (trackChanged || now - lastLyricUiSyncAtRef.current >= LYRIC_UI_SYNC_INTERVAL_MS) {
+      lastLyricUiSyncAtRef.current = now;
+      setLyricCurrentTime((prev) => (Math.abs(prev - nextTime) < 0.05 ? prev : nextTime));
+    }
+
     if (now - lastProgressSaveAtRef.current < 1200) return;
     lastProgressSaveAtRef.current = now;
 
     if (!audioInfo?.id || !Number.isFinite(audioInfo?.currentTime)) return;
-    chrome.storage.local.get(['SongProgressMap'], (result) => {
+    browserApi.storage.local.get(['SongProgressMap'], (result) => {
       const map = result?.SongProgressMap || {};
       map[audioInfo.id] = audioInfo.currentTime;
-      chrome.storage.local.set({ SongProgressMap: map });
+      browserApi.storage.local.set({ SongProgressMap: map });
     });
   };
 
@@ -296,12 +344,12 @@ export const Player = function ({ songList }: PlayerProps) {
 
   useEffect(() => {
     if (!songList || songList[0] == undefined) return;
-    chrome.storage.local.set({ CurrentPlaying: {} });
+    browserApi.storage.local.set({ CurrentPlaying: {} });
 
     async function initPlayer() {
       let setting = (await StorageManager.getPlayerSetting()) as PlayerSettings | undefined;
       if (setting == undefined) {
-        setting = { playMode: 'order', defaultVolume: 0.5 };
+        setting = { playMode: 'order', defaultVolume: 0.5, darkMode: false };
         StorageManager.setPlayerSetting(setting);
       }
 
@@ -322,11 +370,43 @@ export const Player = function ({ songList }: PlayerProps) {
     initPlayer();
   }, [songList]);
 
+  useEffect(() => {
+    if (!playerSettings) return;
+    document.body.dataset.theme = playerSettings.darkMode ? 'dark' : 'light';
+  }, [playerSettings]);
+
+  useEffect(() => {
+    if (showLyric && !currentAudio) {
+      setShowLyric(false);
+    }
+  }, [showLyric, currentAudio]);
+
+  const onDarkModeChange = useCallback(
+    (darkMode: boolean) => {
+      if (!playerSettings) return;
+      const nextSettings = { ...playerSettings, darkMode };
+      setPlayerSettings(nextSettings);
+      StorageManager.setPlayerSetting(nextSettings);
+    },
+    [playerSettings, StorageManager],
+  );
+
+  const onCoverToggle = useCallback(() => {
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLElement) {
+      activeElement.blur();
+    }
+    setShowLyric((v) => !v);
+  }, []);
+
   return (
     <>
       {params ? (
         <FavList
           currentAudioList={params.audioLists}
+          currentAudioId={currentAudio?.id}
+          darkMode={!!playerSettings?.darkMode}
+          onDarkModeChange={onDarkModeChange}
           onPlayOneFromFav={onPlayOneFromFav}
           onPlayAllFromFav={onPlayAllFromFav}
           onAddFavToList={onAddFavToList}
@@ -337,7 +417,8 @@ export const Player = function ({ songList }: PlayerProps) {
       {currentAudio ? (
         <LyricOverlay
           showLyric={showLyric}
-          currentTime={currentAudio.currentTime}
+          onRequestClose={() => setShowLyric(false)}
+          currentTime={lyricCurrentTime}
           audioName={currentAudio.name}
           audioId={currentAudio.id}
           artist={currentAudio.singer}
@@ -357,7 +438,7 @@ export const Player = function ({ songList }: PlayerProps) {
             onAudioProgress={onAudioProgress}
             getAudioInstance={getAudioInstance}
             onAudioPlay={onAudioPlay}
-            onCoverClick={() => setShowLyric((v) => !v)}
+            onCoverClick={onCoverToggle}
             onAudioListsChange={onAudioListsChange}
           />
         </Box>

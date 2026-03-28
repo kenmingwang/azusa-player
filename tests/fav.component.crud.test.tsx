@@ -57,4 +57,29 @@ describe('Fav table user interactions', () => {
       );
     });
   });
+
+  it('shows refresh action for source-backed playlists', async () => {
+    const user = userEvent.setup();
+    const onRefreshFromSource = vi.fn();
+
+    render(
+      <Fav
+        FavList={{ ...buildFavList(), info: { ...buildFavList().info, source: { type: 'fav', mid: '1042352181' } } } as any}
+        onSongIndexChange={vi.fn()}
+        onAddOneFromFav={vi.fn()}
+        onRefreshFromSource={onRefreshFromSource}
+        handleDelteFromSearchList={vi.fn()}
+        handleAddToFavClick={vi.fn()}
+        handleDeleteSongs={vi.fn()}
+        handleRenameSong={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: '刷新来源' }));
+    expect(onRefreshFromSource).toHaveBeenCalledWith(
+      expect.objectContaining({
+        info: expect.objectContaining({ source: { type: 'fav', mid: '1042352181' } }),
+      }),
+    );
+  });
 });

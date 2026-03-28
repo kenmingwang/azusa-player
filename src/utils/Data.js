@@ -1,5 +1,6 @@
 ﻿import { Logger } from './Logger';
 import VideoInfo from '../objects/VideoInfo';
+import { browserApi } from '../platform/browserApi';
 
 const logger = new Logger('Data.js');
 
@@ -9,7 +10,7 @@ const URL_VIDEO_INFO = 'https://api.bilibili.com/x/web-interface/view?bvid={bvid
 const URL_BILISERIES_INFO =
   'https://api.bilibili.com/x/series/archives?mid={mid}&series_id={sid}&only_normal=true&sort=desc&pn={pn}&ps=30';
 const URL_BILICOLLE_INFO =
-  'https://api.bilibili.com/x/polymer/space/seasons_archives_list?mid={mid}&season_id={sid}&sort_reverse=false&page_num={pn}&page_size=30';
+  'https://api.bilibili.com/x/polymer/web-space/seasons_archives_list?mid={mid}&season_id={sid}&sort_reverse=false&page_num={pn}&page_size=30';
 const URL_FAV_LIST =
   'https://api.bilibili.com/x/v3/fav/resource/list?media_id={mid}&pn={pn}&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web&jsonp=jsonp';
 
@@ -63,6 +64,20 @@ const URL_QQ_SEARCH_POST = {
   },
 };
 
+const WEB_API_PROXY = import.meta.env.VITE_WEB_API_PROXY || '';
+
+const buildRequestUrl = (url) => {
+  if (!WEB_API_PROXY) return url;
+
+  try {
+    const proxyUrl = new URL(WEB_API_PROXY, window.location.origin);
+    proxyUrl.searchParams.set('url', url);
+    return proxyUrl.toString();
+  } catch {
+    return url;
+  }
+};
+
 const normalizeLineBreak = (text = '') => String(text).replace(/\r\n/g, '\n');
 
 const tryFixMojibake = (text = '') => {
@@ -108,7 +123,7 @@ export const fetchPlayUrlPromise = async (bvid, cid) => {
   }
 
   return new Promise((resolve, reject) => {
-    chrome.storage.local.get(['CurrentPlaying', 'PlayerSetting'], function (result) {
+    browserApi.storage.local.get(['CurrentPlaying', 'PlayerSetting'], function (result) {
       const currentPlaying = result?.CurrentPlaying;
       const playMode = result?.PlayerSetting?.playMode;
       if (currentPlaying && currentPlaying.cid == cid && playMode !== 'singleLoop' && currentPlaying.playUrl) {
@@ -116,7 +131,7 @@ export const fetchPlayUrlPromise = async (bvid, cid) => {
         return;
       }
 
-      fetch(URL_PLAY_URL.replace('{bvid}', bvid).replace('{cid}', cid))
+      fetch(buildRequestUrl(URL_PLAY_URL.replace('{bvid}', bvid).replace('{cid}', cid)))
         .then((res) => res.json())
         .then((json) => resolve(extractResponseJson(json, 'AudioUrl')))
         .catch((err) => {
@@ -128,13 +143,13 @@ export const fetchPlayUrlPromise = async (bvid, cid) => {
 };
 
 export const fetchCID = async (bvid) => {
-  const res = await fetch(URL_BVID_TO_CID.replace('{bvid}', bvid));
+  const res = await fetch(buildRequestUrl(URL_BVID_TO_CID.replace('{bvid}', bvid)));
   const json = await res.json();
   return extractResponseJson(json, 'CID');
 };
 
 export const fetchLRC = async (name, setLyric, setSongTitle) => {
-  const res = await fetch(URL_LRC_MAPPING);
+  const res = await fetch(buildRequestUrl(URL_LRC_MAPPING));
   const mappings = await res.text();
   const songs = mappings.split('\n');
   const songName = extractSongName(name);
@@ -147,7 +162,7 @@ export const fetchLRC = async (name, setLyric, setSongTitle) => {
   }
 
   try {
-    const lrcRes = await fetch(URL_LRC_BASE.replace('{songFile}', songFile));
+    const lrcRes = await fetch(buildRequestUrl(URL_LRC_BASE.replace('{songFile}', songFile)));
     if (!lrcRes.ok) {
       setLyric('[00:00.000] 无法找到歌词');
       return;
@@ -163,7 +178,7 @@ export const fetchLRC = async (name, setLyric, setSongTitle) => {
 
 export const fetchVideoInfo = async (bvid) => {
   logger.info('calling fetchVideoInfo');
-  const res = await fetch(URL_VIDEO_INFO.replace('{bvid}', bvid));
+  const res = await fetch(buildRequestUrl(URL_VIDEO_INFO.replace('{bvid}', bvid)));
   const json = await res.json();
 
   try {
@@ -185,7 +200,7 @@ export const fetchVideoInfo = async (bvid) => {
 export const fetchBiliSeriesInfo = async (mid, sid) => {
   logger.info('calling fetchBiliSeriesInfo');
   const page = 0;
-  const res = await fetch(URL_BILISERIES_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page));
+  const res = await fetch(buildRequestUrl(URL_BILISERIES_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page)));
   const json = await res.json();
   const data = json.data;
 
@@ -195,7 +210,7 @@ export const fetchBiliSeriesInfo = async (mid, sid) => {
 
 export const fetchBiliColleList = async (mid, sid, favList = []) => {
   logger.info('calling fetchBiliColleList');
-  const res = await fetch(URL_BILICOLLE_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', 1));
+  const res = await fetch(buildRequestUrl(URL_BILICOLLE_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', 1)));
   const json = await res.clone().json();
   const data = json.data;
 
@@ -206,7 +221,7 @@ export const fetchBiliColleList = async (mid, sid, favList = []) => {
   const pagesPromises = [res];
 
   for (let page = 2; page <= totalPagesRequired; page++) {
-    pagesPromises.push(fetch(URL_BILICOLLE_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page)));
+    pagesPromises.push(fetch(buildRequestUrl(URL_BILICOLLE_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page))));
   }
 
   const pages = await Promise.all(pagesPromises);
@@ -225,7 +240,7 @@ export const fetchBiliColleList = async (mid, sid, favList = []) => {
 
 export const fetchFavList = async (mid) => {
   logger.info('calling fetchFavList');
-  const res = await fetch(URL_FAV_LIST.replace('{mid}', mid).replace('{pn}', 1));
+  const res = await fetch(buildRequestUrl(URL_FAV_LIST.replace('{mid}', mid).replace('{pn}', 1)));
   const json = await res.json();
   const data = json.data;
 
@@ -236,7 +251,7 @@ export const fetchFavList = async (mid) => {
   const pagesPromises = [];
 
   for (let page = 2; page <= totalPagesRequired; page++) {
-    pagesPromises.push(fetch(URL_FAV_LIST.replace('{mid}', mid).replace('{pn}', page)));
+    pagesPromises.push(fetch(buildRequestUrl(URL_FAV_LIST.replace('{mid}', mid).replace('{pn}', page))));
   }
 
   const pages = await Promise.all(pagesPromises);
@@ -268,7 +283,7 @@ export const searchLyricOptions = async (searchKey, setOptions) => {
     return;
   }
 
-  const res = await fetch(URL_QQ_SEARCH.replace('{KeyWord}', searchKey));
+  const res = await fetch(buildRequestUrl(URL_QQ_SEARCH.replace('{KeyWord}', searchKey)));
   const json = await res.json();
   const data = json?.data?.song?.itemlist || [];
   const slimData = data.map((s, i) => ({
@@ -292,7 +307,7 @@ export const searchLyricOptionsFallBack = async (searchKey, setOptions) => {
   }
 
   const api = getQQSearchAPI(searchKey);
-  const res = await fetch(api.src, api.params);
+  const res = await fetch(buildRequestUrl(api.src), api.params);
   const json = await res.json();
   const data = json?.req?.data?.body?.song?.list || [];
 
@@ -314,7 +329,7 @@ const getQQSearchAPI = (searchKey) => {
 
 export const searchLyric = async (searchMID, setLyric) => {
   logger.info('calling searchLyric');
-  const res = await fetch(URL_QQ_LYRIC.replace('{SongMid}', searchMID));
+  const res = await fetch(buildRequestUrl(URL_QQ_LYRIC.replace('{SongMid}', searchMID)));
   const json = await res.json();
 
   if (!json.lyric) {
