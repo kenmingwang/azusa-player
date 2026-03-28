@@ -18,7 +18,7 @@ const PlayerBox = {
   display: 'grid',
   boxSizing: 'border-box',
   p: { xs: 1, sm: 1.5, md: 2 },
-  pb: 0,
+  pb: `${FOOTER_HEIGHT}px`,
   gap: { xs: 1, md: 1.25 },
   gridTemplateColumns: {
     xs: '1fr',

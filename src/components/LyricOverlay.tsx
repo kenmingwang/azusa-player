@@ -1,4 +1,4 @@
-﻿import React, { forwardRef, useState, useEffect, memo } from 'react';
+import React, { forwardRef, memo, useEffect, useRef } from 'react';
 import { Lyric } from './Lyric';
 import Dialog from '@mui/material/Dialog';
 import IconButton from '@mui/material/IconButton';
@@ -11,6 +11,7 @@ const Transition = forwardRef(function Transition(props: any, ref: React.Ref<unk
 
 interface LyricOverlayProps {
   showLyric: boolean;
+  onRequestClose?: () => void;
   currentTime: number;
   audioName: string;
   audioId?: string | number;
@@ -18,18 +19,31 @@ interface LyricOverlayProps {
   artist?: string;
 }
 
-export const LyricOverlay = memo(function ({ showLyric, currentTime, audioName, audioId, audioCover, artist = '' }: LyricOverlayProps) {
-  const [open, setOpen] = useState(showLyric);
+export const LyricOverlay = memo(function ({
+  showLyric,
+  onRequestClose,
+  currentTime,
+  audioName,
+  audioId,
+  audioCover,
+  artist = '',
+}: LyricOverlayProps) {
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    setOpen(showLyric);
+    if (!showLyric) return;
+    const timer = window.setTimeout(() => {
+      closeButtonRef.current?.focus();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [showLyric]);
 
   return (
     <Dialog
-      open={open}
-      onClose={() => setOpen(false)}
+      open={showLyric}
+      onClose={onRequestClose}
       hideBackdrop
+      disableRestoreFocus
       TransitionComponent={Transition}
       sx={{
         zIndex: 900,
@@ -51,13 +65,35 @@ export const LyricOverlay = memo(function ({ showLyric, currentTime, audioName, 
           height: 'calc(100dvh - 80px)',
           margin: 0,
           borderRadius: 0,
+          overflow: 'hidden',
         },
       }}
     >
       <div id='blur-glass' style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%' }}>
-        <IconButton color='inherit' onClick={() => setOpen(false)} aria-label='close' style={{ borderRadius: '0' }}>
-          <KeyboardArrowDownIcon />
-        </IconButton>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '4px', paddingBottom: '4px' }}>
+          <IconButton
+            ref={closeButtonRef}
+            color='inherit'
+            onClick={onRequestClose}
+            aria-label='close'
+            sx={{
+              width: '104px',
+              height: '42px',
+              borderRadius: '10px',
+              color: '#d8c2ff',
+              backgroundColor: 'transparent',
+              border: '1px solid transparent',
+              transition: 'background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease',
+              '&:hover': {
+                backgroundColor: 'rgba(120, 89, 192, 0.08)',
+                borderColor: 'rgba(182, 141, 255, 0.22)',
+                boxShadow: '0 0 0 1px rgba(182, 141, 255, 0.06) inset',
+              },
+            }}
+          >
+            <KeyboardArrowDownIcon />
+          </IconButton>
+        </div>
         <div style={{ flex: 1, minHeight: 0 }}>
           <Lyric currentTime={currentTime} audioName={audioName} audioId={audioId} audioCover={audioCover} artist={artist} />
         </div>

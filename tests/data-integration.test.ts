@@ -1,5 +1,5 @@
 ﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fetchFavList, fetchPlayUrlPromise, searchLyric } from '../src/utils/Data';
+import { fetchBiliColleList, fetchFavList, fetchPlayUrlPromise, searchLyric } from '../src/utils/Data';
 
 const mockJsonResponse = (payload: any) => ({
   json: vi.fn().mockResolvedValue(payload),
@@ -79,6 +79,51 @@ describe('Data integration behaviors', () => {
 
     expect(titles).toContain('first');
     expect(titles).toContain('last');
+  });
+
+  it('fetchBiliColleList uses the web-space season endpoint', async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes('/x/polymer/web-space/seasons_archives_list') && url.includes('page_num=1')) {
+        return {
+          json: vi.fn().mockResolvedValue({
+            data: {
+              meta: { total: 1 },
+              page: { page_size: 30 },
+              archives: [{ bvid: 'BV_SEASON_1' }],
+            },
+          }),
+          clone: vi.fn(function () {
+            return this;
+          }),
+          ok: true,
+        };
+      }
+
+      if (url.includes('/x/web-interface/view?bvid=BV_SEASON_1')) {
+        return mockJsonResponse({
+          data: {
+            title: 'season-item',
+            desc: '',
+            videos: 1,
+            pic: 'cover',
+            owner: { name: 'u-season', mid: 3 },
+            pages: [{ part: 'p-season', cid: 'c-season' }],
+          },
+        });
+      }
+
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    vi.stubGlobal('fetch', fetchMock as any);
+
+    const infos = await fetchBiliColleList('896830', '3149109');
+    const titles = infos.filter(Boolean).map((v: any) => v.title);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/x/polymer/web-space/seasons_archives_list?mid=896830&season_id=3149109'),
+    );
+    expect(titles).toEqual(['season-item']);
   });
 
   it('fetchPlayUrlPromise prefers selected dash audio and uses cache when possible', async () => {

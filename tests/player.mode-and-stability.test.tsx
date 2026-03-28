@@ -1,4 +1,4 @@
-﻿/** @vitest-environment jsdom */
+/** @vitest-environment jsdom */
 
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -9,6 +9,8 @@ import { Player } from '../src/components/Player';
 import { createChromeMock } from './helpers/chrome-mock';
 
 let latestJkProps: any = null;
+let latestFavListProps: any = null;
+let latestLyricOverlayProps: any = null;
 
 vi.mock('react-jinke-music-player', () => ({
   default: (props: any) => {
@@ -16,17 +18,32 @@ vi.mock('react-jinke-music-player', () => ({
     return (
       <div data-testid='jk-player'>
         <button onClick={() => props.onPlayModeChange?.('shufflePlay')}>to-shuffle</button>
+        <button onClick={() => props.onCoverClick?.()}>cover-toggle</button>
       </div>
     );
   },
 }));
 
 vi.mock('../src/components/FavList', () => ({
-  FavList: () => <div data-testid='fav-list' />,
+  FavList: (props: any) => {
+    latestFavListProps = props;
+    return (
+      <div data-testid='fav-list'>
+        <button onClick={() => props.onDarkModeChange?.(!props.darkMode)}>toggle-dark</button>
+      </div>
+    );
+  },
 }));
 
 vi.mock('../src/components/LyricOverlay', () => ({
-  LyricOverlay: () => <div data-testid='lyric-overlay' />,
+  LyricOverlay: (props: any) => {
+    latestLyricOverlayProps = props;
+    return props.showLyric ? (
+      <div data-testid='lyric-overlay'>
+        <button onClick={() => props.onRequestClose?.()}>close-lyric</button>
+      </div>
+    ) : null;
+  },
 }));
 
 const makeSongs = (n: number) =>
@@ -43,6 +60,9 @@ const makeSongs = (n: number) =>
 describe('Player mode and stability regression', () => {
   beforeEach(() => {
     latestJkProps = null;
+    latestFavListProps = null;
+    latestLyricOverlayProps = null;
+    document.body.dataset.theme = 'light';
     const { chromeMock } = createChromeMock();
     (globalThis as any).chrome = chromeMock;
   });
@@ -147,5 +167,96 @@ describe('Player mode and stability regression', () => {
     const addKeydown = addSpy.mock.calls.filter((c) => c[0] === 'keydown').length;
     const removeKeydown = removeSpy.mock.calls.filter((c) => c[0] === 'keydown').length;
     expect(removeKeydown).toBe(addKeydown);
+  });
+
+  it('passes current track and dark mode controls into playlist panel', async () => {
+    const user = userEvent.setup();
+    const fakeStorage = {
+      getPlayerSetting: vi.fn().mockResolvedValue({ playMode: 'order', defaultVolume: 0.5, darkMode: false }),
+      setPlayerSetting: vi.fn(),
+      setLastPlayList: vi.fn(),
+    } as any;
+
+    render(
+      <StorageManagerCtx.Provider value={fakeStorage}>
+        <Player songList={makeSongs(2) as any} />
+      </StorageManagerCtx.Provider>,
+    );
+
+    await screen.findByTestId('fav-list');
+    expect(latestFavListProps.darkMode).toBe(false);
+
+    latestJkProps.onAudioProgress({ id: 'id-1', currentTime: 12 });
+    await waitFor(() => expect(latestFavListProps.currentAudioId).toBe('id-1'));
+
+    await user.click(screen.getByRole('button', { name: 'toggle-dark' }));
+
+    await waitFor(() => {
+      expect(fakeStorage.setPlayerSetting).toHaveBeenCalledWith(
+        expect.objectContaining({ darkMode: true }),
+      );
+      expect(document.body.dataset.theme).toBe('dark');
+    });
+  });
+
+  it('reopens lyric overlay immediately after closing from overlay action', async () => {
+    const user = userEvent.setup();
+    const fakeStorage = {
+      getPlayerSetting: vi.fn().mockResolvedValue({ playMode: 'order', defaultVolume: 0.5, darkMode: false }),
+      setPlayerSetting: vi.fn(),
+      setLastPlayList: vi.fn(),
+    } as any;
+
+    render(
+      <StorageManagerCtx.Provider value={fakeStorage}>
+        <Player songList={makeSongs(2) as any} />
+      </StorageManagerCtx.Provider>,
+    );
+
+    await screen.findByTestId('jk-player');
+
+    latestJkProps.onAudioProgress({ id: 'id-0', currentTime: 12, name: 'Song-0', singer: 'Singer', cover: 'cover' });
+
+    await user.click(screen.getByRole('button', { name: 'cover-toggle' }));
+    await waitFor(() => expect(screen.getByTestId('lyric-overlay')).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: 'close-lyric' }));
+    await waitFor(() => expect(screen.queryByTestId('lyric-overlay')).not.toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: 'cover-toggle' }));
+    await waitFor(() => expect(screen.getByTestId('lyric-overlay')).toBeInTheDocument());
+    expect(latestLyricOverlayProps.showLyric).toBe(true);
+  });
+
+  it('throttles lyric time UI updates during rapid progress events', async () => {
+    let fakeNow = 1000;
+    const nowSpy = vi.spyOn(Date, 'now').mockImplementation(() => fakeNow);
+
+    const fakeStorage = {
+      getPlayerSetting: vi.fn().mockResolvedValue({ playMode: 'order', defaultVolume: 0.5, darkMode: false }),
+      setPlayerSetting: vi.fn(),
+      setLastPlayList: vi.fn(),
+    } as any;
+
+    render(
+      <StorageManagerCtx.Provider value={fakeStorage}>
+        <Player songList={makeSongs(2) as any} />
+      </StorageManagerCtx.Provider>,
+    );
+
+    await screen.findByTestId('jk-player');
+
+    latestJkProps.onAudioProgress({ id: 'id-0', currentTime: 1, name: 'Song-0', singer: 'Singer', cover: 'cover' });
+    await waitFor(() => expect(latestLyricOverlayProps.currentTime).toBe(1));
+
+    fakeNow += 80;
+    latestJkProps.onAudioProgress({ id: 'id-0', currentTime: 1.2, name: 'Song-0', singer: 'Singer', cover: 'cover' });
+    expect(latestLyricOverlayProps.currentTime).toBe(1);
+
+    fakeNow += 220;
+    latestJkProps.onAudioProgress({ id: 'id-0', currentTime: 1.4, name: 'Song-0', singer: 'Singer', cover: 'cover' });
+    await waitFor(() => expect(latestLyricOverlayProps.currentTime).toBe(1.4));
+
+    nowSpy.mockRestore();
   });
 });

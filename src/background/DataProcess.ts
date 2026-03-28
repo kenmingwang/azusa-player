@@ -1,5 +1,6 @@
 ﻿import { fetchVideoInfo, fetchPlayUrlPromise, fetchFavList, fetchBiliSeriesInfo, fetchBiliColleList } from '../utils/Data';
 import Song from '../objects/Song';
+import { browserApi } from '../platform/browserApi';
 
 const DEFAULT_BVID = 'BV1BQ4y1X714';
 const LAST_PLAY_LIST = 'LastPlayList';
@@ -12,8 +13,14 @@ type VideoInfoLike = {
   pages: VideoPage[];
 };
 
+export type SearchSource =
+  | { type: 'bvid'; bvid: string }
+  | { type: 'fav'; mid: string }
+  | { type: 'series'; mid: string; sid: string }
+  | { type: 'collection'; mid: string; sid: string };
+
 export const initSongList = async (setCurrentSongList: (songs: Song[]) => void) => {
-  chrome.storage.local.get([LAST_PLAY_LIST], async function (result) {
+  browserApi.storage.local.get([LAST_PLAY_LIST], async function (result) {
     const lastPlayList = result[LAST_PLAY_LIST] as Song[] | undefined;
     if (lastPlayList && lastPlayList.length !== 0) {
       lastPlayList.forEach((v: any) => {
@@ -116,5 +123,20 @@ export const getFavList = async (mid: string): Promise<Song[]> => {
 
 export const getBiliColleList = async (mid: string, sid: string, favList: string[] = []): Promise<Song[]> => {
   return getSongsFromBVids(await fetchBiliColleList(mid, sid, favList));
+};
+
+export const getSongsFromSource = async (source: SearchSource): Promise<Song[]> => {
+  switch (source.type) {
+    case 'bvid':
+      return getSongList(source.bvid);
+    case 'fav':
+      return getFavList(source.mid);
+    case 'series':
+      return getBiliSeriesList(source.mid, source.sid);
+    case 'collection':
+      return getBiliColleList(source.mid, source.sid);
+    default:
+      return [];
+  }
 };
 

@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import StorageManager from '../src/objects/Storage';
 import { createChromeMock } from './helpers/chrome-mock';
 
@@ -64,5 +64,59 @@ describe('StorageManager CRUD regression', () => {
     expect(detail).toBeDefined();
     expect(detail?.lrcOffset).toBe(233);
     expect(detail?.lrc).toEqual({ songMid: 'mid-1' });
+  });
+
+  it('persists source metadata and player settings', async () => {
+    const manager = StorageManager.getInstance();
+    const created = manager.addFavList('Syncable List');
+    await tick();
+
+    manager.updateFavList({
+      info: { ...created.info, source: { type: 'fav', mid: '1042352181' } },
+      songList: [],
+    } as any);
+    await tick();
+
+    const storedList = await manager.readLocalStorage(created.info.id);
+    expect(storedList.info.source).toEqual({ type: 'fav', mid: '1042352181' });
+
+    await manager.setPlayerSetting({ lyricFontSize: 18 });
+    expect(await manager.getPlayerSetting()).toEqual({ lyricFontSize: 18 });
+  });
+
+  it('skips sync writes when a playlist payload exceeds sync per-item quota', async () => {
+    const manager = StorageManager.getInstance();
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const syncSetSpy = vi.spyOn(chrome.storage.sync, 'set');
+
+    const created = manager.addFavList('Oversize Sync List');
+    await tick();
+    (chrome.storage.sync as any).QUOTA_BYTES_PER_ITEM = 128;
+    (manager as any).hasWarnedSyncQuotaExceeded = false;
+    syncSetSpy.mockClear();
+    warnSpy.mockClear();
+
+    manager.updateFavList({
+      info: created.info,
+      songList: [
+        {
+          id: 'song-1',
+          bvid: 'BV1yNPbzjEVq',
+          name: 'x'.repeat(512),
+          singer: 'Singer',
+          singerId: '1',
+          cover: 'cover',
+        } as any,
+      ],
+    } as any);
+    await tick();
+
+    expect(syncSetSpy).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('sync storage skipped: playlist payload'));
+
+    const saved = await manager.readLocalStorage(created.info.id);
+    expect(saved.songList[0].name).toHaveLength(512);
+
+    warnSpy.mockRestore();
   });
 });

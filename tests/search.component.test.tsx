@@ -44,7 +44,11 @@ describe('Search component regression', () => {
     });
 
     expect(handleSeach.mock.calls[0][0]).toMatchObject({
-      info: { id: 'FavList-Search', title: expect.stringContaining('BV1yNPbzjEVq') },
+      info: {
+        id: 'FavList-Search',
+        title: expect.stringContaining('BV1yNPbzjEVq'),
+        source: { type: 'bvid', bvid: 'BV1yNPbzjEVq' },
+      },
       songList: [{ id: 'cid-1', bvid: 'BV1yNPbzjEVq', name: 'song-a' }],
     });
   });
@@ -63,6 +67,10 @@ describe('Search component regression', () => {
       expect(mocks.getFavList).toHaveBeenCalledWith('1042352181');
       expect(handleSeach).toHaveBeenCalledTimes(1);
     });
+
+    expect(handleSeach.mock.calls[0][0]).toMatchObject({
+      info: { source: { type: 'fav', mid: '1042352181' } },
+    });
   });
 
   it('searches collection link via getBiliColleList', async () => {
@@ -78,6 +86,72 @@ describe('Search component regression', () => {
     await waitFor(() => {
       expect(mocks.getBiliColleList).toHaveBeenCalledWith('123', '456');
       expect(handleSeach).toHaveBeenCalledTimes(1);
+    });
+
+    expect(handleSeach.mock.calls[0][0]).toMatchObject({
+      info: { source: { type: 'collection', mid: '123', sid: '456' } },
+    });
+  });
+
+  it('searches series link via getBiliSeriesList for new lists URL', async () => {
+    const user = userEvent.setup();
+    const handleSeach = vi.fn();
+    mocks.getBiliSeriesList.mockResolvedValue([{ id: 's1', bvid: 'BV1c', name: 'series-song' }]);
+
+    render(<Search handleSeach={handleSeach} />);
+
+    const input = screen.getByLabelText(/BVid/i);
+    await user.type(input, 'https://space.bilibili.com/444180997/lists/828030?type=series{enter}');
+
+    await waitFor(() => {
+      expect(mocks.getBiliSeriesList).toHaveBeenCalledWith('444180997', '828030');
+      expect(handleSeach).toHaveBeenCalledTimes(1);
+    });
+
+    expect(handleSeach.mock.calls[0][0]).toMatchObject({
+      info: { source: { type: 'series', mid: '444180997', sid: '828030' } },
+    });
+    expect(mocks.getFavList).not.toHaveBeenCalled();
+  });
+
+  it('searches season link via getBiliColleList for new lists URL', async () => {
+    const user = userEvent.setup();
+    const handleSeach = vi.fn();
+    mocks.getBiliColleList.mockResolvedValue([{ id: 'c2', bvid: 'BV1d', name: 'season-song' }]);
+
+    render(<Search handleSeach={handleSeach} />);
+
+    const input = screen.getByLabelText(/BVid/i);
+    await user.type(input, 'https://space.bilibili.com/5109111/lists/6995126?type=season{enter}');
+
+    await waitFor(() => {
+      expect(mocks.getBiliColleList).toHaveBeenCalledWith('5109111', '6995126');
+      expect(handleSeach).toHaveBeenCalledTimes(1);
+    });
+
+    expect(handleSeach.mock.calls[0][0]).toMatchObject({
+      info: { source: { type: 'collection', mid: '5109111', sid: '6995126' } },
+    });
+    expect(mocks.getFavList).not.toHaveBeenCalled();
+  });
+
+  it('does not fall back to favorite lookup for unrecognized non-numeric input', async () => {
+    const user = userEvent.setup();
+    const handleSeach = vi.fn();
+
+    render(<Search handleSeach={handleSeach} />);
+
+    const input = screen.getByLabelText(/BVid/i);
+    await user.type(input, 'https://space.bilibili.com/444180997/lists/828030{enter}');
+
+    await waitFor(() => {
+      expect(handleSeach).toHaveBeenCalledTimes(1);
+    });
+
+    expect(mocks.getFavList).not.toHaveBeenCalled();
+    expect(handleSeach.mock.calls[0][0]).toMatchObject({
+      info: { title: expect.stringContaining('无法识别') },
+      songList: [],
     });
   });
 });
