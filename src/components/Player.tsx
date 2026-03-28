@@ -80,11 +80,16 @@ export const Player = function ({ songList }: PlayerProps) {
   const [currentAudio, setCurrentAudio] = useState<CurrentAudioView | null>(null);
   const [lyricCurrentTime, setLyricCurrentTime] = useState(0);
   const [currentAudioInst, setCurrentAudioInst] = useState<any>(null);
+  const [pendingImmediatePlayId, setPendingImmediatePlayId] = useState<string | null>(null);
+  const [pendingImmediatePlayTick, setPendingImmediatePlayTick] = useState(0);
   const [showLyric, setShowLyric] = useState(false);
   const [playerSettings, setPlayerSettings] = useState<PlayerSettings | null>(null);
   const lastProgressSaveAtRef = useRef(0);
   const lastLyricUiSyncAtRef = useRef(0);
   const currentTrackRef = useRef<CurrentAudioView | null>(null);
+  const pendingImmediatePlayAttemptsRef = useRef(0);
+  const pendingImmediatePlayTimerRef = useRef<number | null>(null);
+  const pendingImmediatePlayIndexRef = useRef(-1);
   const StorageManager = useContext(StorageManagerCtx);
 
   const buildExternalLink = (audioInfo?: Partial<SongLike> | null) => {
@@ -100,7 +105,17 @@ export const Player = function ({ songList }: PlayerProps) {
   };
 
   const applyAudioListUpdate = useCallback(
-    ({ songs, immediatePlay = false, replaceList = false }: { songs: SongLike[]; immediatePlay?: boolean; replaceList?: boolean }) => {
+    ({
+      songs,
+      immediatePlay = false,
+      replaceList = false,
+      preferredSongId,
+    }: {
+      songs: SongLike[];
+      immediatePlay?: boolean;
+      replaceList?: boolean;
+      preferredSongId?: string;
+    }) => {
       if (!params) return;
       const baseList = replaceList ? [] : playingList;
       const merged = immediatePlay ? [...songs, ...baseList] : [...baseList, ...songs];
@@ -109,7 +124,7 @@ export const Player = function ({ songList }: PlayerProps) {
 
       const maybeShuffled =
         playerSettings?.playMode === 'shufflePlay'
-          ? shuffleWithoutImmediateRepeat(deduped, currentAudio?.id)
+          ? shuffleWithoutImmediateRepeat(deduped, immediatePlay ? preferredSongId : currentAudio?.id)
           : deduped;
 
       const newParam = {
@@ -118,6 +133,20 @@ export const Player = function ({ songList }: PlayerProps) {
         clearPriorAudioLists: immediatePlay || replaceList,
         audioLists: maybeShuffled,
       };
+      if (preferredSongId) {
+        pendingImmediatePlayIndexRef.current = maybeShuffled.findIndex((song) => String(song.id) === preferredSongId);
+        setPendingImmediatePlayId(preferredSongId);
+        setPendingImmediatePlayTick(0);
+      }
+      console.info('[azusa-player][play]', 'applyAudioListUpdate', {
+        immediatePlay,
+        replaceList,
+        incomingSongIds: songs.map((song) => String(song.id)),
+        mergedSongIds: maybeShuffled.slice(0, 8).map((song) => String(song.id)),
+        mergedCount: maybeShuffled.length,
+        preferredSongId: preferredSongId || null,
+        preferredIndex: pendingImmediatePlayIndexRef.current,
+      });
       setParams(newParam);
       setPlayingList(maybeShuffled);
     },
@@ -127,12 +156,22 @@ export const Player = function ({ songList }: PlayerProps) {
   const onPlayOneFromFav = useCallback(
     (songs: any[]) => {
       if (!songs?.length) return;
+      console.info('[azusa-player][play]', 'onPlayOneFromFav', {
+        requestedSongId: String(songs[0].id),
+        currentTrackId: currentTrackRef.current?.id || null,
+        playingListCount: playingList.length,
+      });
       const existingIndex = playingList.findIndex((s) => s.id == songs[0].id);
       if (existingIndex !== -1 && currentAudioInst?.playByIndex) {
+        setPendingImmediatePlayId(null);
+        setPendingImmediatePlayTick(0);
+        pendingImmediatePlayIndexRef.current = existingIndex;
+        pendingImmediatePlayAttemptsRef.current = 0;
         currentAudioInst.playByIndex(existingIndex);
         return;
       }
-      applyAudioListUpdate({ songs, immediatePlay: true });
+      pendingImmediatePlayAttemptsRef.current = 0;
+      applyAudioListUpdate({ songs, immediatePlay: true, preferredSongId: String(songs[0].id) });
     },
     [playingList, currentAudioInst, applyAudioListUpdate],
   );
@@ -212,9 +251,24 @@ export const Player = function ({ songList }: PlayerProps) {
   const onAudioPlay = useCallback(
     (audioInfo?: SongLike) => {
       if (!params || !audioInfo?.id) return;
+      console.info('[azusa-player][play]', 'onAudioPlay', {
+        audioId: String(audioInfo.id),
+        audioName: audioInfo.name,
+        pendingImmediatePlayId,
+      });
       const trackChanged = syncCurrentTrack(audioInfo);
       if (trackChanged) {
         setLyricCurrentTime(0);
+      }
+      if (pendingImmediatePlayId && String(audioInfo.id) === pendingImmediatePlayId) {
+        setPendingImmediatePlayId(null);
+        setPendingImmediatePlayTick(0);
+        pendingImmediatePlayIndexRef.current = -1;
+        pendingImmediatePlayAttemptsRef.current = 0;
+        if (pendingImmediatePlayTimerRef.current) {
+          window.clearTimeout(pendingImmediatePlayTimerRef.current);
+          pendingImmediatePlayTimerRef.current = null;
+        }
       }
       lastLyricUiSyncAtRef.current = 0;
       setParams({ ...params, extendsContent: buildExternalLink(audioInfo) });
@@ -235,7 +289,7 @@ export const Player = function ({ songList }: PlayerProps) {
         }
       });
     },
-    [params, syncCurrentTrack],
+    [params, syncCurrentTrack, pendingImmediatePlayId],
   );
 
   const onAudioListsChange = useCallback(
@@ -374,6 +428,63 @@ export const Player = function ({ songList }: PlayerProps) {
     if (!playerSettings) return;
     document.body.dataset.theme = playerSettings.darkMode ? 'dark' : 'light';
   }, [playerSettings]);
+
+  useEffect(() => {
+    if (!pendingImmediatePlayId || !currentAudioInst?.playByIndex) return;
+    const targetIndex =
+      pendingImmediatePlayIndexRef.current >= 0
+        ? pendingImmediatePlayIndexRef.current
+        : playingList.findIndex((song) => String(song.id) === pendingImmediatePlayId);
+    if (targetIndex === -1) return;
+
+    if (pendingImmediatePlayTimerRef.current) {
+      window.clearTimeout(pendingImmediatePlayTimerRef.current);
+      pendingImmediatePlayTimerRef.current = null;
+    }
+
+    pendingImmediatePlayAttemptsRef.current += 1;
+    console.info('[azusa-player][play]', 'tryImmediatePlay', {
+      targetSongId: pendingImmediatePlayId,
+      targetIndex,
+      attempt: pendingImmediatePlayAttemptsRef.current,
+      currentTrackId: currentTrackRef.current?.id || null,
+      playingListHead: playingList.slice(0, 5).map((song) => String(song.id)),
+    });
+    currentAudioInst.playByIndex(targetIndex);
+
+    pendingImmediatePlayTimerRef.current = window.setTimeout(() => {
+      if (currentTrackRef.current?.id === pendingImmediatePlayId) {
+        setPendingImmediatePlayId(null);
+        pendingImmediatePlayAttemptsRef.current = 0;
+        pendingImmediatePlayTimerRef.current = null;
+        return;
+      }
+
+      if (pendingImmediatePlayAttemptsRef.current >= 8) {
+        console.warn('[azusa-player][play]', 'immediate play timed out', {
+          targetSongId: pendingImmediatePlayId,
+          currentTrackId: currentTrackRef.current?.id || null,
+          targetIndex,
+        });
+        setPendingImmediatePlayId(null);
+        setPendingImmediatePlayTick(0);
+        pendingImmediatePlayIndexRef.current = -1;
+        pendingImmediatePlayAttemptsRef.current = 0;
+        pendingImmediatePlayTimerRef.current = null;
+        return;
+      }
+
+      setPendingImmediatePlayTick((current) => current + 1);
+    }, 250);
+  }, [pendingImmediatePlayId, pendingImmediatePlayTick, currentAudioInst, playingList]);
+
+  useEffect(() => {
+    return () => {
+      if (pendingImmediatePlayTimerRef.current) {
+        window.clearTimeout(pendingImmediatePlayTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (showLyric && !currentAudio) {

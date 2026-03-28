@@ -82,4 +82,28 @@ describe('Fav table user interactions', () => {
       }),
     );
   });
+
+  it('clears stale filter text when a locate highlight is requested', async () => {
+    render(
+      <Fav
+        FavList={{
+          info: {
+            ...buildFavList().info,
+            currentTableInfo: { filterString: 'no-match', highlightSongId: 's1', page: 0, rowsPerPage: 25 },
+          },
+          songList: buildFavList().songList,
+        } as any}
+        currentAudioId='s1'
+        onSongIndexChange={vi.fn()}
+        onAddOneFromFav={vi.fn()}
+        handleDelteFromSearchList={vi.fn()}
+        handleAddToFavClick={vi.fn()}
+        handleDeleteSongs={vi.fn()}
+        handleRenameSong={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByRole('button', { name: 'Song One' })).toBeInTheDocument();
+    expect(screen.getByDisplayValue('')).toBeInTheDocument();
+  });
 });

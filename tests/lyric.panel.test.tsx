@@ -86,6 +86,26 @@ describe('Lyric panel regression', () => {
     });
   });
 
+  it('uses 50ms steps for lyric offset controls', async () => {
+    const fakeStorage = {
+      getLyricDetail: vi.fn().mockResolvedValue(undefined),
+      setLyricOffset: vi.fn(),
+      getPlayerSetting: vi.fn().mockResolvedValue(undefined),
+      setPlayerSetting: vi.fn(),
+    } as any;
+
+    render(
+      <StorageManagerCtx.Provider value={fakeStorage}>
+        <Lyric currentTime={3} audioName='Aimer - brave shine' audioId='1' audioCover='cover' artist='Aimer' />
+      </StorageManagerCtx.Provider>,
+    );
+
+    const offsetInput = await screen.findByLabelText('歌词偏移(ms)');
+    expect(offsetInput).toHaveAttribute('step', '50');
+    expect(offsetInput).not.toHaveAttribute('max');
+    expect(offsetInput).not.toHaveAttribute('min');
+  });
+
   it('resets lyric search textbox to current song title after track switch', async () => {
     const fakeStorage = {
       getLyricDetail: vi.fn().mockResolvedValue(undefined),

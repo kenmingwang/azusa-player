@@ -155,6 +155,8 @@ export const Fav = function ({
   const [filterString, setFilterString] = useState('');
   const [selectedSongIds, setSelectedSongIds] = useState<string[]>([]);
   const [highlightSongId, setHighlightSongId] = useState('');
+  const [highlightNonce, setHighlightNonce] = useState(0);
+  const rowRefs = React.useRef<Record<string, HTMLTableRowElement | null>>({});
 
   useEffect(() => {
     setCurrentFavList(FavList);
@@ -164,8 +166,8 @@ export const Fav = function ({
     setPage(currentInfo.page ?? 0);
     setRowsPerPage(currentInfo.rowsPerPage ?? 25);
     setHighlightSongId(String(currentInfo.highlightSongId || ''));
-
-    requestSearch(currentInfo.filterString ?? '');
+    setHighlightNonce(Number(currentInfo.highlightNonce || 0));
+    requestSearch(currentInfo.highlightSongId ? '' : (currentInfo.filterString ?? ''));
     setSelectedSongIds([]);
   }, [FavList]);
 
@@ -185,10 +187,30 @@ export const Fav = function ({
     [rows, page, rowsPerPage],
   );
 
+  const resolvedHighlightSongId = String(highlightSongId || '');
+  const resolvedCurrentSongId = String(currentAudioId || '');
+
   const selectedSongs = useMemo(
     () => (currentFavList?.songList || []).filter((s) => selectedSongIds.includes(s.id)),
     [selectedSongIds, currentFavList],
   );
+
+  useEffect(() => {
+    if (!resolvedHighlightSongId) return;
+    const highlightedRow = rowRefs.current[resolvedHighlightSongId];
+    console.info('[azusa-player][locate]', 'applyHighlight', {
+      highlightSongId: resolvedHighlightSongId,
+      currentSongId: resolvedCurrentSongId,
+      highlightNonce,
+      theme: typeof document !== 'undefined' ? document.body?.dataset?.theme || 'light' : 'light',
+      page,
+      rowsPerPage,
+      visibleSongIds: visibleRows.map((song) => String(song.id)),
+      rowFound: !!highlightedRow,
+    });
+    if (!highlightedRow || typeof highlightedRow.scrollIntoView !== 'function') return;
+    highlightedRow.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [resolvedHighlightSongId, highlightNonce, page, rowsPerPage, rows]);
 
   const toggleSong = (songId: string) => {
     setSelectedSongIds((prev) => (prev.includes(songId) ? prev.filter((id) => id !== songId) : [...prev, songId]));
@@ -308,10 +330,27 @@ export const Fav = function ({
                 {visibleRows.map((song, index) => (
                   <StyledTableRow
                     key={`${song.id}-${index}`}
+                    ref={(node) => {
+                      rowRefs.current[String(song.id)] = node;
+                    }}
+                    data-highlighted={String(song.id) === resolvedHighlightSongId ? 'true' : 'false'}
+                    data-current-audio={String(song.id) === resolvedCurrentSongId ? 'true' : 'false'}
                     sx={{
                       '&:last-child td, &:last-child th': { border: 0 },
-                      ...(String(song.id) === String(highlightSongId || currentAudioId || '')
-                        ? { backgroundColor: 'rgba(171, 95, 255, 0.16)' }
+                      ...(String(song.id) === resolvedCurrentSongId
+                        ? {
+                            backgroundColor: 'rgba(171, 95, 255, 0.1)',
+                          }
+                        : {}),
+                      ...(String(song.id) === resolvedHighlightSongId
+                        ? {
+                            backgroundColor: 'rgba(171, 95, 255, 0.22)',
+                            boxShadow: 'inset 0 0 0 2px rgba(171, 95, 255, 0.52), inset 6px 0 0 rgba(171, 95, 255, 0.88)',
+                            '& td': {
+                              color: '#4f248f',
+                              fontWeight: 600,
+                            },
+                          }
                         : {}),
                     }}
                   >

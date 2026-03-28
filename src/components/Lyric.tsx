@@ -13,16 +13,43 @@ const INTERVAL_OF_RECOVERING_AUTO_SCROLL_AFTER_USER_SCROLL = 3000;
 interface LyricPalette {
   active: string;
   inactive: string;
+  fieldText: string;
+  fieldTextFill: string;
+  fieldBg: string;
+  fieldBorder: string;
+  fieldBorderHover: string;
+  fieldBorderFocus: string;
+  fieldLabel: string;
+  fieldPlaceholder: string;
+  fieldCaret: string;
 }
 
 const LIGHT_MODE_PALETTE: LyricPalette = {
   active: '#4c2c88',
   inactive: 'rgba(76, 44, 136, 0.92)',
+  fieldText: '#2d1f54',
+  fieldTextFill: '#2d1f54',
+  fieldBg: 'rgba(255, 255, 255, 0.78)',
+  fieldBorder: 'rgba(108, 80, 168, 0.28)',
+  fieldBorderHover: 'rgba(108, 80, 168, 0.44)',
+  fieldBorderFocus: '#8f63d7',
+  fieldLabel: 'rgba(73, 49, 126, 0.88)',
+  fieldPlaceholder: 'rgba(81, 57, 136, 0.68)',
+  fieldCaret: '#6b46be',
 };
 
 const DARK_MODE_PALETTE: LyricPalette = {
-  active: '#4c2c88',
-  inactive: 'rgba(76, 44, 136, 0.9)',
+  active: '#ead9ff',
+  inactive: 'rgba(224, 205, 255, 0.92)',
+  fieldText: '#f2e8ff',
+  fieldTextFill: '#f2e8ff',
+  fieldBg: 'rgba(33, 24, 53, 0.78)',
+  fieldBorder: 'rgba(181, 146, 240, 0.3)',
+  fieldBorderHover: 'rgba(204, 170, 255, 0.5)',
+  fieldBorderFocus: '#d7b6ff',
+  fieldLabel: 'rgba(227, 209, 255, 0.9)',
+  fieldPlaceholder: 'rgba(215, 195, 247, 0.72)',
+  fieldCaret: '#d4b0ff',
 };
 
 interface LyricProps {
@@ -94,33 +121,40 @@ export const Lyric = function ({ currentTime, audioName, audioId, audioCover, ar
     StorageManager.setPlayerSetting({ ...currentSettings, lyricFontSize: nextValue });
   };
 
+  const clearNumericBounds = useCallback((node: HTMLInputElement | null) => {
+    if (!node) return;
+    node.removeAttribute('max');
+    node.removeAttribute('min');
+  }, []);
+
   const lyricFieldSx = {
     '& .MuiOutlinedInput-root': {
-      color: '#2d1f54',
-      backgroundColor: 'rgba(255, 255, 255, 0.78)',
+      color: lyricPalette.fieldText,
+      backgroundColor: lyricPalette.fieldBg,
       borderRadius: 1.5,
       '& fieldset': {
-        borderColor: 'rgba(108, 80, 168, 0.28)',
+        borderColor: lyricPalette.fieldBorder,
       },
       '&:hover fieldset': {
-        borderColor: 'rgba(108, 80, 168, 0.44)',
+        borderColor: lyricPalette.fieldBorderHover,
       },
       '&.Mui-focused fieldset': {
-        borderColor: '#8f63d7',
+        borderColor: lyricPalette.fieldBorderFocus,
       },
     },
     '& .MuiInputBase-input': {
-      color: '#2d1f54',
-      WebkitTextFillColor: '#2d1f54',
+      color: lyricPalette.fieldText,
+      WebkitTextFillColor: lyricPalette.fieldTextFill,
+      caretColor: lyricPalette.fieldCaret,
     },
     '& .MuiInputLabel-root': {
-      color: 'rgba(73, 49, 126, 0.88)',
+      color: lyricPalette.fieldLabel,
     },
     '& .MuiInputLabel-root.Mui-focused': {
-      color: '#6b46be',
+      color: lyricPalette.fieldLabel,
     },
     '& .MuiInputBase-input::placeholder': {
-      color: 'rgba(81, 57, 136, 0.68)',
+      color: lyricPalette.fieldPlaceholder,
       opacity: 1,
     },
   } as const;
@@ -187,7 +221,8 @@ export const Lyric = function ({ currentTime, audioName, audioId, audioCover, ar
                 size='small'
                 variant='outlined'
                 label={'\u6b4c\u8bcd\u504f\u79fb(ms)'}
-                inputProps={{ min: -9999, max: 9999 }}
+                inputProps={{ step: 50 }}
+                inputRef={clearNumericBounds}
                 value={lyricOffset}
                 onChange={onLrcOffsetChange}
                 sx={lyricFieldSx}

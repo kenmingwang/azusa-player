@@ -1,7 +1,7 @@
 {
   "name": "azusa-player",
-  "description": "电梓播放器 / azusa-player: 一个第三方哔哩哔哩(bilibili.com)音频播放器 / A 3rd party Bilibili audio player.",
-  "version": "1.3.0.1",
+  "description": "azusa-player: \u7b2c\u4e09\u65b9 Bilibili \u97f3\u9891\u64ad\u653e\u5668 / A 3rd party Bilibili audio player.",
+  "version": "2.0.0",
   "main": "index.js",
   "author": "Ken Wang",
   "private": true,

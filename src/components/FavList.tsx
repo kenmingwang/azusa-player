@@ -368,6 +368,11 @@ export const FavList = memo(function ({
 
     const candidates = [searchList, ...(favLists || [])];
     const matchedList = candidates.find((list) => list.songList.some((song) => song.id === currentAudioId));
+    console.info('[azusa-player][locate]', 'locateCurrentSong', {
+      currentAudioId,
+      matchedListId: matchedList?.info.id || null,
+      matchedListTitle: matchedList?.info.title || null,
+    });
     if (!matchedList) return;
 
     const songIndex = matchedList.songList.findIndex((song) => song.id === currentAudioId);
@@ -378,7 +383,9 @@ export const FavList = memo(function ({
         ...(matchedList.info.currentTableInfo || {}),
         page,
         rowsPerPage,
+        filterString: '',
         highlightSongId: currentAudioId,
+        highlightNonce: Date.now(),
       });
   }, [currentAudioId, favLists, searchList, selectFavList]);
 

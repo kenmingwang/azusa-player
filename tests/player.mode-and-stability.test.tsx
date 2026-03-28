@@ -30,6 +30,22 @@ vi.mock('../src/components/FavList', () => ({
     return (
       <div data-testid='fav-list'>
         <button onClick={() => props.onDarkModeChange?.(!props.darkMode)}>toggle-dark</button>
+        <button
+          onClick={() =>
+            props.onPlayOneFromFav?.([
+              {
+                id: 'search-song',
+                bvid: 'BV-search',
+                name: 'Search Result Song',
+                singer: 'Singer',
+                cover: 'cover',
+                musicSrc: () => Promise.resolve('url'),
+              },
+            ])
+          }
+        >
+          play-search-song
+        </button>
       </div>
     );
   },
@@ -258,5 +274,31 @@ describe('Player mode and stability regression', () => {
     await waitFor(() => expect(latestLyricOverlayProps.currentTime).toBe(1.4));
 
     nowSpy.mockRestore();
+  });
+
+  it('plays newly searched songs immediately after playlist insertion', async () => {
+    const user = userEvent.setup();
+    const playByIndex = vi.fn();
+    const fakeStorage = {
+      getPlayerSetting: vi.fn().mockResolvedValue({ playMode: 'order', defaultVolume: 0.5, darkMode: false }),
+      setPlayerSetting: vi.fn(),
+      setLastPlayList: vi.fn(),
+    } as any;
+
+    render(
+      <StorageManagerCtx.Provider value={fakeStorage}>
+        <Player songList={makeSongs(2) as any} />
+      </StorageManagerCtx.Provider>,
+    );
+
+    await screen.findByTestId('jk-player');
+    latestJkProps.getAudioInstance({ playByIndex });
+
+    await user.click(screen.getByRole('button', { name: 'play-search-song' }));
+
+    await waitFor(() => {
+      expect(playByIndex).toHaveBeenCalledWith(0);
+      expect(latestJkProps.audioLists[0]).toEqual(expect.objectContaining({ id: 'search-song' }));
+    });
   });
 });
