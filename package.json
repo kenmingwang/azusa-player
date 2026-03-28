@@ -1,7 +1,7 @@
 {
   "name": "azusa-player",
   "description": "azusa-player: \u7b2c\u4e09\u65b9 Bilibili \u97f3\u9891\u64ad\u653e\u5668 / A 3rd party Bilibili audio player.",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "main": "index.js",
   "author": "Ken Wang",
   "private": true,

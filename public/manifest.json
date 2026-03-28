@@ -1,6 +1,6 @@
 {
-  "name": "\u7535\u68cd\u64ad\u653e\u5668 - \u7b2c\u4e09\u65b9 Bilibili \u97f3\u9891\u64ad\u653e\u5668",
-  "version": "2.0.0",
+  "name": "\u7535\u6893\u64ad\u653e\u5668 - \u7b2c\u4e09\u65b9 Bilibili \u97f3\u9891\u64ad\u653e\u5668",
+  "version": "2.0.1",
   "description": "azusa-player: \u7b2c\u4e09\u65b9 Bilibili \u97f3\u9891\u64ad\u653e\u5668 / A 3rd party Bilibili audio player.",
   "manifest_version": 3,
   "background": {
