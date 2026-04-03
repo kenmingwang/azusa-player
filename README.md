@@ -7,7 +7,7 @@
 -->
 <br>
 
-<p align="center"><a href="https://github.com/kenmingwang/azusa-player"><img width="200" src="https://github.com/kenmingwang/azusa-player/blob/master/public/img/logo2-01.png?raw=true"></a></p>
+<p align="center"><a href="https://github.com/kenmingwang/azusa-player"><img width="200" src="https://github.com/kenmingwang/azusa-player/blob/master/docs/assets/logo2-01.png?raw=true"></a></p>
 
 <p align="center">
   <a href="https://github.com/kenmingwang/azusa-player/blob/master/LICENSE">
@@ -52,7 +52,7 @@
 
 ### 截图：
 
-![imgur](https://raw.githubusercontent.com/kenmingwang/azusa-player/master/public/img/azusa-player2.gif)
+![imgur](https://raw.githubusercontent.com/kenmingwang/azusa-player/master/docs/assets/azusa-player2.gif)
 
 ## 安装
 
@@ -61,7 +61,7 @@
 - 离线安装
   - [下载最新 build 文件](https://github.com/kenmingwang/azusa-player/releases)，解压，Chrome 开启开发者模式，加载解压后的文件夹。
 
-![imgurl](https://raw.githubusercontent.com/kenmingwang/azusa-player/master/public/img/azusa-player-tutorial.png)
+![imgurl](https://raw.githubusercontent.com/kenmingwang/azusa-player/master/docs/assets/azusa-player-tutorial.png)
 
 ## 项目技术栈
 
