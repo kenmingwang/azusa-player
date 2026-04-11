@@ -1,10 +1,17 @@
 ﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { fetchBiliColleList, fetchFavList, fetchPlayUrlPromise, searchLyric } from '../src/utils/Data';
 
-const mockJsonResponse = (payload: any) => ({
-  json: vi.fn().mockResolvedValue(payload),
-  ok: true,
-});
+const mockJsonResponse = (payload: any, init: { contentType?: string; ok?: boolean } = {}) => {
+  const contentType = init.contentType ?? 'application/json; charset=utf-8';
+  return {
+    json: vi.fn().mockResolvedValue(payload),
+    text: vi.fn().mockResolvedValue(JSON.stringify(payload)),
+    headers: {
+      get: vi.fn((name: string) => (name.toLowerCase() === 'content-type' ? contentType : null)),
+    },
+    ok: init.ok ?? true,
+  };
+};
 
 describe('Data integration behaviors', () => {
   beforeEach(() => {
@@ -84,19 +91,13 @@ describe('Data integration behaviors', () => {
   it('fetchBiliColleList uses the web-space season endpoint', async () => {
     const fetchMock = vi.fn(async (url: string) => {
       if (url.includes('/x/polymer/web-space/seasons_archives_list') && url.includes('page_num=1')) {
-        return {
-          json: vi.fn().mockResolvedValue({
-            data: {
-              meta: { total: 1 },
-              page: { page_size: 30 },
-              archives: [{ bvid: 'BV_SEASON_1' }],
-            },
-          }),
-          clone: vi.fn(function () {
-            return this;
-          }),
-          ok: true,
-        };
+        return mockJsonResponse({
+          data: {
+            meta: { total: 1 },
+            page: { page_size: 30 },
+            archives: [{ bvid: 'BV_SEASON_1' }],
+          },
+        });
       }
 
       if (url.includes('/x/web-interface/view?bvid=BV_SEASON_1')) {
@@ -122,6 +123,11 @@ describe('Data integration behaviors', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining('/x/polymer/web-space/seasons_archives_list?mid=896830&season_id=3149109'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Accept: 'application/json, text/plain, */*',
+        }),
+      }),
     );
     expect(titles).toEqual(['season-item']);
   });

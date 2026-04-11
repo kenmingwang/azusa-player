@@ -25,14 +25,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 24.x
+          node-version: 22.x
           cache: npm
 
       - name: Install
         run: npm ci
 
-      - name: Test
-        run: npm run test:reg
+      - name: Install Playwright Browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Regression Tests
+        run: npm run test:run
+
+      - name: Run Popup E2E Tests
+        run: npm run test:e2e
 
       - name: Build
         run: npm run build

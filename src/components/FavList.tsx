@@ -79,7 +79,7 @@ const CRUDBtn = {
   gap: 0.35,
   flexShrink: 0,
   ml: 0.5,
-  color: '#ab5fff',
+  color: 'var(--azusa-accent)',
 };
 
 const CRUDIcon = {
@@ -93,10 +93,10 @@ const AddFavIcon = {
   ':hover': { cursor: 'pointer' },
   width: '1.05em',
   height: '1.05em',
-  color: '#ab5fff',
+  color: 'var(--azusa-accent)',
 };
 
-const DiskIcon = { minWidth: '32px', color: '#7f7f7f' };
+const DiskIcon = { minWidth: '32px', color: 'var(--azusa-muted)' };
 
 const cloneWithTableInfo = (list: FavLike, currentTableInfo: Record<string, unknown> = {}): FavLike => ({
   ...list,
@@ -155,13 +155,16 @@ export const FavList = memo(function ({
   useEffect(() => {
     const onRuntimeMessage = (message: any) => {
       if (message.type === 'fav-update') {
-        const { fav_id, n } = message.data;
-        StorageManager.readLocalStorage(fav_id).then((fav: any) => {
-          const idx = StorageManager.latestFavLists.findIndex((f: FavLike) => f.info.id == fav_id);
+        const favId = message.data?.favId || message.data?.fav_id;
+        const count = Number(message.data?.count ?? message.data?.n ?? message.data?.num ?? 0);
+        if (!favId) return;
+
+        StorageManager.readLocalStorage(favId).then((fav: any) => {
+          const idx = StorageManager.latestFavLists.findIndex((f: FavLike) => f.info.id == favId);
           if (idx === -1) return;
 
           const updatedFav = (StorageManager.latestFavLists[idx] = fav);
-          updatedFav.songList.slice(0, n).forEach((song: SongLike) => {
+          updatedFav.songList.slice(0, count).forEach((song: SongLike) => {
             (song as any).musicSrc = () => fetchPlayUrlPromise(song.bvid, song.id);
           });
           setFavLists([...StorageManager.latestFavLists]);
@@ -415,6 +418,8 @@ export const FavList = memo(function ({
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 0.5 }}>
               <Tooltip title='新建歌单'>
                 <AddIcon
+                  data-testid='new-playlist-button'
+                  aria-label='new-playlist-button'
                   sx={AddFavIcon}
                   onClick={() => {
                     setRenameTarget(null);
@@ -430,19 +435,39 @@ export const FavList = memo(function ({
               </Tooltip>
               <Badge color='secondary' variant='dot' sx={{ verticalAlign: 'baseline' }}>
               <Tooltip title='搜索帮助'>
-                  <HelpOutlineIcon sx={AddFavIcon} onClick={() => setOpenHelpDialog(true)} />
+                  <HelpOutlineIcon
+                    data-testid='search-help-button'
+                    aria-label='search-help-button'
+                    sx={AddFavIcon}
+                    onClick={() => setOpenHelpDialog(true)}
+                  />
                 </Tooltip>
               </Badge>
               <Tooltip title='定位当前播放歌曲'>
                 <span>
-                  <NearMeIcon sx={{ ...AddFavIcon, opacity: currentAudioId ? 1 : 0.45 }} onClick={locateCurrentSong} />
+                  <NearMeIcon
+                    data-testid='locate-current-song'
+                    aria-label='locate-current-song'
+                    sx={{ ...AddFavIcon, opacity: currentAudioId ? 1 : 0.45 }}
+                    onClick={locateCurrentSong}
+                  />
                 </span>
               </Tooltip>
               <Tooltip title={darkMode ? '切换到浅色模式' : '切换到夜间模式'}>
                 {darkMode ? (
-                  <LightModeIcon sx={AddFavIcon} onClick={() => onDarkModeChange?.(false)} />
+                  <LightModeIcon
+                    data-testid='toggle-dark-mode'
+                    aria-label='toggle-dark-mode'
+                    sx={AddFavIcon}
+                    onClick={() => onDarkModeChange?.(false)}
+                  />
                 ) : (
-                  <DarkModeIcon sx={AddFavIcon} onClick={() => onDarkModeChange?.(true)} />
+                  <DarkModeIcon
+                    data-testid='toggle-dark-mode'
+                    aria-label='toggle-dark-mode'
+                    sx={AddFavIcon}
+                    onClick={() => onDarkModeChange?.(true)}
+                  />
                 )}
               </Tooltip>
             </Box>
@@ -482,11 +507,18 @@ export const FavList = memo(function ({
                 </Tooltip>
                 {searchList.info.source ? (
                   <Tooltip title='按原始来源刷新'>
-                    <SyncIcon sx={CRUDIcon} onClick={() => refreshFromSource(searchList)} />
+                    <SyncIcon
+                      data-testid='refresh-search-source'
+                      aria-label='refresh-search-source'
+                      sx={CRUDIcon}
+                      onClick={() => refreshFromSource(searchList)}
+                    />
                   </Tooltip>
                 ) : null}
                 <Tooltip title='保存为新歌单'>
                   <FiberNewIcon
+                    data-testid='save-search-as-playlist'
+                    aria-label='save-search-as-playlist'
                     sx={CRUDIcon}
                     onClick={() => {
                       setPendingNewFavPayload({ songs: searchList.songList, source: searchList.info.source });

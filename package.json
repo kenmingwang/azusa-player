@@ -1,7 +1,7 @@
 {
   "name": "azusa-player",
-  "description": "azusa-player: \u7b2c\u4e09\u65b9 Bilibili \u97f3\u9891\u64ad\u653e\u5668 / A 3rd party Bilibili audio player.",
-  "version": "2.0.1",
+  "description": "azusa-player: 第三方 Bilibili 音频播放器 / A 3rd party Bilibili audio player.",
+  "version": "2.0.2",
   "main": "index.js",
   "author": "Ken Wang",
   "private": true,
@@ -15,8 +15,12 @@
     "build:extension": "tsc && vite build --mode extension",
     "preview": "vite preview",
     "test": "vitest",
-    "test:run": "vitest run",
-    "test:reg": "vitest run --reporter=verbose"
+    "test:run": "vitest run --reporter=basic",
+    "test:reg": "vitest run --reporter=verbose",
+    "test:live": "vitest run --config vitest.live.config.ts --reporter=verbose",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:ci": "npm run test:run && npm run test:e2e && npm run build"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -39,6 +43,7 @@
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.19",
+    "@playwright/test": "^1.59.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { getSongList, getFavList } from '../src/background/DataProcess';
 import { LIVE_REGRESSION_SNAPSHOT } from './fixtures/live-regression-snapshot';
 

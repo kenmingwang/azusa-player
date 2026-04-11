@@ -9,9 +9,6 @@ on:
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [22.x, 24.x]
 
     steps:
       - name: Checkout
@@ -20,14 +17,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22.x
           cache: npm
 
       - name: Install
         run: npm ci
 
+      - name: Install Playwright Browser
+        run: npx playwright install --with-deps chromium
+
       - name: Run Regression Tests
-        run: npm run test:reg
+        run: npm run test:run
+
+      - name: Run Popup E2E Tests
+        run: npm run test:e2e
 
       - name: Build Extension
         run: npm run build

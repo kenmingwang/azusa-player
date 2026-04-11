@@ -1,10 +1,9 @@
-﻿import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
-    exclude: ['tests/**/*.live.test.ts'],
+    include: ['tests/live-regression.live.test.ts'],
     setupFiles: ['tests/setup.ts'],
     coverage: {
       enabled: false,

@@ -24,6 +24,10 @@ const pickKeys = (store: RecordMap, keys: any) => {
 export const createChromeMock = (initialLocal: RecordMap = {}, initialSync: RecordMap = {}) => {
   const localStore: RecordMap = { ...initialLocal };
   const syncStore: RecordMap = { ...initialSync };
+  const onMessageListeners = new Set<(...args: any[]) => void>();
+  const onContextMenuClickListeners = new Set<(...args: any[]) => void>();
+  const onContextMenuShownListeners = new Set<(...args: any[]) => void>();
+  const onContextMenuHiddenListeners = new Set<(...args: any[]) => void>();
 
   const local = {
     get: vi.fn((keys: any, cb: (result: RecordMap) => void) => cb(pickKeys(localStore, keys))),
@@ -59,13 +63,13 @@ export const createChromeMock = (initialLocal: RecordMap = {}, initialSync: Reco
     }),
   };
 
-  const onMessageListeners = new Set<(...args: any[]) => void>();
-
   const chromeMock = {
     storage: { local, sync },
     runtime: {
       lastError: null,
-      sendMessage: vi.fn(),
+      sendMessage: vi.fn((_message: any, callback?: () => void) => {
+        callback?.();
+      }),
       openOptionsPage: vi.fn(),
       onMessage: {
         addListener: vi.fn((fn: (...args: any[]) => void) => {
@@ -81,14 +85,58 @@ export const createChromeMock = (initialLocal: RecordMap = {}, initialSync: Reco
         addListener: vi.fn(),
       },
     },
+    contextMenus: {
+      create: vi.fn((_props: any, callback?: () => void) => {
+        callback?.();
+      }),
+      update: vi.fn((_menuId: string, _props: any, callback?: () => void) => {
+        callback?.();
+      }),
+      removeAll: vi.fn((callback?: () => void) => {
+        callback?.();
+      }),
+      refresh: vi.fn(),
+      onClicked: {
+        addListener: vi.fn((fn: (...args: any[]) => void) => {
+          onContextMenuClickListeners.add(fn);
+        }),
+      },
+      onShown: {
+        addListener: vi.fn((fn: (...args: any[]) => void) => {
+          onContextMenuShownListeners.add(fn);
+        }),
+      },
+      onHidden: {
+        addListener: vi.fn((fn: (...args: any[]) => void) => {
+          onContextMenuHiddenListeners.add(fn);
+        }),
+      },
+    },
+    notifications: {
+      create: vi.fn((_options: any, callback?: (notificationId: string) => void) => {
+        callback?.('notification-1');
+      }),
+    },
+    scripting: {
+      executeScript: vi.fn().mockResolvedValue([{ result: [] }]),
+    },
   };
 
   return {
     chromeMock,
     localStore,
     syncStore,
-    emitRuntimeMessage: (payload: any) => {
-      onMessageListeners.forEach((fn) => fn(payload, {}, () => undefined));
+    emitRuntimeMessage: (payload: any, sender: any = {}) => {
+      onMessageListeners.forEach((fn) => fn(payload, sender, () => undefined));
+    },
+    emitContextMenuClick: (info: any, tab?: any) => {
+      onContextMenuClickListeners.forEach((fn) => fn(info, tab));
+    },
+    emitContextMenuShown: (info: any, tab?: any) => {
+      onContextMenuShownListeners.forEach((fn) => fn(info, tab));
+    },
+    emitContextMenuHidden: () => {
+      onContextMenuHiddenListeners.forEach((fn) => fn());
     },
   };
 };

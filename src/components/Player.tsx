@@ -74,8 +74,32 @@ const dedupeSongsById = (songs: SongLike[] = []) => {
   return deduped;
 };
 
+const buildQueueForMode = (songs: SongLike[] = [], playMode: string, keepSongId?: string) => {
+  if (playMode === 'shufflePlay') {
+    return shuffleWithoutImmediateRepeat(songs, keepSongId);
+  }
+  return [...songs];
+};
+
+const reconcileQueueOrder = (queueOrder: SongLike[] = [], visibleQueue: SongLike[] = []) => {
+  const visibleIds = new Set(visibleQueue.map((song) => String(song.id)));
+  const nextQueueOrder = queueOrder.filter((song) => visibleIds.has(String(song.id)));
+  const existingIds = new Set(nextQueueOrder.map((song) => String(song.id)));
+
+  visibleQueue.forEach((song) => {
+    const songId = String(song.id);
+    if (!existingIds.has(songId)) {
+      existingIds.add(songId);
+      nextQueueOrder.push(song);
+    }
+  });
+
+  return dedupeSongsById(nextQueueOrder);
+};
+
 export const Player = function ({ songList }: PlayerProps) {
   const [params, setParams] = useState<any>(null);
+  const [queueOrder, setQueueOrder] = useState<SongLike[]>([]);
   const [playingList, setPlayingList] = useState<SongLike[]>([]);
   const [currentAudio, setCurrentAudio] = useState<CurrentAudioView | null>(null);
   const [lyricCurrentTime, setLyricCurrentTime] = useState(0);
@@ -84,9 +108,10 @@ export const Player = function ({ songList }: PlayerProps) {
   const [pendingImmediatePlayTick, setPendingImmediatePlayTick] = useState(0);
   const [showLyric, setShowLyric] = useState(false);
   const [playerSettings, setPlayerSettings] = useState<PlayerSettings | null>(null);
-  const lastProgressSaveAtRef = useRef(0);
   const lastLyricUiSyncAtRef = useRef(0);
   const currentTrackRef = useRef<CurrentAudioView | null>(null);
+  const currentAudioInstRef = useRef<any>(null);
+  const playerSettingsRef = useRef<PlayerSettings | null>(null);
   const pendingImmediatePlayAttemptsRef = useRef(0);
   const pendingImmediatePlayTimerRef = useRef<number | null>(null);
   const pendingImmediatePlayIndexRef = useRef(-1);
@@ -104,6 +129,57 @@ export const Player = function ({ songList }: PlayerProps) {
     );
   };
 
+  const syncPlayerQueue = useCallback(
+    ({
+      nextQueueOrder,
+      playMode,
+      preferredSongId,
+      preserveVisibleOrder = false,
+      quietUpdate = true,
+      clearPriorAudioLists = false,
+      syncTrackIndex = true,
+    }: {
+      nextQueueOrder: SongLike[];
+      playMode: string;
+      preferredSongId?: string;
+      preserveVisibleOrder?: boolean;
+      quietUpdate?: boolean;
+      clearPriorAudioLists?: boolean;
+      syncTrackIndex?: boolean;
+    }) => {
+      const anchorSongId = preferredSongId || currentTrackRef.current?.id || currentAudio?.id;
+      const nextVisibleQueue = preserveVisibleOrder
+        ? dedupeSongsById(playingList)
+        : buildQueueForMode(nextQueueOrder, playMode, anchorSongId);
+      const nextTrackIndex = anchorSongId
+        ? nextVisibleQueue.findIndex((song) => String(song.id) === String(anchorSongId))
+        : -1;
+
+      setQueueOrder(nextQueueOrder);
+      setPlayingList(nextVisibleQueue);
+      setParams((currentParams: any) =>
+        currentParams
+          ? {
+              ...currentParams,
+              playMode,
+              quietUpdate,
+              clearPriorAudioLists,
+              audioLists: nextVisibleQueue,
+            }
+          : currentParams,
+      );
+
+      if (syncTrackIndex && nextTrackIndex >= 0 && currentAudioInstRef.current?.updatePlayIndex) {
+        window.setTimeout(() => {
+          currentAudioInstRef.current?.updatePlayIndex?.(nextTrackIndex);
+        }, 0);
+      }
+
+      return nextVisibleQueue;
+    },
+    [currentAudio, playingList],
+  );
+
   const applyAudioListUpdate = useCallback(
     ({
       songs,
@@ -117,24 +193,21 @@ export const Player = function ({ songList }: PlayerProps) {
       preferredSongId?: string;
     }) => {
       if (!params) return;
-      const baseList = replaceList ? [] : playingList;
+      const baseList = replaceList ? [] : queueOrder;
       const merged = immediatePlay ? [...songs, ...baseList] : [...baseList, ...songs];
 
       const deduped = dedupeSongsById(merged);
-
-      const maybeShuffled =
-        playerSettings?.playMode === 'shufflePlay'
-          ? shuffleWithoutImmediateRepeat(deduped, immediatePlay ? preferredSongId : currentAudio?.id)
-          : deduped;
-
-      const newParam = {
-        ...params,
+      const activePlayMode = playerSettings?.playMode || params.playMode || 'order';
+      const nextVisibleQueue = syncPlayerQueue({
+        nextQueueOrder: deduped,
+        playMode: activePlayMode,
+        preferredSongId: immediatePlay ? preferredSongId : undefined,
         quietUpdate: !immediatePlay,
         clearPriorAudioLists: immediatePlay || replaceList,
-        audioLists: maybeShuffled,
-      };
+        syncTrackIndex: !immediatePlay,
+      });
       if (preferredSongId) {
-        pendingImmediatePlayIndexRef.current = maybeShuffled.findIndex((song) => String(song.id) === preferredSongId);
+        pendingImmediatePlayIndexRef.current = nextVisibleQueue.findIndex((song) => String(song.id) === preferredSongId);
         setPendingImmediatePlayId(preferredSongId);
         setPendingImmediatePlayTick(0);
       }
@@ -142,15 +215,13 @@ export const Player = function ({ songList }: PlayerProps) {
         immediatePlay,
         replaceList,
         incomingSongIds: songs.map((song) => String(song.id)),
-        mergedSongIds: maybeShuffled.slice(0, 8).map((song) => String(song.id)),
-        mergedCount: maybeShuffled.length,
+        mergedSongIds: nextVisibleQueue.slice(0, 8).map((song) => String(song.id)),
+        mergedCount: nextVisibleQueue.length,
         preferredSongId: preferredSongId || null,
         preferredIndex: pendingImmediatePlayIndexRef.current,
       });
-      setParams(newParam);
-      setPlayingList(maybeShuffled);
     },
-    [params, playingList, playerSettings, currentAudio],
+    [params, queueOrder, playerSettings, syncPlayerQueue],
   );
 
   const onPlayOneFromFav = useCallback(
@@ -162,18 +233,18 @@ export const Player = function ({ songList }: PlayerProps) {
         playingListCount: playingList.length,
       });
       const existingIndex = playingList.findIndex((s) => s.id == songs[0].id);
-      if (existingIndex !== -1 && currentAudioInst?.playByIndex) {
+      if (existingIndex !== -1 && currentAudioInstRef.current?.playByIndex) {
         setPendingImmediatePlayId(null);
         setPendingImmediatePlayTick(0);
         pendingImmediatePlayIndexRef.current = existingIndex;
         pendingImmediatePlayAttemptsRef.current = 0;
-        currentAudioInst.playByIndex(existingIndex);
+        currentAudioInstRef.current.playByIndex(existingIndex);
         return;
       }
       pendingImmediatePlayAttemptsRef.current = 0;
       applyAudioListUpdate({ songs, immediatePlay: true, preferredSongId: String(songs[0].id) });
     },
-    [playingList, currentAudioInst, applyAudioListUpdate],
+    [playingList, applyAudioListUpdate],
   );
 
   const onAddOneFromFav = useCallback(
@@ -202,25 +273,32 @@ export const Player = function ({ songList }: PlayerProps) {
 
   const playByIndex = useCallback(
     (index: number) => {
-      currentAudioInst?.playByIndex?.(index);
+      currentAudioInstRef.current?.playByIndex?.(index);
     },
-    [currentAudioInst],
+    [],
   );
 
   const onPlayModeChange = (playMode: string) => {
     if (!playerSettings || !params) return;
 
     const nextSettings = { ...playerSettings, playMode };
+    playerSettingsRef.current = nextSettings;
     setPlayerSettings(nextSettings);
     StorageManager.setPlayerSetting(nextSettings);
-    // Keep mode switching lightweight: do not rebuild audioLists here,
-    // otherwise player resets and causes visible pause/flicker.
-    setParams({ ...params, playMode });
+    syncPlayerQueue({
+      nextQueueOrder: queueOrder,
+      playMode,
+      preserveVisibleOrder: playMode === 'singleLoop',
+      quietUpdate: true,
+      clearPriorAudioLists: false,
+      syncTrackIndex: true,
+    });
   };
 
   const onAudioVolumeChange = (currentVolume: number) => {
     if (!playerSettings) return;
     const nextSettings = { ...playerSettings, defaultVolume: Math.sqrt(currentVolume) };
+    playerSettingsRef.current = nextSettings;
     setPlayerSettings(nextSettings);
     StorageManager.setPlayerSetting(nextSettings);
   };
@@ -275,19 +353,6 @@ export const Player = function ({ songList }: PlayerProps) {
       browserApi.storage.local.set({
         CurrentPlaying: { cid: String(audioInfo.id), playUrl: audioInfo.musicSrc },
       });
-
-      browserApi.storage.local.get(['SongProgressMap'], (result) => {
-        const map = result?.SongProgressMap || {};
-        const savedTime = Number(map?.[audioInfo.id] || 0);
-        if (savedTime > 1) {
-          setTimeout(() => {
-            const audioElem = document.querySelector('audio');
-            if (audioElem && Number.isFinite(savedTime)) {
-              audioElem.currentTime = savedTime;
-            }
-          }, 200);
-        }
-      });
     },
     [params, syncCurrentTrack, pendingImmediatePlayId],
   );
@@ -296,7 +361,18 @@ export const Player = function ({ songList }: PlayerProps) {
     (_currentPlayId: string, audioLists: SongLike[]) => {
       const deduped = dedupeSongsById(audioLists);
       StorageManager.setLastPlayList(deduped as any);
+      setParams((currentParams: any) =>
+        currentParams
+          ? {
+              ...currentParams,
+              audioLists: deduped,
+            }
+          : currentParams,
+      );
       setPlayingList(deduped);
+      setQueueOrder((currentQueueOrder) =>
+        playerSettingsRef.current?.playMode === 'shufflePlay' ? reconcileQueueOrder(currentQueueOrder, deduped) : deduped,
+      );
     },
     [StorageManager],
   );
@@ -309,19 +385,12 @@ export const Player = function ({ songList }: PlayerProps) {
       lastLyricUiSyncAtRef.current = now;
       setLyricCurrentTime((prev) => (Math.abs(prev - nextTime) < 0.05 ? prev : nextTime));
     }
-
-    if (now - lastProgressSaveAtRef.current < 1200) return;
-    lastProgressSaveAtRef.current = now;
-
-    if (!audioInfo?.id || !Number.isFinite(audioInfo?.currentTime)) return;
-    browserApi.storage.local.get(['SongProgressMap'], (result) => {
-      const map = result?.SongProgressMap || {};
-      map[audioInfo.id] = audioInfo.currentTime;
-      browserApi.storage.local.set({ SongProgressMap: map });
-    });
   };
 
-  const getAudioInstance = (audio: any) => setCurrentAudioInst(audio);
+  const getAudioInstance = (audio: any) => {
+    currentAudioInstRef.current = audio;
+    setCurrentAudioInst(audio);
+  };
 
   const customDownloader = (downloadInfo: { src: string }) => {
     fetch(downloadInfo.src)
@@ -397,8 +466,9 @@ export const Player = function ({ songList }: PlayerProps) {
   }, [currentAudioInst]);
 
   useEffect(() => {
-    if (!songList || songList[0] == undefined) return;
+    if (!songList) return;
     browserApi.storage.local.set({ CurrentPlaying: {} });
+    browserApi.storage.local.remove('SongProgressMap');
 
     async function initPlayer() {
       let setting = (await StorageManager.getPlayerSetting()) as PlayerSettings | undefined;
@@ -417,7 +487,9 @@ export const Player = function ({ songList }: PlayerProps) {
         extendsContent: buildExternalLink(lists[0]),
       };
       setParams(initialParams);
+      setQueueOrder(lists);
       setPlayingList(lists);
+      playerSettingsRef.current = setting;
       setPlayerSettings(setting);
     }
 
@@ -496,6 +568,7 @@ export const Player = function ({ songList }: PlayerProps) {
     (darkMode: boolean) => {
       if (!playerSettings) return;
       const nextSettings = { ...playerSettings, darkMode };
+      playerSettingsRef.current = nextSettings;
       setPlayerSettings(nextSettings);
       StorageManager.setPlayerSetting(nextSettings);
     },
@@ -510,8 +583,32 @@ export const Player = function ({ songList }: PlayerProps) {
     setShowLyric((v) => !v);
   }, []);
 
+  const playerStateQueue = JSON.stringify((params?.audioLists || []).map((song: SongLike) => String(song.id)));
+
   return (
     <>
+      <div
+        data-testid='player-state'
+        hidden
+        data-play-mode={playerSettings?.playMode || ''}
+        data-current-audio-id={currentAudio?.id || ''}
+        data-queue={playerStateQueue}
+      />
+      <div style={{ position: 'fixed', left: '-9999px', top: 0, width: 1, height: 1, overflow: 'hidden' }} aria-hidden='true'>
+        <button data-testid='set-play-mode-order' onClick={() => onPlayModeChange('order')}>
+          order
+        </button>
+        <button data-testid='set-play-mode-order-loop' onClick={() => onPlayModeChange('orderLoop')}>
+          orderLoop
+        </button>
+        <button data-testid='set-play-mode-single-loop' onClick={() => onPlayModeChange('singleLoop')}>
+          singleLoop
+        </button>
+        <button data-testid='set-play-mode-shuffle' onClick={() => onPlayModeChange('shufflePlay')}>
+          shufflePlay
+        </button>
+      </div>
+
       {params ? (
         <FavList
           currentAudioList={params.audioLists}

@@ -83,9 +83,10 @@ describe('Player mode and stability regression', () => {
     (globalThis as any).chrome = chromeMock;
   });
 
-  it('switches to shuffle mode without rebuilding lists and keeps button mode', async () => {
-    const user = userEvent.setup();
+  it('applies play mode changes to the active queue immediately while keeping the current song', async () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
     const songs = makeSongs(6);
+    const updatePlayIndex = vi.fn();
 
     const fakeStorage = {
       getPlayerSetting: vi.fn().mockResolvedValue({ playMode: 'order', defaultVolume: 0.5 }),
@@ -101,20 +102,33 @@ describe('Player mode and stability regression', () => {
 
     await screen.findByTestId('jk-player');
     await waitFor(() => expect(latestJkProps?.audioLists?.length).toBe(6));
+    latestJkProps.getAudioInstance({ updatePlayIndex, playByIndex: vi.fn() });
+    latestJkProps.onAudioPlay(songs[2]);
+
+    const originalOrder = latestJkProps.audioLists.map((song: any) => song.id);
     expect(latestJkProps.playMode).toBe('order');
 
-    await user.click(screen.getByRole('button', { name: 'to-shuffle' }));
+    latestJkProps.onPlayModeChange('shufflePlay');
 
     await waitFor(() => {
       expect(latestJkProps.playMode).toBe('shufflePlay');
       expect(latestJkProps.audioLists).toHaveLength(6);
     });
+    const shuffledOrder = latestJkProps.audioLists.map((song: any) => song.id);
+    expect(shuffledOrder[0]).toBe('id-2');
+    expect(shuffledOrder).not.toEqual(originalOrder);
+    await waitFor(() => expect(updatePlayIndex).toHaveBeenCalledWith(0));
 
     latestJkProps.onPlayModeChange('singleLoop');
     await waitFor(() => expect(latestJkProps.playMode).toBe('singleLoop'));
+    expect(latestJkProps.audioLists.map((song: any) => song.id)).toEqual(shuffledOrder);
 
     latestJkProps.onPlayModeChange('order');
-    await waitFor(() => expect(latestJkProps.playMode).toBe('order'));
+    await waitFor(() => {
+      expect(latestJkProps.playMode).toBe('order');
+      expect(latestJkProps.audioLists.map((song: any) => song.id)).toEqual(originalOrder);
+    });
+    await waitFor(() => expect(updatePlayIndex).toHaveBeenCalledWith(2));
 
     expect(fakeStorage.setPlayerSetting).toHaveBeenCalledWith(
       expect.objectContaining({ playMode: 'shufflePlay' }),
@@ -125,6 +139,8 @@ describe('Player mode and stability regression', () => {
     expect(fakeStorage.setPlayerSetting).toHaveBeenCalledWith(
       expect.objectContaining({ playMode: 'order' }),
     );
+
+    randomSpy.mockRestore();
   });
 
   it('dedupes huge audio list updates (stress)', async () => {
@@ -274,6 +290,41 @@ describe('Player mode and stability regression', () => {
     await waitFor(() => expect(latestLyricOverlayProps.currentTime).toBe(1.4));
 
     nowSpy.mockRestore();
+  });
+
+  it('clears legacy progress data and no longer persists playback progress', async () => {
+    const { chromeMock } = createChromeMock({
+      SongProgressMap: { 'id-1': 98 },
+    });
+    (globalThis as any).chrome = chromeMock;
+
+    const fakeStorage = {
+      getPlayerSetting: vi.fn().mockResolvedValue({ playMode: 'order', defaultVolume: 0.5, darkMode: false }),
+      setPlayerSetting: vi.fn(),
+      setLastPlayList: vi.fn(),
+    } as any;
+
+    render(
+      <StorageManagerCtx.Provider value={fakeStorage}>
+        <Player songList={makeSongs(2) as any} />
+      </StorageManagerCtx.Provider>,
+    );
+
+    await screen.findByTestId('jk-player');
+    expect(chromeMock.storage.local.remove).toHaveBeenCalledWith('SongProgressMap');
+
+    latestJkProps.onAudioPlay(makeSongs(2)[1]);
+    latestJkProps.onAudioProgress({ id: 'id-1', currentTime: 98, name: 'Song-1', singer: 'Singer', cover: 'cover' });
+
+    const wroteSongProgressMap = chromeMock.storage.local.set.mock.calls.some(
+      ([payload]: [Record<string, unknown>]) => Object.prototype.hasOwnProperty.call(payload || {}, 'SongProgressMap'),
+    );
+    const readSongProgressMap = chromeMock.storage.local.get.mock.calls.some(
+      ([keys]: [unknown]) => Array.isArray(keys) && keys.includes('SongProgressMap'),
+    );
+
+    expect(wroteSongProgressMap).toBe(false);
+    expect(readSongProgressMap).toBe(false);
   });
 
   it('plays newly searched songs immediately after playlist insertion', async () => {

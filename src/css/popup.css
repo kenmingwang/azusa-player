@@ -53,8 +53,7 @@ body[data-theme='dark'] {
 }
 
 .react-jinke-music-player-main .music-player-panel {
-  background: url(https://github.com/kenmingwang/azusa-player/blob/master/docs/assets/bg3.png?raw=true)
-    no-repeat;
+  background: url('/assets/player-bg3.png') no-repeat;
   width: 100%;
   background-size: cover;
   position: relative;
@@ -109,6 +108,87 @@ body[data-theme='dark'] #blur-glass {
 
 body[data-theme='dark'] #FavTable {
   box-shadow: -4px 5px 14px 2px rgb(9 13 24 / 42%), 1px 1px 0 2px rgb(140 101 214 / 14%);
+}
+
+body[data-theme='light'] .MuiPaper-root,
+body[data-theme='light'] .MuiDialog-paper,
+body[data-theme='light'] .MuiMenu-paper {
+  background: var(--azusa-panel);
+  color: var(--azusa-fg);
+}
+
+body[data-theme='light'] .MuiList-root,
+body[data-theme='light'] .MuiTable-root,
+body[data-theme='light'] .MuiTableBody-root,
+body[data-theme='light'] .MuiTableContainer-root {
+  background: transparent;
+  color: var(--azusa-fg);
+}
+
+body[data-theme='light'] .MuiTableCell-root,
+body[data-theme='light'] .MuiTypography-root,
+body[data-theme='light'] .MuiListItemText-primary,
+body[data-theme='light'] .MuiFormLabel-root,
+body[data-theme='light'] .MuiInputLabel-root {
+  color: inherit;
+}
+
+body[data-theme='light'] .MuiOutlinedInput-root {
+  color: var(--azusa-fg);
+  background: var(--azusa-input-bg);
+}
+
+body[data-theme='light'] .MuiOutlinedInput-notchedOutline {
+  border-color: var(--azusa-input-border);
+}
+
+body[data-theme='light'] .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(108, 80, 168, 0.44);
+}
+
+body[data-theme='light'] .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #8f63d7;
+}
+
+body[data-theme='light'] .MuiInputBase-input::placeholder {
+  color: var(--azusa-muted);
+  opacity: 1;
+}
+
+body[data-theme='light'] .MuiButton-text.Mui-disabled,
+body[data-theme='light'] .MuiButton-root.Mui-disabled {
+  color: rgba(86, 64, 127, 0.28);
+}
+
+body[data-theme='light'] .MuiListItemButton-root {
+  border-radius: 10px;
+}
+
+body[data-theme='light'] .MuiListItemButton-root.Mui-selected {
+  background: rgba(171, 95, 255, 0.12);
+}
+
+body[data-theme='light'] .MuiListItemButton-root.Mui-selected:hover,
+body[data-theme='light'] .MuiListItemButton-root:hover {
+  background: rgba(171, 95, 255, 0.08);
+}
+
+body[data-theme='light'] .MuiDivider-root {
+  border-color: rgba(124, 92, 182, 0.2);
+}
+
+body[data-theme='light'] .MuiCheckbox-root,
+body[data-theme='light'] .MuiIconButton-root,
+body[data-theme='light'] .MuiSvgIcon-root {
+  color: var(--azusa-accent);
+}
+
+body[data-theme='light'] .MuiTablePagination-root,
+body[data-theme='light'] .MuiTablePagination-toolbar,
+body[data-theme='light'] .MuiTablePagination-selectLabel,
+body[data-theme='light'] .MuiTablePagination-displayedRows,
+body[data-theme='light'] .MuiSelect-select {
+  color: var(--azusa-fg);
 }
 
 body[data-theme='dark'] .react-jinke-music-player-main .music-player-panel::before {
@@ -398,6 +478,47 @@ body[data-theme='dark'] .MuiSelect-select {
 
 .react-jinke-music-player-main.light-theme .audio-lists-btn {
   background-color: rgba(171, 95, 255, 0.1) !important;
+}
+
+.react-jinke-music-player-main.light-theme .audio-lists-panel,
+.react-jinke-music-player-main.light-theme .audio-lists-panel-header {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  color: #2a1d4d !important;
+}
+
+.react-jinke-music-player-main.light-theme .audio-lists-panel {
+  box-shadow: 0 12px 28px rgba(113, 86, 183, 0.14) !important;
+}
+
+.react-jinke-music-player-main.light-theme .audio-lists-panel-header {
+  border-bottom-color: rgba(124, 92, 182, 0.16) !important;
+}
+
+.react-jinke-music-player-main.light-theme .audio-lists-panel-header-line {
+  background-color: rgba(124, 92, 182, 0.16) !important;
+}
+
+.react-jinke-music-player-main.light-theme .audio-lists-panel .audio-item,
+.react-jinke-music-player-main.light-theme .audio-lists-panel .audio-item .player-name {
+  color: #2a1d4d !important;
+}
+
+.react-jinke-music-player-main.light-theme .audio-lists-panel .audio-item .player-singer {
+  color: rgba(86, 64, 127, 0.78) !important;
+}
+
+.react-jinke-music-player-main.light-theme .audio-lists-panel .audio-item:nth-child(odd) {
+  background-color: rgba(245, 239, 255, 0.84) !important;
+}
+
+.react-jinke-music-player-main.light-theme .audio-lists-panel .audio-item.playing {
+  background-color: rgba(171, 95, 255, 0.12) !important;
+  color: #4c2e83 !important;
+}
+
+.react-jinke-music-player-main.light-theme .audio-lists-panel .audio-item.playing,
+.react-jinke-music-player-main.light-theme .audio-lists-panel .audio-item.playing svg {
+  color: #4c2e83 !important;
 }
 
 body[data-theme='dark'] .react-jinke-music-player-main .music-player-panel {

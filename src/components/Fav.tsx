@@ -73,7 +73,7 @@ const CRUDIcon = {
   ':hover': { cursor: 'pointer' },
   width: '1.05em',
   height: '1.05em',
-  color: '#8e5fab',
+  color: 'var(--azusa-accent)',
 };
 
 const songText = {
@@ -368,7 +368,10 @@ export const Fav = function ({
                         </Button>
                       </Tooltip>
                     </StyledTableCell>
-                    <StyledTableCell align='center' sx={{ minWidth: 0, color: '#ab5fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <StyledTableCell
+                      align='center'
+                      sx={{ minWidth: 0, color: '#ab5fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    >
                       <a href={`https://space.bilibili.com/${song.singerId}`} target='_blank' rel='noreferrer' style={{ color: 'inherit', textDecoration: 'none' }}>
                         {song.singer}
                       </a>
