@@ -155,7 +155,7 @@ export const HelpDialog = function ({ onClose, openState }: HelpDialogProps) {
         <DialogContentText>
           - Season 链接: `https://space.bilibili.com/&lt;uid&gt;/lists/&lt;sid&gt;?type=season`
         </DialogContentText>
-        <DialogContentText>右键 B 站视频、收藏夹、合集、series、season 链接也可以快速加入歌单。</DialogContentText>
+        <DialogContentText>右键 B 站视频也可以快速加入歌单，其他来源暂时不支持。</DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>关闭</Button>
