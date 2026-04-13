@@ -88,6 +88,24 @@ describe('Data integration behaviors', () => {
     expect(titles).toContain('last');
   });
 
+  it('fetchFavList rejects bilibili risk-control responses instead of treating them as empty results', async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes('/x/v3/fav/resource/list')) {
+        return mockJsonResponse({
+          code: -412,
+          message: 'The request was rejected because of the bilibili security control policy.',
+          data: null,
+        });
+      }
+
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    vi.stubGlobal('fetch', fetchMock as any);
+
+    await expect(fetchFavList('MID_RISK')).rejects.toThrow('The request was rejected because of the bilibili security control policy.');
+  });
+
   it('fetchBiliColleList uses the web-space season endpoint', async () => {
     const fetchMock = vi.fn(async (url: string) => {
       if (url.includes('/x/polymer/web-space/seasons_archives_list') && url.includes('page_num=1')) {

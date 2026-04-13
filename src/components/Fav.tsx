@@ -54,6 +54,7 @@ interface FavProps {
   onSongIndexChange: (songs: any[]) => void;
   onAddOneFromFav: (songs: any[]) => void;
   onRefreshFromSource?: (list: any) => void;
+  refreshInProgress?: boolean;
   handleDelteFromSearchList: (id: string, songId: string, tableInfo: Record<string, any>) => void;
   handleAddToFavClick: (id: string, songs: any[]) => void;
   handleDeleteSongs: (id: string, songIds: string[], tableInfo: Record<string, any>) => void;
@@ -143,6 +144,7 @@ export const Fav = function ({
   onSongIndexChange,
   onAddOneFromFav,
   onRefreshFromSource,
+  refreshInProgress = false,
   handleDelteFromSearchList,
   handleAddToFavClick,
   handleDeleteSongs,
@@ -289,8 +291,8 @@ export const Fav = function ({
                   {currentFavList.info.source ? (
                     <Tooltip title='按原始来源刷新歌单'>
                       <span>
-                        <Button size='small' onClick={() => onRefreshFromSource?.(currentFavList)}>
-                          刷新来源
+                        <Button size='small' disabled={refreshInProgress} onClick={() => onRefreshFromSource?.(currentFavList)}>
+                          {refreshInProgress ? '刷新中' : '刷新来源'}
                         </Button>
                       </span>
                     </Tooltip>
@@ -433,4 +435,3 @@ export const Fav = function ({
     </>
   );
 };
-

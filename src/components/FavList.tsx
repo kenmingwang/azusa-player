@@ -32,7 +32,10 @@ import SyncIcon from '@mui/icons-material/Sync';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import { fetchPlayUrlPromise } from '../utils/Data';
-import { getSongsFromSource, SearchSource } from '../background/DataProcess';
+import Alert from '@mui/material/Alert';
+import LinearProgress from '@mui/material/LinearProgress';
+import Snackbar from '@mui/material/Snackbar';
+import { refreshSongsFromSource, SearchSource } from '../background/DataProcess';
 import { browserApi } from '../platform/browserApi';
 
 interface SongLike {
@@ -51,6 +54,19 @@ interface FavInfo {
 interface FavLike {
   info: FavInfo;
   songList: SongLike[];
+}
+
+interface RefreshState {
+  listId: string;
+  processed: number;
+  total: number;
+  failedCount: number;
+  running: boolean;
+}
+
+interface RefreshNotice {
+  severity: 'success' | 'warning' | 'error';
+  message: string;
 }
 
 interface FavListProps {
@@ -127,6 +143,8 @@ export const FavList = memo(function ({
   const [actionSongs, setActionSongs] = useState<SongLike[]>([]);
   const [searchList, setSearchList] = useState<FavLike>({ info: { title: '搜索歌单', id: 'FavList-Search' }, songList: [] });
   const [pendingNewFavPayload, setPendingNewFavPayload] = useState<{ songs: SongLike[]; source?: SearchSource } | null>(null);
+  const [refreshState, setRefreshState] = useState<RefreshState | null>(null);
+  const [refreshNotice, setRefreshNotice] = useState<RefreshNotice | null>(null);
 
   const StorageManager = useContext(StorageManagerCtx) as any;
   const titleColor = darkMode ? '#f2ecff' : '#9600af94';
@@ -232,14 +250,53 @@ export const FavList = memo(function ({
   };
 
   const refreshFromSource = async (list: FavLike) => {
-    if (!list.info.source) return;
+    if (!list.info.source || refreshState?.running) return;
+    setRefreshState({ listId: list.info.id, processed: 0, total: 0, failedCount: 0, running: true });
+    try {
+      const result = await refreshSongsFromSource(list.info.source, list.songList, (progress) => {
+        setRefreshState({
+          listId: list.info.id,
+          processed: progress.processed,
+          total: progress.total,
+          failedCount: progress.failedCount,
+          running: true,
+        });
+      });
 
-    const refreshed = {
-      ...list,
-      songList: await getSongsFromSource(list.info.source),
-    };
+      const refreshed = {
+        ...list,
+        songList: result.songs,
+      };
 
-    updateListState(refreshed, list.info.currentTableInfo || {});
+      updateListState(refreshed, list.info.currentTableInfo || {});
+      setRefreshState({
+        listId: list.info.id,
+        processed: result.processed,
+        total: result.total,
+        failedCount: result.failedCount,
+        running: false,
+      });
+      if (result.failedCount > 0) {
+        setRefreshNotice({
+          severity: 'warning',
+          message: `刷新完成，但有 ${result.failedCount} 首获取失败，已跳过。请稍后再试。`,
+        });
+      } else {
+        setRefreshNotice({
+          severity: 'success',
+          message: `刷新完成，共同步 ${result.total} 首。`,
+        });
+      }
+    } catch (error) {
+      console.error('refreshFromSource failed', list.info.source, error);
+      setRefreshState((prev) =>
+        prev && prev.listId === list.info.id ? { ...prev, running: false } : prev,
+      );
+      setRefreshNotice({
+        severity: 'error',
+        message: '按原始来源刷新失败，已保留当前歌单内容。请稍后重试，或先在 B 站页面完成验证后再刷新。',
+      });
+    }
   };
 
   const handleDelteFromSearchList = useCallback(
@@ -596,18 +653,35 @@ export const FavList = memo(function ({
         }}
       >
         {selectedList ? (
-          <Fav
-            FavList={selectedList}
-            currentAudioId={currentAudioId}
-            onSongListChange={onSongListChange}
-            onSongIndexChange={onPlayOneFromFav}
-            onAddOneFromFav={onAddOneFromFav}
-            onRefreshFromSource={refreshFromSource}
-            handleDelteFromSearchList={handleDelteFromSearchList}
-            handleAddToFavClick={handleAddToFavClick}
-            handleDeleteSongs={handleDeleteSongs}
-            handleRenameSong={handleRenameSong}
-          />
+          <>
+            {refreshState?.listId === selectedList.info.id ? (
+              <Box sx={{ mb: 1, px: { xs: 0.25, md: 0.5 } }}>
+                <Typography variant='body2' sx={{ color: 'var(--azusa-accent)', mb: 0.5 }}>
+                  {refreshState.running
+                    ? `刷新来源中 ${refreshState.processed}/${refreshState.total || '?'}`
+                    : `刷新来源完成 ${refreshState.processed}/${refreshState.total || 0}`}
+                  {refreshState.failedCount ? `，失败 ${refreshState.failedCount} 首` : ''}
+                </Typography>
+                <LinearProgress
+                  variant={refreshState.total ? 'determinate' : 'indeterminate'}
+                  value={refreshState.total ? (refreshState.processed / refreshState.total) * 100 : undefined}
+                />
+              </Box>
+            ) : null}
+            <Fav
+              FavList={selectedList}
+              currentAudioId={currentAudioId}
+              onSongListChange={onSongListChange}
+              onSongIndexChange={onPlayOneFromFav}
+              onAddOneFromFav={onAddOneFromFav}
+              onRefreshFromSource={refreshFromSource}
+              refreshInProgress={!!(refreshState?.running && refreshState.listId === selectedList.info.id)}
+              handleDelteFromSearchList={handleDelteFromSearchList}
+              handleAddToFavClick={handleAddToFavClick}
+              handleDeleteSongs={handleDeleteSongs}
+              handleRenameSong={handleRenameSong}
+            />
+          </>
         ) : null}
       </Box>
 
@@ -622,7 +696,11 @@ export const FavList = memo(function ({
           songs={actionSongs}
         />
       ) : null}
+      <Snackbar open={!!refreshNotice} autoHideDuration={5000} onClose={() => setRefreshNotice(null)}>
+        <Alert onClose={() => setRefreshNotice(null)} severity={refreshNotice?.severity || 'success'} sx={{ width: '100%' }}>
+          {refreshNotice?.message || ''}
+        </Alert>
+      </Snackbar>
     </>
   );
 });
-

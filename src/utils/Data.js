@@ -112,6 +112,13 @@ const fetchJsonWithPolicy = async (url, init = {}, includeCredentials = false) =
 const fetchBiliJson = async (url, init = {}) => fetchJsonWithPolicy(url, init, false);
 const fetchBiliJsonWithCredentials = async (url, init = {}) => fetchJsonWithPolicy(url, init, true);
 
+const ensureBiliSuccess = (json) => {
+  if (typeof json?.code === 'number' && json.code !== 0) {
+    throw new Error(json.message || json.msg || `Bilibili API error ${json.code}`);
+  }
+  return json;
+};
+
 const extractResponseJson = (json, field) => {
   if (field === 'AudioUrl') {
     const audios = json?.data?.dash?.audio || [];
@@ -163,7 +170,7 @@ export const fetchPlayUrlPromise = async (bvid, cid) => {
 
 export const fetchCID = async (bvid) => {
   try {
-    const json = await fetchBiliJson(URL_BVID_TO_CID.replace('{bvid}', bvid));
+    const json = ensureBiliSuccess(await fetchBiliJson(URL_BVID_TO_CID.replace('{bvid}', bvid)));
     return extractResponseJson(json, 'CID');
   } catch (error) {
     console.log(error);
@@ -174,7 +181,7 @@ export const fetchCID = async (bvid) => {
 export const fetchVideoInfo = async (bvid) => {
   logger.info('calling fetchVideoInfo');
   try {
-    const json = await fetchBiliJson(URL_VIDEO_INFO.replace('{bvid}', bvid));
+    const json = ensureBiliSuccess(await fetchBiliJson(URL_VIDEO_INFO.replace('{bvid}', bvid)));
     const data = json.data;
     return new VideoInfo(
       data.title,
@@ -192,90 +199,81 @@ export const fetchVideoInfo = async (bvid) => {
 
 export const fetchBiliSeriesInfo = async (mid, sid) => {
   logger.info('calling fetchBiliSeriesInfo');
-  try {
-    const page = 0;
-    const json = await fetchBiliJson(URL_BILISERIES_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page));
-    const data = json.data;
-
-    const bvidPromises = (data.archives || []).map((v) => fetchVideoInfo(v.bvid));
-    return Promise.all(bvidPromises);
-  } catch (error) {
-    console.log('Some issue happened when fetching series', mid, sid, error);
-    return [];
-  }
+  const bvids = await fetchBiliSeriesBvids(mid, sid);
+  return Promise.all(bvids.map((bvid) => fetchVideoInfo(bvid)));
 };
 
 export const fetchBiliColleList = async (mid, sid, favList = []) => {
   logger.info('calling fetchBiliColleList');
-  try {
-    const firstPageUrl = URL_BILICOLLE_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', 1);
-    const json = await fetchBiliJson(firstPageUrl);
-    const data = json.data;
+  const bvids = await fetchBiliColleBvids(mid, sid, favList);
+  return Promise.all(bvids.map((bvid) => fetchVideoInfo(bvid)));
+};
 
-    const mediaCount = data.meta.total;
-    const totalPagesRequired = 1 + Math.floor(mediaCount / data.page.page_size);
+export const fetchBiliSeriesBvids = async (mid, sid) => {
+  logger.info('calling fetchBiliSeriesBvids');
+  const page = 0;
+  const json = ensureBiliSuccess(await fetchBiliJson(URL_BILISERIES_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page)));
+  return (json?.data?.archives || []).map((v) => String(v?.bvid || '')).filter(Boolean);
+};
 
-    const bvidPromises = [];
-    const pagesPromises = [Promise.resolve(json)];
+export const fetchBiliColleBvids = async (mid, sid, favList = []) => {
+  logger.info('calling fetchBiliColleBvids');
+  const firstPageUrl = URL_BILICOLLE_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', 1);
+  const json = ensureBiliSuccess(await fetchBiliJson(firstPageUrl));
+  const data = json.data;
 
-    for (let page = 2; page <= totalPagesRequired; page++) {
-      pagesPromises.push(fetchBiliJson(URL_BILICOLLE_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page)));
-    }
+  const mediaCount = data.meta.total;
+  const totalPagesRequired = 1 + Math.floor(mediaCount / data.page.page_size);
 
-    const pages = await Promise.all(pagesPromises);
-    for (const pageJson of pages) {
-      const archives = pageJson?.data?.archives || [];
-      archives.forEach((m) => {
-        if (!favList.includes(m.bvid)) {
-          bvidPromises.push(fetchVideoInfo(m.bvid));
-        }
-      });
-    }
+  const pagesPromises = [Promise.resolve(json)];
+  const favSet = new Set((favList || []).map((item) => String(item || '')));
 
-    return Promise.all(bvidPromises);
-  } catch (error) {
-    console.log('Some issue happened when fetching collection', mid, sid, error);
-    return [];
+  for (let page = 2; page <= totalPagesRequired; page++) {
+    pagesPromises.push(fetchBiliJson(URL_BILICOLLE_INFO.replace('{mid}', mid).replace('{sid}', sid).replace('{pn}', page)));
   }
+
+  const pages = (await Promise.all(pagesPromises)).map(ensureBiliSuccess);
+  return pages.flatMap((pageJson) =>
+    (pageJson?.data?.archives || [])
+      .map((m) => String(m?.bvid || ''))
+      .filter((bvid) => bvid && !favSet.has(bvid)),
+  );
+};
+
+const fetchFavPage = async (mid, page) => {
+  const url = URL_FAV_LIST.replace('{mid}', mid).replace('{pn}', page);
+  try {
+    return await fetchBiliJson(url);
+  } catch (error) {
+    console.log('fetchFavList public request failed, retry with credentials', mid, page, error);
+    return fetchBiliJsonWithCredentials(url);
+  }
+};
+
+export const fetchFavBvids = async (mid) => {
+  logger.info('calling fetchFavBvids');
+  const json = ensureBiliSuccess(await fetchFavPage(mid, 1));
+  const data = json.data;
+
+  const mediaCount = data.info.media_count;
+  const totalPagesRequired = Math.ceil(mediaCount / 20);
+  const pagesPromises = [];
+
+  for (let page = 2; page <= totalPagesRequired; page++) {
+    pagesPromises.push(fetchFavPage(mid, page));
+  }
+
+  const pages = (await Promise.all(pagesPromises)).map(ensureBiliSuccess);
+  return [
+    ...(data.medias || []).map((m) => String(m?.bvid || '')).filter(Boolean),
+    ...pages.flatMap((pageJson) => (pageJson?.data?.medias || []).map((m) => String(m?.bvid || '')).filter(Boolean)),
+  ];
 };
 
 export const fetchFavList = async (mid) => {
   logger.info('calling fetchFavList');
-  const fetchPage = async (page) => {
-    const url = URL_FAV_LIST.replace('{mid}', mid).replace('{pn}', page);
-    try {
-      return await fetchBiliJson(url);
-    } catch (error) {
-      console.log('fetchFavList public request failed, retry with credentials', mid, page, error);
-      return fetchBiliJsonWithCredentials(url);
-    }
-  };
-
-  try {
-    const json = await fetchPage(1);
-    const data = json.data;
-
-    const mediaCount = data.info.media_count;
-    const totalPagesRequired = Math.ceil(mediaCount / 20);
-
-    const bvidPromises = (data.medias || []).map((m) => fetchVideoInfo(m.bvid));
-    const pagesPromises = [];
-
-    for (let page = 2; page <= totalPagesRequired; page++) {
-      pagesPromises.push(fetchPage(page));
-    }
-
-    const pages = await Promise.all(pagesPromises);
-    for (const pageJson of pages) {
-      const medias = pageJson?.data?.medias || [];
-      medias.forEach((m) => bvidPromises.push(fetchVideoInfo(m.bvid)));
-    }
-
-    return Promise.all(bvidPromises);
-  } catch (error) {
-    console.log('Some issue happened when fetching fav list', mid, error);
-    return [];
-  }
+  const bvids = await fetchFavBvids(mid);
+  return Promise.all(bvids.map((bvid) => fetchVideoInfo(bvid)));
 };
 
 export const extractSongName = (name) => {
@@ -358,4 +356,3 @@ export const searchLyric = async (searchMID, setLyric) => {
 
   setLyric(finalLrc);
 };
-
