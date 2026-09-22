@@ -131,6 +131,54 @@ test.describe('popup e2e', () => {
     await expect(page.locator('table[aria-label="fav table"] tbody tr')).toHaveCount(0);
   });
 
+  test('shows the best available audio quality of every row', async ({ page }) => {
+    await search(page, BVID_SEARCH);
+
+    await expect(page.getByRole('button', { name: 'Search Match Song' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: '音质' })).toBeVisible();
+
+    const badge = page.getByTestId('audio-quality').first();
+    await expect(badge).toHaveAttribute('data-quality-id', '30280');
+    await expect(badge).toHaveAttribute('data-quality-label', '192K');
+    await expect(badge).toHaveText('192K');
+  });
+
+  test('creates and fills a brand new playlist straight from the add dialog', async ({ page }) => {
+    await search(page, BVID_SEARCH);
+    await expect(page.getByRole('button', { name: 'Search Match Song' })).toBeVisible();
+
+    await page.getByTestId('search-list-add-to-fav').click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toContainText('添加到歌单');
+
+    await dialog.getByTestId('create-and-add-fav').click();
+    await dialog.locator('#new-fav-name').fill('一键新歌单');
+    await expect(dialog).toContainText('将直接创建新歌单并放入 1 首歌曲');
+    await dialog.getByTestId('confirm-add-fav').click();
+
+    await expect(page.getByRole('heading', { name: '一键新歌单' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Search Match Song' })).toBeVisible();
+  });
+
+  test('batch downloads the selected songs to disk at the highest quality', async ({ page }) => {
+    await search(page, BVID_SEARCH);
+    await expect(page.getByRole('button', { name: 'Search Match Song' })).toBeVisible();
+
+    const batchDownload = page.getByTestId('batch-download-songs');
+    await expect(batchDownload).toBeDisabled();
+
+    await page.locator('table[aria-label="fav table"] tbody tr').first().getByRole('checkbox').check();
+    await expect(batchDownload).toBeEnabled();
+
+    const downloadPromise = page.waitForEvent('download');
+    await batchDownload.click();
+    const download = await downloadPromise;
+
+    expect(download.suggestedFilename()).toBe('Search Match Song.m4a');
+    await expect(page.getByText('已按最高音质下载 1 首到本地。')).toBeVisible();
+  });
+
   test('updates the current queue immediately when play mode changes', async ({ page }) => {
     await page.evaluate(() => window.localStorage.clear());
     await openPopup(page, {

@@ -386,22 +386,39 @@ export const FavList = memo(function ({
     setOpenAddDialog(true);
   };
 
-  const onAddFav = (fromId?: string | null, toId?: string, songs: SongLike[] = []) => {
+  const resolveActionSongs = (fromId?: string | null, songs: SongLike[] = []): SongLike[] => {
+    if (songs?.length) return songs;
+    if (fromId === 'FavList-Search') return searchList.songList;
+    return favLists?.find((f) => f.info.id === fromId)?.songList || [];
+  };
+
+  const resolveActionSource = (fromId?: string | null): SearchSource | undefined => {
+    if (fromId === 'FavList-Search') return searchList.info.source;
+    return favLists?.find((f) => f.info.id === fromId)?.info.source;
+  };
+
+  const onAddFav = (fromId?: string | null, toId?: string, songs: SongLike[] = [], newFavName?: string) => {
     setOpenAddDialog(false);
+
+    const fromSongs = resolveActionSongs(fromId, songs);
+
+    // "即刻新建歌单并添加": create the playlist and drop the songs in, in one go.
+    if (newFavName) {
+      const created = StorageManager.addFavList(newFavName);
+      const source = resolveActionSource(fromId);
+      const newList: FavLike = {
+        info: { ...created.info, ...(source ? { source } : {}) },
+        songList: fromSongs,
+      };
+      StorageManager.updateFavList(newList);
+      selectFavList(newList, {});
+      return;
+    }
+
     if (!toId || !favLists) return;
 
-    let fromSongs: SongLike[] = [];
     const toList = favLists.find((f) => f.info.id === toId);
     if (!toList) return;
-
-    if (songs?.length) {
-      fromSongs = songs;
-    } else if (fromId === 'FavList-Search') {
-      fromSongs = searchList.songList;
-    } else {
-      const fromList = favLists.find((f) => f.info.id === fromId);
-      fromSongs = fromList?.songList || [];
-    }
 
     const newSongList = fromSongs.filter((s) => toList.songList.find((v) => v.id === s.id) === undefined);
     const updatedToList = { info: toList.info, songList: newSongList.concat(toList.songList) };
@@ -560,7 +577,12 @@ export const FavList = memo(function ({
                   <PlaylistAddIcon sx={CRUDIcon} onClick={() => onAddFavToList(searchList.songList)} />
                 </Tooltip>
                 <Tooltip title='添加到歌单'>
-                  <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(searchList.info.id, searchList.songList)} />
+                  <AddBoxOutlinedIcon
+                    data-testid='search-list-add-to-fav'
+                    aria-label='search-list-add-to-fav'
+                    sx={CRUDIcon}
+                    onClick={() => handleAddToFavClick(searchList.info.id, searchList.songList)}
+                  />
                 </Tooltip>
                 {searchList.info.source ? (
                   <Tooltip title='按原始来源刷新'>

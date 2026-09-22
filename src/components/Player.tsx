@@ -5,8 +5,11 @@ import Box from '@mui/material/Box';
 import { FavList } from './FavList';
 import { BiliBiliIcon } from './bilibiliIcon';
 import { LyricOverlay } from './LyricOverlay';
+import LyricPanel from './LyricPanel';
 import StorageManagerCtx from '../popup/App';
 import { browserApi } from '../platform/browserApi';
+import { saveAs } from 'file-saver';
+import { resolveExtension, sanitizeFileName } from '../utils/downloader';
 
 interface SongLike {
   id: string;
@@ -393,17 +396,14 @@ export const Player = function ({ songList }: PlayerProps) {
   };
 
   const customDownloader = (downloadInfo: { src: string }) => {
+    if (!downloadInfo?.src) return;
     fetch(downloadInfo.src)
       .then((res) => res.blob())
       .then((blob) => {
-        const href = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = href;
-        link.download = `${currentAudioInst?.title || 'music'}.mp3`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(href);
+        // The player already resolved the highest quality stream, so only the container name is derived here.
+        const extension = resolveExtension(blob.type, 'm4a');
+        const fileName = `${sanitizeFileName(currentAudio?.name || currentAudioInst?.title || 'music')}.${extension}`;
+        saveAs(blob, fileName);
       })
       .catch((err) => console.error(err));
   };
@@ -464,6 +464,27 @@ export const Player = function ({ songList }: PlayerProps) {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentAudioInst]);
+
+  /**
+   * Jump playback to an absolute position (used by the lyric views: clicking the play button next
+   * to a line seeks to the moment that line is sung and keeps playing).
+   */
+  const seekToSecond = useCallback(
+    (seconds: number) => {
+      const target = Math.max(0, Number(seconds) || 0);
+      const audioElem = document.querySelector('audio') as HTMLAudioElement | null;
+      if (audioElem) {
+        const duration = Number(audioElem.duration);
+        audioElem.currentTime = Number.isFinite(duration) && duration > 0 ? Math.min(target, duration) : target;
+        if (audioElem.paused) {
+          Promise.resolve(audioElem.play()).catch(() => null);
+        }
+      }
+      // Move the highlight immediately instead of waiting for the next progress event.
+      setLyricCurrentTime(target);
+    },
+    [setLyricCurrentTime],
+  );
 
   useEffect(() => {
     if (!songList) return;
@@ -631,8 +652,17 @@ export const Player = function ({ songList }: PlayerProps) {
           audioId={currentAudio.id}
           artist={currentAudio.singer}
           audioCover={currentAudio.cover}
+          onSeek={seekToSecond}
         />
       ) : null}
+
+      <LyricPanel
+        currentTime={lyricCurrentTime}
+        audioName={currentAudio?.name}
+        audioId={currentAudio?.id}
+        artist={currentAudio?.singer}
+        onSeek={seekToSecond}
+      />
 
       {params ? (
         <Box display='flex' flex='1' justifyContent='space-around' sx={{ gridArea: 'footer', height: '84px', width: '100%' }}>

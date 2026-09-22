@@ -32,7 +32,8 @@
     "scripting",
     "storage",
     "contextMenus",
-    "notifications"
+    "notifications",
+    "downloads"
   ],
   "host_permissions": [
     "*://*.acgvideo.com/*",
@@ -41,6 +42,7 @@
     "*://*.hdslb.com/*",
     "*://*.cgvideo.com/*",
     "*://*.y.qq.com/*",
+    "*://*.music.163.com/*",
     "*://*.bilivideo.cn/*",
     "*://*.akamaized.net/*"
   ],

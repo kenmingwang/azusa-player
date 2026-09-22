@@ -25,16 +25,18 @@ const PlayerBox = {
     md: 'minmax(0, 1fr) clamp(300px, 32vw, 460px)',
   },
   gridTemplateRows: {
-    xs: `auto auto minmax(0, 1fr) ${FOOTER_HEIGHT}px`,
-    md: `auto minmax(0, 1fr) ${FOOTER_HEIGHT}px`,
+    xs: `auto minmax(0, 1fr) minmax(0, 1fr) auto ${FOOTER_HEIGHT}px`,
+    md: `auto minmax(0, 1fr) auto ${FOOTER_HEIGHT}px`,
   },
   gridTemplateAreas: {
     xs: `"search"
          "sidebar"
          "Lrc"
+         "lyricPanel"
          "footer"`,
     md: `"Lrc search"
          "Lrc sidebar"
+         "Lrc lyricPanel"
          "footer footer"`,
   },
 };
