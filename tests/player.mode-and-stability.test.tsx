@@ -11,6 +11,7 @@ import { createChromeMock } from './helpers/chrome-mock';
 let latestJkProps: any = null;
 let latestFavListProps: any = null;
 let latestLyricOverlayProps: any = null;
+let latestLyricPanelProps: any = null;
 
 vi.mock('react-jinke-music-player', () => ({
   default: (props: any) => {
@@ -62,6 +63,14 @@ vi.mock('../src/components/LyricOverlay', () => ({
   },
 }));
 
+// The inline panel renders the real lyric search bar, which would hit the network from jsdom.
+vi.mock('../src/components/LyricPanel', () => ({
+  default: (props: any) => {
+    latestLyricPanelProps = props;
+    return <div data-testid='lyric-panel' data-song={props.audioId ?? ''} data-time={props.currentTime ?? ''} />;
+  },
+}));
+
 const makeSongs = (n: number) =>
   Array.from({ length: n }).map((_, i) => ({
     id: `id-${i}`,
@@ -78,6 +87,7 @@ describe('Player mode and stability regression', () => {
     latestJkProps = null;
     latestFavListProps = null;
     latestLyricOverlayProps = null;
+    latestLyricPanelProps = null;
     document.body.dataset.theme = 'light';
     const { chromeMock } = createChromeMock();
     (globalThis as any).chrome = chromeMock;
@@ -229,6 +239,61 @@ describe('Player mode and stability regression', () => {
       );
       expect(document.body.dataset.theme).toBe('dark');
     });
+  });
+
+  it('feeds the inline lyric panel with the current track and playback time', async () => {
+    const fakeStorage = {
+      getPlayerSetting: vi.fn().mockResolvedValue({ playMode: 'order', defaultVolume: 0.5, darkMode: false }),
+      setPlayerSetting: vi.fn(),
+      setLastPlayList: vi.fn(),
+    } as any;
+
+    render(
+      <StorageManagerCtx.Provider value={fakeStorage}>
+        <Player songList={makeSongs(2) as any} />
+      </StorageManagerCtx.Provider>,
+    );
+
+    await screen.findByTestId('jk-player');
+    expect(screen.getByTestId('lyric-panel')).toBeInTheDocument();
+
+    latestJkProps.onAudioProgress({ id: 'id-1', currentTime: 33, name: 'Song-1', singer: 'Singer', cover: 'cover' });
+
+    await waitFor(() => expect(screen.getByTestId('lyric-panel')).toHaveAttribute('data-song', 'id-1'));
+    expect(latestLyricPanelProps.audioName).toBe('Song-1');
+    expect(latestLyricPanelProps.artist).toBe('Singer');
+    await waitFor(() => expect(latestLyricPanelProps.currentTime).toBe(33));
+  });
+
+  it('seeks the audio element and resumes playback when a lyric line is clicked', async () => {
+    const fakeStorage = {
+      getPlayerSetting: vi.fn().mockResolvedValue({ playMode: 'order', defaultVolume: 0.5, darkMode: false }),
+      setPlayerSetting: vi.fn(),
+      setLastPlayList: vi.fn(),
+    } as any;
+
+    render(
+      <StorageManagerCtx.Provider value={fakeStorage}>
+        <Player songList={makeSongs(2) as any} />
+      </StorageManagerCtx.Provider>,
+    );
+
+    await screen.findByTestId('jk-player');
+    expect(typeof latestLyricPanelProps.onSeek).toBe('function');
+
+    const audioElem = document.createElement('audio');
+    const playMock = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(audioElem, 'play', { value: playMock, configurable: true });
+    document.body.appendChild(audioElem);
+
+    latestLyricPanelProps.onSeek(42.5);
+
+    expect(audioElem.currentTime).toBe(42.5);
+    expect(playMock).toHaveBeenCalled();
+    // The highlight jumps immediately instead of waiting for the next progress event.
+    await waitFor(() => expect(latestLyricPanelProps.currentTime).toBe(42.5));
+
+    document.body.removeChild(audioElem);
   });
 
   it('reopens lyric overlay immediately after closing from overlay action', async () => {

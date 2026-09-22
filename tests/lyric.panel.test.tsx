@@ -55,7 +55,8 @@ describe('Lyric panel regression', () => {
     );
 
     expect(await screen.findByTestId('mock-lrc')).toBeInTheDocument();
-    expect(latestLrcProps.intervalOfRecoveringAutoScrollAfterUserScroll).toBe(3000);
+    expect(latestLrcProps.recoverAutoScrollInterval).toBe(3000);
+    expect(latestLrcProps.verticalSpace).toBe(true);
     expect(fakeStorage.getLyricDetail).not.toHaveBeenCalled();
     expect(latestSearchBarProps.SongId).toBe('');
   });
@@ -77,7 +78,16 @@ describe('Lyric panel regression', () => {
     expect(await screen.findByDisplayValue('20')).toBeInTheDocument();
 
     const fontSizeInput = screen.getByDisplayValue('20');
-    expect(latestLrcProps.lineRenderer({ line: { content: 'a' }, active: false }).props.style.fontSize).toBe('20px');
+    const inactiveLine = render(
+      latestLrcProps.lineRenderer({
+        index: 0,
+        active: false,
+        line: { id: 'l0', content: 'a', startMillisecond: 1000, lineNumber: 1 },
+      }),
+    );
+    // MUI's sx compiles to a generated class, so assert the resolved style rather than inline props.
+    expect(inactiveLine.getByText('a')).toHaveStyle({ fontSize: '20px' });
+    expect(inactiveLine.getByText('a')).toHaveStyle({ color: 'rgba(76, 44, 136, 0.92)' });
 
     fireEvent.change(fontSizeInput, { target: { value: '18' } });
 
