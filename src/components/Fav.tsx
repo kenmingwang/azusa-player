@@ -31,6 +31,7 @@ import { zhCN } from '@mui/material/locale';
 import Tooltip from '@mui/material/Tooltip';
 import Checkbox from '@mui/material/Checkbox';
 import DownloadIcon from '@mui/icons-material/Download';
+import FolderSharedIcon from '@mui/icons-material/FolderShared';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -39,7 +40,9 @@ import LinearProgress from '@mui/material/LinearProgress';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { AudioQualityBadge } from './AudioQuality';
-import { downloadSongsToLocal } from '../utils/downloader';
+import DownloadDialog, { BROWSER_DOWNLOAD_SUBFOLDER } from './DownloadDialog';
+import { downloadSongsToLocal, type DownloadTarget } from '../utils/downloader';
+import { describeDownloadDirectory, verifyDirectoryPermission } from '../utils/fileSystemAccess';
 import type { SearchSource } from '../background/DataProcess';
 
 interface SongLike {
@@ -177,6 +180,7 @@ export const Fav = function ({
   const [highlightSongId, setHighlightSongId] = useState('');
   const [highlightNonce, setHighlightNonce] = useState(0);
   const [downloadState, setDownloadState] = useState<DownloadState | null>(null);
+  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
   const [downloadNotice, setDownloadNotice] = useState<{ severity: 'success' | 'info' | 'warning' | 'error'; message: string } | null>(null);
   const cancelDownloadRef = React.useRef(false);
   const rowRefs = React.useRef<Record<string, HTMLTableRowElement | null>>({});
@@ -256,10 +260,21 @@ export const Fav = function ({
       return;
     }
 
+    // Still inside the click gesture: re-grant the stored folder handle if Chrome downgraded it.
+    const downloadTarget: DownloadTarget = { subfolder: BROWSER_DOWNLOAD_SUBFOLDER };
+    const { handle, permission } = await describeDownloadDirectory();
+    if (handle) {
+      if (permission === 'granted' || (await verifyDirectoryPermission(handle, true))) {
+        downloadTarget.directoryHandle = handle;
+        delete downloadTarget.subfolder;
+      }
+    }
+
     cancelDownloadRef.current = false;
     setDownloadState({ index: 0, total: targets.length, name: String(targets[0].name || ''), qualityLabel: '' });
 
     const summary = await downloadSongsToLocal(targets as any, {
+      target: downloadTarget,
       isCancelled: () => cancelDownloadRef.current,
       onProgress: (event) => {
         setDownloadState({
@@ -278,8 +293,10 @@ export const Fav = function ({
       return;
     }
 
+    const destination = downloadTarget.directoryHandle ? `所选文件夹「${downloadTarget.directoryHandle.name}」` : '浏览器下载目录';
+
     if (summary.failed === 0 && summary.skipped === 0) {
-      setDownloadNotice({ severity: 'success', message: `已按最高音质下载 ${summary.succeeded} 首到本地。` });
+      setDownloadNotice({ severity: 'success', message: `已按最高音质下载 ${summary.succeeded} 首到${destination}。` });
       return;
     }
 
@@ -287,7 +304,7 @@ export const Fav = function ({
       severity: summary.succeeded ? 'warning' : 'error',
       message: `下载完成：成功 ${summary.succeeded} 首，失败 ${summary.failed} 首${
         summary.skipped ? `，取消 ${summary.skipped} 首` : ''
-      }。`,
+      }。可在「下载记录」查看明细。`,
     });
   }, []);
 
@@ -352,6 +369,18 @@ export const Fav = function ({
                         onClick={() => runDownloadSongs(selectedSongs)}
                       >
                         批量下载({selectedSongs.length})
+                      </Button>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title='下载位置与下载记录'>
+                    <span>
+                      <Button
+                        size='small'
+                        startIcon={<FolderSharedIcon fontSize='small' />}
+                        data-testid='open-download-dialog'
+                        onClick={() => setDownloadDialogOpen(true)}
+                      >
+                        下载记录
                       </Button>
                     </span>
                   </Tooltip>
@@ -538,7 +567,7 @@ export const Fav = function ({
             value={downloadState && downloadState.total ? (downloadState.index / downloadState.total) * 100 : 0}
           />
           <Typography variant='caption' sx={{ display: 'block', mt: 1, color: 'var(--azusa-muted)' }}>
-            下载会逐个请求并保存，可在浏览器下载栏查看进度；文件保存在浏览器默认下载目录。
+            下载会逐个请求并保存；已选文件夹时静默写入该目录，否则落到浏览器下载目录的子目录 {BROWSER_DOWNLOAD_SUBFOLDER}/。
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -547,6 +576,8 @@ export const Fav = function ({
           </Button>
         </DialogActions>
       </Dialog>
+
+      <DownloadDialog open={downloadDialogOpen} onClose={() => setDownloadDialogOpen(false)} />
 
       <Snackbar open={!!downloadNotice} autoHideDuration={6000} onClose={() => setDownloadNotice(null)}>
         <Alert onClose={() => setDownloadNotice(null)} severity={downloadNotice?.severity || 'success'} sx={{ width: '100%' }}>

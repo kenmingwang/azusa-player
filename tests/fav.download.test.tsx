@@ -87,7 +87,7 @@ describe('Fav table audio quality and downloads', () => {
       );
     });
 
-    expect(await screen.findByText('已按最高音质下载 1 首到本地。')).toBeInTheDocument();
+    expect(await screen.findByText('已按最高音质下载 1 首到浏览器下载目录。')).toBeInTheDocument();
   });
 
   it('downloads a single row through the row action icon', async () => {
@@ -118,7 +118,7 @@ describe('Fav table audio quality and downloads', () => {
     await user.click(screen.getAllByRole('checkbox')[1]);
     await user.click(screen.getByRole('button', { name: /批量下载\(1\)/ }));
 
-    expect(await screen.findByText('下载完成：成功 0 首，失败 1 首。')).toBeInTheDocument();
+    expect(await screen.findByText(/下载完成：成功 0 首，失败 1 首/)).toBeInTheDocument();
   });
 
   it('warns when the selection has no resolvable bvid', async () => {

@@ -13,6 +13,13 @@
 ### New playlist in one click
 - The "添加到歌单" dialog gains a "即刻新建歌单并添加" action: name the playlist and the selected songs are created and inserted in a single step (keeps the original `source` so "刷新来源" still works). Handy right after parsing a multipart B 站 video and selecting all its pages.
 
+### Download folder & download history
+- Choose the download folder **once** through the File System Access API (`showDirectoryPicker`); the directory handle is kept in IndexedDB, so every later download is written straight into it — no per-file "另存为" dialog. Existing files are never overwritten (` (1)`, ` (2)` … suffixes).
+- Without a chosen folder, downloads are handed to `chrome.downloads` with `saveAs: false` and land silently in `<downloads>/azusa-player/`. Chrome downgrades a stored handle back to `prompt` after a restart; that case is surfaced as a "重新授权" button and re-requested on the next download click.
+- Bytes are always fetched in the page context first: handing a raw bilibili media URL to `chrome.downloads` returns `SERVER_FORBIDDEN` (the downloader does not get the `referer` injected by the extension's declarativeNetRequest rules), while the page fetch returns the full stream.
+- New "下载记录" dialog: shows the current download location with folder picker / re-grant / switch-back-to-default actions, plus a persistent history (capped at 500 entries) listing song, quality badge, size, status, error and timestamp, with "打开下载目录" and "在文件夹中显示" shortcuts.
+- `file-saver` remains as the last-resort fallback when neither API is available (e.g. the web dev build), and the `downloads` permission was added to the manifest.
+
 ## 2026-03-21
 
 ### TS Migration & Refactor
