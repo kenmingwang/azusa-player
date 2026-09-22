@@ -30,6 +30,16 @@ import { createTheme, ThemeProvider, useTheme } from '@mui/material/styles';
 import { zhCN } from '@mui/material/locale';
 import Tooltip from '@mui/material/Tooltip';
 import Checkbox from '@mui/material/Checkbox';
+import DownloadIcon from '@mui/icons-material/Download';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import LinearProgress from '@mui/material/LinearProgress';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import { AudioQualityBadge } from './AudioQuality';
+import { downloadSongsToLocal } from '../utils/downloader';
 import type { SearchSource } from '../background/DataProcess';
 
 interface SongLike {
@@ -45,6 +55,13 @@ interface SongLike {
 interface FavLike {
   info: { id: string; title: string; currentTableInfo?: Record<string, any>; source?: SearchSource };
   songList: SongLike[];
+}
+
+interface DownloadState {
+  index: number;
+  total: number;
+  name: string;
+  qualityLabel: string;
 }
 
 interface FavProps {
@@ -65,9 +82,10 @@ const theme = createTheme({ palette: { primary: { main: '#1976d2' } } }, zhCN);
 
 const columns = [
   { id: 'check', label: '', minWidth: '5%' },
-  { id: 'name', label: '歌曲名', minWidth: '45%' },
-  { id: 'uploader', label: 'UP主', align: 'center', minWidth: '20%' },
-  { id: 'operation', label: '操作', minWidth: '30%', align: 'right' },
+  { id: 'name', label: '歌曲名', minWidth: '34%' },
+  { id: 'quality', label: '音质', align: 'center', minWidth: '12%' },
+  { id: 'uploader', label: 'UP主', align: 'center', minWidth: '17%' },
+  { id: 'operation', label: '操作', minWidth: '32%', align: 'right' },
 ] as const;
 
 const CRUDIcon = {
@@ -158,6 +176,9 @@ export const Fav = function ({
   const [selectedSongIds, setSelectedSongIds] = useState<string[]>([]);
   const [highlightSongId, setHighlightSongId] = useState('');
   const [highlightNonce, setHighlightNonce] = useState(0);
+  const [downloadState, setDownloadState] = useState<DownloadState | null>(null);
+  const [downloadNotice, setDownloadNotice] = useState<{ severity: 'success' | 'info' | 'warning' | 'error'; message: string } | null>(null);
+  const cancelDownloadRef = React.useRef(false);
   const rowRefs = React.useRef<Record<string, HTMLTableRowElement | null>>({});
 
   useEffect(() => {
@@ -228,6 +249,52 @@ export const Fav = function ({
     setSelectedSongIds((prev) => [...new Set([...prev, ...pageIds])]);
   };
 
+  const runDownloadSongs = React.useCallback(async (songs: SongLike[]) => {
+    const targets = (songs || []).filter((song) => song?.bvid && song?.id);
+    if (!targets.length) {
+      setDownloadNotice({ severity: 'error', message: '选中的条目缺少 bvid / cid，无法下载。' });
+      return;
+    }
+
+    cancelDownloadRef.current = false;
+    setDownloadState({ index: 0, total: targets.length, name: String(targets[0].name || ''), qualityLabel: '' });
+
+    const summary = await downloadSongsToLocal(targets as any, {
+      isCancelled: () => cancelDownloadRef.current,
+      onProgress: (event) => {
+        setDownloadState({
+          index: event.index + 1,
+          total: event.total,
+          name: String(event.song?.name || ''),
+          qualityLabel: event.quality?.label || '',
+        });
+      },
+    });
+
+    setDownloadState(null);
+
+    if (summary.succeeded === 0 && summary.skipped === summary.total) {
+      setDownloadNotice({ severity: 'info', message: '已取消下载。' });
+      return;
+    }
+
+    if (summary.failed === 0 && summary.skipped === 0) {
+      setDownloadNotice({ severity: 'success', message: `已按最高音质下载 ${summary.succeeded} 首到本地。` });
+      return;
+    }
+
+    setDownloadNotice({
+      severity: summary.succeeded ? 'warning' : 'error',
+      message: `下载完成：成功 ${summary.succeeded} 首，失败 ${summary.failed} 首${
+        summary.skipped ? `，取消 ${summary.skipped} 首` : ''
+      }。`,
+    });
+  }, []);
+
+  const cancelDownload = () => {
+    cancelDownloadRef.current = true;
+  };
+
   const tableInfo = { page, rowsPerPage, filterString };
   const className = ScrollBar().root;
 
@@ -276,6 +343,18 @@ export const Fav = function ({
                       </Button>
                     </span>
                   </Tooltip>
+                  <Tooltip title='批量下载选中歌曲到本地（自动取最高音质）'>
+                    <span>
+                      <Button
+                        size='small'
+                        data-testid='batch-download-songs'
+                        disabled={!selectedSongs.length}
+                        onClick={() => runDownloadSongs(selectedSongs)}
+                      >
+                        批量下载({selectedSongs.length})
+                      </Button>
+                    </span>
+                  </Tooltip>
                   <Tooltip title='批量删除选中歌曲'>
                     <span>
                       <Button
@@ -303,7 +382,7 @@ export const Fav = function ({
           </Box>
 
           <TableContainer className={className} id='FavTable' component={Paper} sx={{ flex: 1, minHeight: 0 }}>
-            <Table stickyHeader aria-label='fav table' size='small' sx={{ tableLayout: 'fixed', minWidth: 560 }}>
+            <Table stickyHeader aria-label='fav table' size='small' sx={{ tableLayout: 'fixed', minWidth: 640 }}>
               <TableHead>
                 <TableRow>
                   {columns.map((column) => (
@@ -359,7 +438,7 @@ export const Fav = function ({
                     <StyledTableCell align='center'>
                       <Checkbox size='small' checked={selectedSongIds.includes(song.id)} onChange={() => toggleSong(song.id)} />
                     </StyledTableCell>
-                    <StyledTableCell align='left' sx={{ width: '45%', minWidth: 0, overflow: 'hidden' }}>
+                    <StyledTableCell align='left' sx={{ width: '34%', minWidth: 0, overflow: 'hidden' }}>
                       <Tooltip title={song.name}>
                         <Button
                           variant='text'
@@ -370,6 +449,9 @@ export const Fav = function ({
                         </Button>
                       </Tooltip>
                     </StyledTableCell>
+                    <StyledTableCell align='center' sx={{ width: '12%', minWidth: 0, whiteSpace: 'nowrap' }}>
+                      <AudioQualityBadge bvid={song.bvid} cid={song.id} />
+                    </StyledTableCell>
                     <StyledTableCell
                       align='center'
                       sx={{ minWidth: 0, color: '#ab5fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
@@ -378,13 +460,21 @@ export const Fav = function ({
                         {song.singer}
                       </a>
                     </StyledTableCell>
-                    <StyledTableCell align='right' sx={{ width: '30%', minWidth: 0 }}>
+                    <StyledTableCell align='right' sx={{ width: '32%', minWidth: 0 }}>
                       <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.75 }}>
                         <Tooltip title='加入播放列表'>
                           <AddOutlinedIcon sx={CRUDIcon} onClick={() => onAddOneFromFav([song])} />
                         </Tooltip>
                         <Tooltip title='添加到歌单'>
                           <AddBoxOutlinedIcon sx={CRUDIcon} onClick={() => handleAddToFavClick(currentFavList.info.id, [song])} />
+                        </Tooltip>
+                        <Tooltip title='下载到本地（最高音质）'>
+                          <DownloadIcon
+                            data-testid={`download-song-${song.id}`}
+                            aria-label={`download-song-${song.id}`}
+                            sx={CRUDIcon}
+                            onClick={() => runDownloadSongs([song])}
+                          />
                         </Tooltip>
                         <Tooltip title='重命名歌曲'>
                           <EditOutlinedIcon
@@ -413,7 +503,7 @@ export const Fav = function ({
                   <ThemeProvider theme={theme}>
                     <TablePagination
                       rowsPerPageOptions={[25, 50, 100]}
-                      colSpan={4}
+                      colSpan={columns.length}
                       count={rows.length}
                       rowsPerPage={rowsPerPage}
                       page={page}
@@ -432,6 +522,37 @@ export const Fav = function ({
           </TableContainer>
         </Box>
       ) : null}
+
+      <Dialog open={!!downloadState} onClose={cancelDownload} maxWidth='xs' fullWidth>
+        <DialogTitle>下载到本地</DialogTitle>
+        <DialogContent>
+          <Typography variant='body2' sx={{ color: '#ab5fff', mb: 1 }}>
+            {downloadState
+              ? `正在下载 ${Math.min(downloadState.index + 1, downloadState.total)}/${downloadState.total}：${
+                  downloadState.name
+                }${downloadState.qualityLabel ? `（${downloadState.qualityLabel}）` : ''}`
+              : ''}
+          </Typography>
+          <LinearProgress
+            variant='determinate'
+            value={downloadState && downloadState.total ? (downloadState.index / downloadState.total) * 100 : 0}
+          />
+          <Typography variant='caption' sx={{ display: 'block', mt: 1, color: 'var(--azusa-muted)' }}>
+            下载会逐个请求并保存，可在浏览器下载栏查看进度；文件保存在浏览器默认下载目录。
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelDownload} size='small'>
+            取消下载
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar open={!!downloadNotice} autoHideDuration={6000} onClose={() => setDownloadNotice(null)}>
+        <Alert onClose={() => setDownloadNotice(null)} severity={downloadNotice?.severity || 'success'} sx={{ width: '100%' }}>
+          {downloadNotice?.message || ''}
+        </Alert>
+      </Snackbar>
     </>
   );
 };

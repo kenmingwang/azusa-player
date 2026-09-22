@@ -7,6 +7,8 @@ import { BiliBiliIcon } from './bilibiliIcon';
 import { LyricOverlay } from './LyricOverlay';
 import StorageManagerCtx from '../popup/App';
 import { browserApi } from '../platform/browserApi';
+import { saveAs } from 'file-saver';
+import { resolveExtension, sanitizeFileName } from '../utils/downloader';
 
 interface SongLike {
   id: string;
@@ -393,17 +395,14 @@ export const Player = function ({ songList }: PlayerProps) {
   };
 
   const customDownloader = (downloadInfo: { src: string }) => {
+    if (!downloadInfo?.src) return;
     fetch(downloadInfo.src)
       .then((res) => res.blob())
       .then((blob) => {
-        const href = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = href;
-        link.download = `${currentAudioInst?.title || 'music'}.mp3`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(href);
+        // The player already resolved the highest quality stream, so only the container name is derived here.
+        const extension = resolveExtension(blob.type, 'm4a');
+        const fileName = `${sanitizeFileName(currentAudio?.name || currentAudioInst?.title || 'music')}.${extension}`;
+        saveAs(blob, fileName);
       })
       .catch((err) => console.error(err));
   };
