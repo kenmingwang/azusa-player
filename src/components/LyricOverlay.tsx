@@ -17,6 +17,8 @@ interface LyricOverlayProps {
   audioId?: string | number;
   audioCover: string;
   artist?: string;
+  /** Jump the audio to a lyric line (seconds, already offset-corrected). */
+  onSeek?: (seconds: number) => void;
 }
 
 export const LyricOverlay = memo(function ({
@@ -27,6 +29,7 @@ export const LyricOverlay = memo(function ({
   audioId,
   audioCover,
   artist = '',
+  onSeek,
 }: LyricOverlayProps) {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -95,7 +98,7 @@ export const LyricOverlay = memo(function ({
           </IconButton>
         </div>
         <div style={{ flex: 1, minHeight: 0 }}>
-          <Lyric currentTime={currentTime} audioName={audioName} audioId={audioId} audioCover={audioCover} artist={artist} />
+          <Lyric currentTime={currentTime} audioName={audioName} audioId={audioId} audioCover={audioCover} artist={artist} onSeek={onSeek} />
         </div>
       </div>
     </Dialog>

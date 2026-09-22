@@ -82,7 +82,7 @@ const buildRequestUrl = (url) => {
 
 const normalizeLineBreak = (text = '') => String(text).replace(/\r\n/g, '\n');
 
-const tryFixMojibake = (text = '') => {
+export const tryFixMojibake = (text = '') => {
   const source = String(text);
   if (!/[??D???é]/.test(source)) return source;
   try {

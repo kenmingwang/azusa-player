@@ -6,9 +6,11 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import { reExtractSongName as extractSongName } from '../utils/re';
 import { LyricSearchBar } from './LyricSearchBar';
+import { LyricLine } from './LyricLine';
 import StorageManagerCtx from '../popup/App';
 
-const INTERVAL_OF_RECOVERING_AUTO_SCROLL_AFTER_USER_SCROLL = 3000;
+/** Scroll back to the line being sung this long after the user stops scrolling the lyrics. */
+const RECOVER_AUTO_SCROLL_INTERVAL_MS = 3000;
 
 interface LyricPalette {
   active: string;
@@ -58,9 +60,11 @@ interface LyricProps {
   audioId?: string | number;
   audioCover: string;
   artist: string;
+  /** Jump the audio to a lyric line (seconds, already offset-corrected). */
+  onSeek?: (seconds: number) => void;
 }
 
-export const Lyric = function ({ currentTime, audioName, audioId, audioCover, artist }: LyricProps) {
+export const Lyric = function ({ currentTime, audioName, audioId, audioCover, artist, onSeek }: LyricProps) {
   const [lyricOffset, setLyricOffset] = useState(0);
   const [lyric, setLyric] = useState('');
   const [songTitle, setSongTitle] = useState('');
@@ -287,34 +291,34 @@ export const Lyric = function ({ currentTime, audioName, audioId, audioCover, ar
             minHeight: '100%',
             overflowY: 'auto',
             overflowX: 'hidden',
-            padding: '28px 12px 120px',
+            // react-lrc centres the active line using `line.offsetTop - clientHeight / 2`; offsetTop
+            // is relative to the nearest positioned ancestor, so without `relative` on the scroller
+            // the measured offset is taken from higher up the page and the scroll misses the centre.
+            position: 'relative',
+            // Symmetric padding so react-lrc can centre the sung line (it measures against clientHeight).
+            padding: '24px 12px',
             boxSizing: 'border-box',
             background: 'transparent',
+            // Smooth behaviour makes the post-scroll snap back to the sung line an animated jump.
+            scrollBehavior: 'smooth',
           }}
           lrc={lyric}
           autoScroll
-          lineRenderer={({ line: { content }, active }: any) => (
-            <div
-              style={{
-                textAlign: 'center',
-                color: active ? lyricPalette.active : lyricPalette.inactive,
-                padding: active ? '10px 16px' : '8px 16px',
-                fontSize: `${active ? lyricFontSize + 3 : lyricFontSize}px`,
-                fontFamily: "'Microsoft YaHei', 'PingFang SC', 'Noto Serif SC', Georgia, serif",
-                lineHeight: 1.82,
-                letterSpacing: active ? '0.02em' : '0.01em',
-                textShadow: 'none',
-                WebkitTextStroke: '0px transparent',
-                fontWeight: active ? 700 : 500,
-                maxWidth: '680px',
-                margin: '0 auto',
-              }}
-            >
-              {content}
-            </div>
+          verticalSpace
+          recoverAutoScrollInterval={RECOVER_AUTO_SCROLL_INTERVAL_MS}
+          lineRenderer={({ line, active }: any) => (
+            <LyricLine
+              content={line?.content || ''}
+              active={!!active}
+              startMillisecond={Number(line?.startMillisecond) || 0}
+              offset={lyricOffset}
+              fontSize={lyricFontSize}
+              activeColor={lyricPalette.active}
+              inactiveColor={lyricPalette.inactive}
+              onSeek={onSeek}
+            />
           )}
           currentMillisecond={+currentTime * 1000 + +lyricOffset}
-          intervalOfRecoveringAutoScrollAfterUserScroll={INTERVAL_OF_RECOVERING_AUTO_SCROLL_AFTER_USER_SCROLL}
         />
       </Box>
     </Box>
