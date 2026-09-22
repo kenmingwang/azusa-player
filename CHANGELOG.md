@@ -1,5 +1,25 @@
 ﻿# Changelog
 
+## 2026-09-22
+
+### Audio quality & local downloads
+- Audio quality is now resolved per page (分 P) and shown as a badge in every playlist / search row (192K / 132K / 64K / 杜比 / 无损), with codec + bitrate in the tooltip.
+- Always request the highest usable audio: `playurl` upgrades to `qn=127&fnval=4048&fourk=1`, tries the credentialed request first (logged-in accounts get 192K / Dolby / Hi-Res FLAC), falls back to the anonymous request and finally to the legacy `qn=64&fnval=16` request.
+- Dash stream picking now covers `dash.audio`, `dash.dolby.audio` and `dash.flac.audio`, ranked 无损 > 杜比 > 192K > 132K > 64K.
+- Per-row "download to local" icon and a toolbar "批量下载(n)" button download the selected songs sequentially with progress/notice feedback, choosing the right container (`.m4a` / `.flac` / `.eac3`).
+- The player's own download button now saves the resolved best-quality stream with the correct extension instead of a hardcoded `.mp3`.
+- Quality lookups are memoised in memory + `storage.local` and queued (3 concurrent probes) so long playlists do not flood the API.
+
+### New playlist in one click
+- The "添加到歌单" dialog gains a "即刻新建歌单并添加" action: name the playlist and the selected songs are created and inserted in a single step (keeps the original `source` so "刷新来源" still works). Handy right after parsing a multipart B 站 video and selecting all its pages.
+
+### Download folder & download history
+- Choose the download folder **once** through the File System Access API (`showDirectoryPicker`); the directory handle is kept in IndexedDB, so every later download is written straight into it — no per-file "另存为" dialog. Existing files are never overwritten (` (1)`, ` (2)` … suffixes).
+- Without a chosen folder, downloads are handed to `chrome.downloads` with `saveAs: false` and land silently in `<downloads>/azusa-player/`. Chrome downgrades a stored handle back to `prompt` after a restart; that case is surfaced as a "重新授权" button and re-requested on the next download click.
+- Bytes are always fetched in the page context first: handing a raw bilibili media URL to `chrome.downloads` returns `SERVER_FORBIDDEN` (the downloader does not get the `referer` injected by the extension's declarativeNetRequest rules), while the page fetch returns the full stream.
+- New "下载记录" dialog: shows the current download location with folder picker / re-grant / switch-back-to-default actions, plus a persistent history (capped at 500 entries) listing song, quality badge, size, status, error and timestamp, with "打开下载目录" and "在文件夹中显示" shortcuts.
+- `file-saver` remains as the last-resort fallback when neither API is available (e.g. the web dev build), and the `downloads` permission was added to the manifest.
+
 ## 2026-03-21
 
 ### TS Migration & Refactor

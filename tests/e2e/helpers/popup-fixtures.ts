@@ -196,9 +196,11 @@ export async function installPopupNetworkMocks(page: Page, overrides: NetworkFix
         buildJsonResponse({
           data: {
             dash: {
+              // Real bilibili dash audio ids so the ui shows the same badges as production.
               audio: [
-                { id: 1, bandwidth: 100, codecs: 'aac', baseUrl: 'https://mock.local/audio-low.mp3' },
-                { id: 2, bandwidth: 200, codecs: 'mp4a.40.2', baseUrl: 'https://mock.local/audio-high.mp3' },
+                { id: 30216, bandwidth: 67320, codecs: 'mp4a.40.2', mimeType: 'audio/mp4', baseUrl: 'https://mock.local/audio-64k.m4s' },
+                { id: 30232, bandwidth: 132796, codecs: 'mp4a.40.2', mimeType: 'audio/mp4', baseUrl: 'https://mock.local/audio-132k.m4s' },
+                { id: 30280, bandwidth: 319101, codecs: 'mp4a.40.2', mimeType: 'audio/mp4', baseUrl: 'https://mock.local/audio-192k.m4s' },
               ],
             },
           },
@@ -294,6 +296,15 @@ export async function installPopupNetworkMocks(page: Page, overrides: NetworkFix
 
   await page.route('https://i0.hdslb.com/**', async (route) => {
     await route.fulfill({ status: 204, body: '' });
+  });
+
+  // Fake audio payload used by the local download flow.
+  await page.route('https://mock.local/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/octet-stream',
+      body: Buffer.from('azusa-player-fake-audio-bytes'),
+    });
   });
 }
 

@@ -4,7 +4,11 @@ import { browserApi } from '../platform/browserApi';
 
 const logger = new Logger('Data.js');
 
-const URL_PLAY_URL = 'https://api.bilibili.com/x/player/playurl?cid={cid}&bvid={bvid}&qn=64&fnval=16';
+// fnval=4048 requests every DASH feature (16 DASH | 64 HDR | 128 4K | 256 Dolby audio | 512 Dolby vision | 1024 8K | 2048 AV1)
+// so that hi-res / dolby audio streams show up for accounts that own them.
+const URL_PLAY_URL = 'https://api.bilibili.com/x/player/playurl?cid={cid}&bvid={bvid}&qn=127&fnval=4048&fourk=1';
+// Legacy request kept as a safety net: some risk-control cohorts reject the extended fnval mask.
+const URL_PLAY_URL_FALLBACK = 'https://api.bilibili.com/x/player/playurl?cid={cid}&bvid={bvid}&qn=64&fnval=16';
 const URL_BVID_TO_CID = 'https://api.bilibili.com/x/player/pagelist?bvid={bvid}&jsonp=jsonp';
 const URL_VIDEO_INFO = 'https://api.bilibili.com/x/web-interface/view?bvid={bvid}';
 const URL_BILISERIES_INFO =
@@ -119,19 +123,177 @@ const ensureBiliSuccess = (json) => {
   return json;
 };
 
+const getStreamUrl = (stream) =>
+  stream?.baseUrl || stream?.base_url || stream?.backupUrl?.[0] || stream?.backup_url?.[0] || '';
+
+// Human readable labels for bilibili dash audio quality ids.
+export const AUDIO_QUALITY_LABELS = {
+  30216: '64K',
+  30232: '132K',
+  30280: '192K',
+  30250: '杜比',
+  30251: '无损',
+  30252: '无损',
+};
+
+export const AUDIO_QUALITY_TITLES = {
+  30216: '64K AAC',
+  30232: '132K AAC',
+  30280: '192K AAC',
+  30250: '杜比全景声',
+  30251: 'Hi-Res 无损',
+  30252: 'Hi-Res 无损',
+};
+
+// Higher rank wins. Hi-Res (FLAC) > Dolby > 192K > 132K > 64K.
+const AUDIO_QUALITY_RANKS = {
+  30252: 6,
+  30251: 5,
+  30250: 4,
+  30280: 3,
+  30232: 2,
+  30216: 1,
+};
+
+const describeBandwidth = (bandwidth) => {
+  const value = Number(bandwidth || 0);
+  if (!value) return '未知音质';
+  if (value >= 1000) return `${Math.round(value / 1000)}K`;
+  return `${Math.round(value)}bps`;
+};
+
+export const describeAudioQuality = (stream) => {
+  const qualityId = Number(stream?.id ?? stream?.quality ?? 0);
+  const label = AUDIO_QUALITY_LABELS[qualityId] || describeBandwidth(stream?.bandwidth);
+  const title = AUDIO_QUALITY_TITLES[qualityId] || label;
+  return { qualityId, label, title };
+};
+
+export const getAudioFileExtension = (stream) => {
+  const mime = String(stream?.mimeType || stream?.mime_type || '').toLowerCase();
+  const codecs = String(stream?.codecs || '').toLowerCase();
+  if (mime.includes('flac') || codecs.includes('flac')) return 'flac';
+  if (mime.includes('eac3') || mime.includes('ec-3') || codecs.includes('ec-3')) return 'eac3';
+  if (mime.includes('mpeg') && !mime.includes('mp4')) return 'mp3';
+  if (mime.includes('mp4') || codecs.includes('mp4a') || codecs.includes('aac')) return 'm4a';
+  return 'm4a';
+};
+
+// dash.audio holds the AAC ladder, dash.flac / dash.dolby hold the premium audio streams.
+export const collectAudioStreams = (json) => {
+  const dash = json?.data?.dash;
+  if (!dash) return [];
+
+  const candidates = [];
+  if (Array.isArray(dash.audio)) candidates.push(...dash.audio);
+  if (Array.isArray(dash.dolby?.audio)) candidates.push(...dash.dolby.audio);
+  if (Array.isArray(dash.flac?.audio)) candidates.push(...dash.flac.audio);
+  else if (dash.flac?.audio) candidates.push(dash.flac.audio);
+
+  const seen = new Set();
+  return candidates.filter((stream) => {
+    if (!stream) return false;
+    const url = getStreamUrl(stream);
+    if (!url) return false;
+    const key = `${stream.id}-${url}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+const streamScore = (stream) => {
+  const rank = AUDIO_QUALITY_RANKS[Number(stream?.id ?? stream?.quality ?? 0)] || 0;
+  return rank * 1e9 + Number(stream?.bandwidth || 0);
+};
+
+const streamCodecPreference = (stream) => {
+  const codecs = String(stream?.codecs || '').toLowerCase();
+  const mime = String(stream?.mimeType || stream?.mime_type || '').toLowerCase();
+  return codecs.includes('mp4a') || codecs.includes('flac') || mime.includes('mp4') || mime.includes('flac') ? 1 : 0;
+};
+
+export const pickBestAudioStream = (streams = [], preferredQualityId) => {
+  const playable = (streams || []).filter((stream) => stream && getStreamUrl(stream));
+  if (!playable.length) return undefined;
+
+  if (preferredQualityId) {
+    const preferred = playable.filter((stream) => Number(stream?.id) === Number(preferredQualityId));
+    if (preferred.length) {
+      return [...preferred].sort((a, b) => Number(b?.bandwidth || 0) - Number(a?.bandwidth || 0))[0];
+    }
+  }
+
+  return [...playable].sort((a, b) => {
+    const scoreDiff = streamScore(b) - streamScore(a);
+    if (scoreDiff) return scoreDiff;
+    const codecDiff = streamCodecPreference(b) - streamCodecPreference(a);
+    if (codecDiff) return codecDiff;
+    return Number(b?.bandwidth || 0) - Number(a?.bandwidth || 0);
+  })[0];
+};
+
+// Turns a raw dash audio stream into the shape the UI / downloader works with.
+export const describeAudioStream = (stream) => {
+  if (!stream) return undefined;
+  const { qualityId, label, title } = describeAudioQuality(stream);
+  return {
+    qualityId,
+    label,
+    title,
+    codecs: String(stream.codecs || ''),
+    bandwidth: Number(stream.bandwidth || 0),
+    mimeType: String(stream.mimeType || stream.mime_type || ''),
+    extension: getAudioFileExtension(stream),
+    url: getStreamUrl(stream),
+    fetchedAt: Date.now(),
+  };
+};
+
+// Remembers which variant of the playurl request worked so later calls skip failing attempts.
+let workingPlayUrlVariant = null;
+
+const requestAudioStreams = async (variant, bvid, cid) => {
+  const url = variant.template.replace('{bvid}', bvid).replace('{cid}', cid);
+  const json = variant.withCredentials ? await fetchBiliJsonWithCredentials(url) : await fetchBiliJson(url);
+  return collectAudioStreams(json);
+};
+
+export const fetchAudioStreams = async (bvid, cid) => {
+  const variants = [
+    ...(workingPlayUrlVariant ? [workingPlayUrlVariant] : []),
+    { template: URL_PLAY_URL, withCredentials: true },
+    { template: URL_PLAY_URL, withCredentials: false },
+    { template: URL_PLAY_URL_FALLBACK, withCredentials: false },
+  ];
+
+  let lastError;
+  for (const variant of variants) {
+    try {
+      const streams = await requestAudioStreams(variant, bvid, cid);
+      if (streams.length) {
+        workingPlayUrlVariant = variant;
+        return streams;
+      }
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (lastError) throw lastError;
+  return [];
+};
+
+// Returns the highest available audio stream (url + quality metadata) for a page.
+export const fetchBestAudio = async (bvid, cid, preferredQualityId) => {
+  const streams = await fetchAudioStreams(bvid, cid);
+  return describeAudioStream(pickBestAudioStream(streams, preferredQualityId));
+};
+
 const extractResponseJson = (json, field) => {
   if (field === 'AudioUrl') {
-    const audios = json?.data?.dash?.audio || [];
-    if (audios.length === 0) return '';
-
-    const ordered = [...audios].sort((a, b) => {
-      const aScore = Number(a?.bandwidth || a?.id || 0);
-      const bScore = Number(b?.bandwidth || b?.id || 0);
-      return bScore - aScore;
-    });
-
-    const preferred = ordered.find((a) => String(a?.codecs || '').includes('mp4a')) || ordered[0];
-    return preferred?.baseUrl || preferred?.base_url || preferred?.backupUrl?.[0] || preferred?.backup_url?.[0] || '';
+    const best = pickBestAudioStream(collectAudioStreams(json));
+    return getStreamUrl(best);
   }
 
   if (field === 'CID') {
@@ -158,8 +320,8 @@ export const fetchPlayUrlPromise = async (bvid, cid) => {
         return;
       }
 
-      fetchBiliJson(URL_PLAY_URL.replace('{bvid}', bvid).replace('{cid}', cid))
-        .then((json) => resolve(extractResponseJson(json, 'AudioUrl')))
+      fetchBestAudio(bvid, cid)
+        .then((audio) => resolve(audio?.url || ''))
         .catch((err) => {
           console.log(err);
           reject(err);
