@@ -451,7 +451,11 @@ export const FavList = memo(function ({
 
   return (
     <>
-      <Search handleSeach={handleSeach} />
+      <Search
+        handleSeach={handleSeach}
+        onPlaySongs={onPlayOneFromFav}
+        onAddSongs={(songs) => handleAddToFavClick('FavList-Search', songs)}
+      />
 
       <Box
         className={ScrollBar().root}

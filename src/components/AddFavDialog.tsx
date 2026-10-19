@@ -144,6 +144,8 @@ export const HelpDialog = function ({ onClose, openState }: HelpDialogProps) {
       <DialogTitle>搜索说明</DialogTitle>
       <DialogContent>
         <DialogContentText>目前支持以下输入：</DialogContentText>
+        <DialogContentText>- 歌名 / 歌手 / 关键词：例如「周杰伦 晴天」。搜索结果支持翻页、播放和加入歌单，多 P 视频可展开选择。</DialogContentText>
+        <DialogContentText>插件不要求预先登录；若 B 站限制请求，请打开 B 站网页检查搜索是否正常，并完成页面要求的验证后重试。</DialogContentText>
         <DialogContentText>- BVID: `BV1wr4y1v7TA`</DialogContentText>
         <DialogContentText>- 收藏夹 ID: `1793186881`</DialogContentText>
         <DialogContentText>
@@ -155,7 +157,7 @@ export const HelpDialog = function ({ onClose, openState }: HelpDialogProps) {
         <DialogContentText>
           - Season 链接: `https://space.bilibili.com/&lt;uid&gt;/lists/&lt;sid&gt;?type=season`
         </DialogContentText>
-        <DialogContentText>右键 B 站视频也可以快速加入歌单，其他来源暂时不支持。</DialogContentText>
+        <DialogContentText>纯数字输入按收藏夹 ID 处理；搜索数字歌名时可加上歌手名。右键 B 站视频也可以快速加入歌单。</DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>关闭</Button>

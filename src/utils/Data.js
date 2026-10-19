@@ -64,7 +64,7 @@ const URL_QQ_SEARCH_POST = {
 
 const WEB_API_PROXY = import.meta.env.VITE_WEB_API_PROXY || '';
 
-const buildRequestUrl = (url) => {
+export const buildRequestUrl = (url) => {
   if (!WEB_API_PROXY) return url;
 
   try {

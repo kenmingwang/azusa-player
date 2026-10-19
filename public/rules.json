@@ -50,6 +50,24 @@
     "condition": { "urlFilter": "akamaized" }
   },
   {
+    "id": 5,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        {
+          "header": "referer",
+          "operation": "set",
+          "value": "https://www.bilibili.com/"
+        }
+      ]
+    },
+    "condition": {
+      "regexFilter": "^https://api\\.bilibili\\.com/x/web-interface/(wbi/search/type\\?|nav(?:\\?|$))",
+      "resourceTypes": ["xmlhttprequest"]
+    }
+  },
+  {
     "id": 4,
     "priority": 1,
     "action": {
