@@ -1,8 +1,8 @@
-﻿/** @vitest-environment jsdom */
+/** @vitest-environment jsdom */
 
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Search } from '../src/components/Search';
 
@@ -20,6 +20,10 @@ vi.mock('../src/background/DataProcess', () => ({
   getBiliColleList: mocks.getBiliColleList,
 }));
 
+vi.mock('../src/components/VideoSearchDialog', () => ({
+  VideoSearchDialog: ({ keyword }: { keyword: string }) => <div role='dialog'>视频搜索：{keyword}</div>,
+}));
+
 describe('Search component regression', () => {
   beforeEach(() => {
     mocks.getSongList.mockReset();
@@ -28,12 +32,39 @@ describe('Search component regression', () => {
     mocks.getBiliColleList.mockReset();
   });
 
+  it('opens video keyword search without eagerly looking up video or favorite details', async () => {
+    const user = userEvent.setup();
+    const handleSeach = vi.fn();
+    render(<Search handleSeach={handleSeach} onPlaySongs={vi.fn()} onAddSongs={vi.fn()} />);
+    await user.type(screen.getByLabelText(/BVid/i), '周杰伦 晴天');
+    await user.click(screen.getByRole('button', { name: '搜索', exact: true }));
+    expect(await screen.findByRole('dialog')).toHaveTextContent('视频搜索：周杰伦 晴天');
+    expect(mocks.getSongList).not.toHaveBeenCalled();
+    expect(mocks.getFavList).not.toHaveBeenCalled();
+    expect(handleSeach).not.toHaveBeenCalled();
+  });
+
+  it('ignores an older source lookup after a newer keyword search starts', async () => {
+    const user = userEvent.setup();
+    let resolve!: (songs: unknown[]) => void;
+    mocks.getSongList.mockReturnValue(new Promise((done) => { resolve = done; }));
+    const handleSeach = vi.fn();
+    render(<Search handleSeach={handleSeach} onPlaySongs={vi.fn()} onAddSongs={vi.fn()} />);
+    const input = screen.getByLabelText(/BVid/i);
+    await user.type(input, 'BV1yNPbzjEVq{enter}');
+    await user.clear(input);
+    await user.type(input, '晴天{enter}');
+    await act(async () => resolve([{ id: 'cid-old', name: '旧结果' }]));
+    expect(screen.getByRole('dialog')).toHaveTextContent('视频搜索：晴天');
+    expect(handleSeach).not.toHaveBeenCalled();
+  });
+
   it('searches by BVID when user presses Enter', async () => {
     const user = userEvent.setup();
     const handleSeach = vi.fn();
     mocks.getSongList.mockResolvedValue([{ id: 'cid-1', bvid: 'BV1yNPbzjEVq', name: 'song-a' }]);
 
-    render(<Search handleSeach={handleSeach} />);
+    render(<Search handleSeach={handleSeach} onPlaySongs={vi.fn()} onAddSongs={vi.fn()} />);
 
     const input = screen.getByLabelText(/BVid/i);
     await user.type(input, 'BV1yNPbzjEVq{enter}');
@@ -58,7 +89,7 @@ describe('Search component regression', () => {
     const handleSeach = vi.fn();
     mocks.getFavList.mockResolvedValue([{ id: 'fav-cid-1', bvid: 'BV1a', name: 'fav-song' }]);
 
-    render(<Search handleSeach={handleSeach} />);
+    render(<Search handleSeach={handleSeach} onPlaySongs={vi.fn()} onAddSongs={vi.fn()} />);
 
     const input = screen.getByLabelText(/BVid/i);
     await user.type(input, '1042352181{enter}');
@@ -78,7 +109,7 @@ describe('Search component regression', () => {
     const handleSeach = vi.fn();
     mocks.getBiliColleList.mockResolvedValue([{ id: 'c1', bvid: 'BV1b', name: 'colle' }]);
 
-    render(<Search handleSeach={handleSeach} />);
+    render(<Search handleSeach={handleSeach} onPlaySongs={vi.fn()} onAddSongs={vi.fn()} />);
 
     const input = screen.getByLabelText(/BVid/i);
     await user.type(input, 'https://space.bilibili.com/123/lists/456?type=season{enter}');
@@ -98,7 +129,7 @@ describe('Search component regression', () => {
     const handleSeach = vi.fn();
     mocks.getBiliSeriesList.mockResolvedValue([{ id: 's1', bvid: 'BV1c', name: 'series-song' }]);
 
-    render(<Search handleSeach={handleSeach} />);
+    render(<Search handleSeach={handleSeach} onPlaySongs={vi.fn()} onAddSongs={vi.fn()} />);
 
     const input = screen.getByLabelText(/BVid/i);
     await user.type(input, 'https://space.bilibili.com/444180997/lists/828030?type=series{enter}');
@@ -119,7 +150,7 @@ describe('Search component regression', () => {
     const handleSeach = vi.fn();
     mocks.getBiliColleList.mockResolvedValue([{ id: 'c2', bvid: 'BV1d', name: 'season-song' }]);
 
-    render(<Search handleSeach={handleSeach} />);
+    render(<Search handleSeach={handleSeach} onPlaySongs={vi.fn()} onAddSongs={vi.fn()} />);
 
     const input = screen.getByLabelText(/BVid/i);
     await user.type(input, 'https://space.bilibili.com/5109111/lists/6995126?type=season{enter}');
@@ -139,7 +170,7 @@ describe('Search component regression', () => {
     const user = userEvent.setup();
     const handleSeach = vi.fn();
 
-    render(<Search handleSeach={handleSeach} />);
+    render(<Search handleSeach={handleSeach} onPlaySongs={vi.fn()} onAddSongs={vi.fn()} />);
 
     const input = screen.getByLabelText(/BVid/i);
     await user.type(input, 'https://space.bilibili.com/444180997/lists/828030{enter}');

@@ -31,6 +31,7 @@
     "@mui/material": "^5.14.9",
     "@mui/styles": "^5.14.9",
     "@mui/x-data-grid": "^6.13.0",
+    "@noble/hashes": "1.8.0",
     "cross-fetch": "^4.0.0",
     "downloadjs": "^1.4.7",
     "file-saver": "^2.0.5",
