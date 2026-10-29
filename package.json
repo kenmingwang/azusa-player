@@ -13,6 +13,7 @@
     "build": "tsc && vite build --mode extension",
     "build:web": "tsc && vite build",
     "build:extension": "tsc && vite build --mode extension",
+    "build:firefox": "npm run build:extension && node scripts/make-firefox.mjs",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run --reporter=basic",

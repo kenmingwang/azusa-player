@@ -9,6 +9,22 @@ const STORAGE_PREFIX = 'azusa-player';
 const hasChromeApi = () => typeof chrome !== 'undefined';
 const hasExtensionRuntimeApi = () => hasChromeApi() && !!chrome.runtime?.sendMessage;
 
+// Chrome 的 storage 会 JSON 序列化（丢弃函数/undefined），Firefox 用结构化克隆（遇到函数会报错）。
+// 写入前统一做一次 JSON 往返，让两边行为一致。
+const sanitize = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
+
+const wrapStorageArea = (area: any) =>
+  new Proxy(area, {
+    get(target, prop) {
+      const value = Reflect.get(target, prop, target);
+      if (typeof value !== 'function') return value;
+      if (prop === 'set') {
+        return (items: unknown, ...rest: unknown[]) => value.call(target, sanitize(items), ...rest);
+      }
+      return value.bind(target);
+    },
+  });
+
 const resolveApi = () => {
   if (!hasChromeApi()) return webChromeLike as typeof chrome;
 
@@ -18,8 +34,11 @@ const resolveApi = () => {
     storage: {
       ...webChromeLike.storage,
       ...chrome.storage,
-      local: chrome.storage?.local || webChromeLike.storage.local,
-      sync: chrome.storage?.sync || webChromeLike.storage.sync,
+      // 写入经过 sanitize 包装（见上方 sanitize）：Chrome 序列化时会悄悄丢弃函数/undefined，
+      // Firefox 则会抛出 DataCloneError。
+      local: chrome.storage?.local ? wrapStorageArea(chrome.storage.local) : webChromeLike.storage.local,
+      // sync 同样使用该包装；网页模式的回退实现本身走 JSON.stringify，因此保持不变。
+      sync: chrome.storage?.sync ? wrapStorageArea(chrome.storage.sync) : webChromeLike.storage.sync,
     },
     runtime: {
       ...webChromeLike.runtime,

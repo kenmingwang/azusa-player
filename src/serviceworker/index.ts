@@ -258,10 +258,15 @@ chrome.runtime.onMessage.addListener((message, sender) => {
   }
 });
 
+// onShown 只在 Firefox 中存在，Chrome 不会执行到这里。
+// 元素菜单的 contexts 是 ['all']，在页面空白处右键时也会命中，从而和"页面"菜单重复；
+// 当元素来源与页面自身来源相同时隐藏元素菜单，交给页面菜单处理。
 contextMenusApi.onShown?.addListener((info, tab) => {
   const source = typeof tab?.id === 'number' ? specialContextByTabId.get(tab.id) : undefined;
-  const shouldShow = !!source && !info.linkUrl;
-  updateElementMenuVisibility(shouldShow);
+  const pageSource = parseSearchSource(info.pageUrl);
+  const sameAsPage =
+    !!source && !!pageSource && JSON.stringify(source) === JSON.stringify(pageSource);
+  updateElementMenuVisibility(!!source && !info.linkUrl && !sameAsPage);
 });
 
 contextMenusApi.onHidden?.addListener(() => {
